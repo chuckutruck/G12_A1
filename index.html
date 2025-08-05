@@ -77,10 +77,76 @@
             background-color: #9CA3AF;
             border-radius: 10px;
         }
+        
+        /* Transiciones para mostrar/ocultar secciones */
+        .section-transition {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .hidden-section {
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+        }
+        
+        .visible-section {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
-    <div id="app" class="min-h-screen flex flex-col">
+    <!-- Pantalla de inicio de sesión -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+        <div class="bg-white rounded-xl shadow-lg p-8 max-w-md w-full">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-blue-500 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-clock text-white text-2xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">Iniciar Sesión en Tidbok</h1>
+                <p class="text-gray-600 mt-2">Ingresa tus credenciales para acceder</p>
+            </div>
+            
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label for="login-email" class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                    <input type="email" id="login-email" class="w-full p-3 border rounded-lg" placeholder="tu@email.com" value="demo@tidbok.com" required>
+                </div>
+                
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                    <input type="password" id="login-password" class="w-full p-3 border rounded-lg" placeholder="••••••••" value="demopassword" required>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="remember-me" type="checkbox" class="h-4 w-4 text-blue-500 border-gray-300 rounded">
+                        <label for="remember-me" class="ml-2 block text-sm text-gray-700">Recordarme</label>
+                    </div>
+                    
+                    <a href="#" class="text-sm text-blue-500 hover:text-blue-700">¿Olvidaste tu contraseña?</a>
+                </div>
+                
+                <div id="login-error" class="text-red-500 text-sm hidden">
+                    Credenciales incorrectas. Inténtalo de nuevo.
+                </div>
+                
+                <div>
+                    <button type="submit" class="w-full px-4 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition">
+                        Iniciar Sesión
+                    </button>
+                </div>
+            </form>
+            
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600">¿No tienes una cuenta? <a href="#" class="text-blue-500 hover:text-blue-700" id="signup-btn">Regístrate</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Aplicación principal (oculta inicialmente) -->
+    <div id="main-app" class="min-h-screen flex flex-col hidden">
         <!-- Barra de navegación -->
         <nav class="bg-white shadow-md py-4 px-6 flex justify-between items-center">
             <div class="flex items-center space-x-3">
@@ -101,7 +167,7 @@
                         U
                     </div>
                     <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10">
-                        <div class="px-4 py-2 text-sm text-gray-700 border-b">Usuario Demo</div>
+                        <div id="user-name-display" class="px-4 py-2 text-sm text-gray-700 border-b">Usuario Demo</div>
                         <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" id="edit-profile-btn">Editar perfil</a>
                         <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" id="logout-btn">Cerrar sesión</a>
                     </div>
@@ -152,7 +218,7 @@
             <!-- Área de contenido -->
             <div class="flex-1 p-6 overflow-y-auto scrollbar-custom">
                 <!-- Panel Principal -->
-                <div id="dashboard-section" class="section-content">
+                <div id="dashboard-section" class="section-content section-transition">
                     <h2 class="text-2xl font-bold mb-6">Resumen de Actividades</h2>
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -220,7 +286,7 @@
                 </div>
                 
                 <!-- Registrar Horas -->
-                <div id="time-entry-section" class="section-content hidden">
+                <div id="time-entry-section" class="section-content section-transition hidden-section">
                     <h2 class="text-2xl font-bold mb-6">Registrar Nuevo Tiempo</h2>
                     
                     <div class="bg-white rounded-xl shadow p-6 mb-6">
@@ -357,7 +423,7 @@
                 </div>
                 
                 <!-- Gestión de Proyectos -->
-                <div id="projects-section" class="section-content hidden">
+                <div id="projects-section" class="section-content section-transition hidden-section">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-2xl font-bold">Gestión de Proyectos</h2>
                         <button class="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition" id="add-project-btn">
@@ -441,7 +507,7 @@
                 </div>
                 
                 <!-- Historial -->
-                <div id="history-section" class="section-content hidden">
+                <div id="history-section" class="section-content section-transition hidden-section">
                     <h2 class="text-2xl font-bold mb-6">Historial de Registros</h2>
                     
                     <div class="bg-white rounded-xl shadow p-6 mb-6">
@@ -619,7 +685,7 @@
                 </div>
                 
                 <!-- Estadísticas -->
-                <div id="reports-section" class="section-content hidden">
+                <div id="reports-section" class="section-content section-transition hidden-section">
                     <h2 class="text-2xl font-bold mb-6">Estadísticas y Reportes</h2>
                     
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -674,7 +740,7 @@
                 </div>
                 
                 <!-- Exportar -->
-                <div id="export-section" class="section-content hidden">
+                <div id="export-section" class="section-content section-transition hidden-section">
                     <h2 class="text-2xl font-bold mb-6">Exportar Datos</h2>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -777,7 +843,7 @@
                     </button>
                 </div>
                 
-                <form class="space-y-4">
+                <form id="profile-form" class="space-y-4">
                     <div class="flex justify-center">
                         <div class="relative">
                             <div id="profile-avatar" class="w-24 h-24 rounded-full bg-blue-500 flex items-center justify-center text-white text-3xl font-bold mb-2">
@@ -791,22 +857,22 @@
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-                        <input type="text" class="w-full p-3 border rounded-lg" value="Usuario">
+                        <input type="text" id="first-name" class="w-full p-3 border rounded-lg" value="Usuario">
                     </div>
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
-                        <input type="text" class="w-full p-3 border rounded-lg" value="Demo">
+                        <input type="text" id="last-name" class="w-full p-3 border rounded-lg" value="Demo">
                     </div>
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                        <input type="tel" class="w-full p-3 border rounded-lg" value="+34 600 123 456">
+                        <input type="tel" id="phone" class="w-full p-3 border rounded-lg" value="+34 600 123 456">
                     </div>
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
-                        <input type="email" class="w-full p-3 border rounded-lg" value="usuario@demo.com" disabled>
+                        <input type="email" id="email" class="w-full p-3 border rounded-lg" value="usuario@demo.com" disabled>
                     </div>
                     
                     <div class="pt-4 flex justify-end space-x-3">
@@ -836,7 +902,14 @@
         const database = firebase.database();
         
         // DOM Elements
-        const appContainer = document.getElementById('app');
+        const loginScreen = document.getElementById('login-screen');
+        const mainApp = document.getElementById('main-app');
+        const loginForm = document.getElementById('login-form');
+        const loginEmail = document.getElementById('login-email');
+        const loginPassword = document.getElementById('login-password');
+        const loginError = document.getElementById('login-error');
+        const signupBtn = document.getElementById('signup-btn');
+        
         const navItems = document.querySelectorAll('.nav-item');
         const sectionContents = document.querySelectorAll('.section-content');
         const profileModal = document.getElementById('profile-modal');
@@ -847,6 +920,15 @@
         const timeEntryForm = document.getElementById('time-entry-form');
         const languageSelector = document.getElementById('language-selector');
         const connectionStatus = document.getElementById('connection-status');
+        const profileForm = document.getElementById('profile-form');
+        
+        const firstNameInput = document.getElementById('first-name');
+        const lastNameInput = document.getElementById('last-name');
+        const phoneInput = document.getElementById('phone');
+        const emailInput = document.getElementById('email');
+        const userAvatar = document.getElementById('user-avatar');
+        const profileAvatar = document.getElementById('profile-avatar');
+        const userNameDisplay = document.getElementById('user-name-display');
         
         // Initialize Charts
         function initCharts() {
@@ -963,9 +1045,13 @@
         // Navigation
         function showSection(sectionId) {
             sectionContents.forEach(section => {
-                section.classList.add('hidden');
+                section.classList.remove('visible-section');
+                section.classList.add('hidden-section');
             });
-            document.getElementById(`${sectionId}-section`).classList.remove('hidden');
+            
+            const sectionToShow = document.getElementById(`${sectionId}-section`);
+            sectionToShow.classList.remove('hidden-section');
+            sectionToShow.classList.add('visible-section');
             
             navItems.forEach(item => {
                 item.classList.remove('active');
@@ -973,6 +1059,20 @@
                     item.classList.add('active');
                 }
             });
+        }
+        
+        // Update user profile
+        function updateUserProfile(displayName, email) {
+            const names = displayName.split(' ');
+            const initials = names.map(name => name[0]).join('').toUpperCase();
+            
+            userAvatar.textContent = initials;
+            profileAvatar.textContent = initials;
+            userNameDisplay.textContent = displayName;
+            
+            firstNameInput.value = names[0] || '';
+            lastNameInput.value = names[1] || '';
+            emailInput.value = email || '';
         }
         
         // Event Listeners
@@ -1000,8 +1100,7 @@
         logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
             auth.signOut().then(() => {
-                // Redirect to login or show login screen
-                alert('Sesión cerrada correctamente');
+                console.log('Sesión cerrada correctamente');
             }).catch((error) => {
                 console.error('Error al cerrar sesión:', error);
             });
@@ -1011,6 +1110,20 @@
             e.preventDefault();
             alert('Registro guardado correctamente');
             timeEntryForm.reset();
+        });
+        
+        profileForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const firstName = firstNameInput.value;
+            const lastName = lastNameInput.value;
+            const phone = phoneInput.value;
+            
+            const displayName = `${firstName} ${lastName}`;
+            updateUserProfile(displayName, emailInput.value);
+            
+            // Aquí guardaríamos los cambios en Firebase en un caso real
+            alert('Perfil actualizado correctamente');
+            profileModal.classList.add('hidden');
         });
         
         // Simulate connection status changes
@@ -1049,23 +1162,57 @@
         
         // Initialize the app
         function initApp() {
-            showSection('dashboard');
-            initCharts();
-            simulateConnectionChanges();
-            
-            // Firebase Auth State Listener
+            // Firebase Auth State Listener - CORRECCIÓN CLAVE
             auth.onAuthStateChanged(user => {
                 if (user) {
                     // User is signed in
                     const displayName = user.displayName || "Usuario Demo";
-                    const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase();
+                    const email = user.email || "usuario@demo.com";
                     
-                    document.getElementById('user-avatar').textContent = initials;
-                    document.getElementById('profile-avatar').textContent = initials;
+                    updateUserProfile(displayName, email);
+                    
+                    // Show main app and hide login screen
+                    loginScreen.classList.add('hidden');
+                    mainApp.classList.remove('hidden');
+                    
+                    // Initialize app components
+                    showSection('dashboard');
+                    initCharts();
+                    simulateConnectionChanges();
                 } else {
                     // User is signed out
-                    // Redirect to login or show login screen
+                    mainApp.classList.add('hidden');
+                    loginScreen.classList.remove('hidden');
                 }
+            });
+            
+            // Login form submission
+            loginForm.addEventListener('submit', e => {
+                e.preventDefault();
+                const email = loginEmail.value;
+                const password = loginPassword.value;
+                
+                auth.signInWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        // Signed in 
+                        const user = userCredential.user;
+                        console.log('Usuario autenticado:', user);
+                        // Clear form
+                        loginForm.reset();
+                        loginError.classList.add('hidden');
+                    })
+                    .catch((error) => {
+                        const errorCode = error.code;
+                        const errorMessage = error.message;
+                        loginError.textContent = `Error de autenticación: ${errorMessage}`;
+                        loginError.classList.remove('hidden');
+                    });
+            });
+            
+            // Signup button
+            signupBtn.addEventListener('click', e => {
+                e.preventDefault();
+                alert('Para registrarte, por favor contacta al administrador del sistema.');
             });
         }
         
