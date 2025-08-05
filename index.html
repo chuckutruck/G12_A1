@@ -9,7 +9,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
@@ -108,6 +107,41 @@
         .ob-2-badge { background-color: #E0E7FF; color: #4338CA; }
         .ob-3-badge { background-color: #EDE9FE; color: #5B21B6; }
         .ob-4-badge { background-color: #FCE7F3; color: #9D174D; }
+        
+        .user-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 0.5rem;
+            width: 12rem;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            z-index: 50;
+        }
+        
+        .user-menu.visible {
+            display: block;
+        }
+        
+        .user-menu-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            color: #4B5563;
+            cursor: pointer;
+        }
+        
+        .user-menu-item:hover {
+            background-color: #F9FAFB;
+        }
+        
+        .user-menu-divider {
+            height: 1px;
+            background-color: #E5E7EB;
+            margin: 0.25rem 0;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -133,15 +167,6 @@
                     <input type="password" id="login-password" class="w-full p-3 border rounded-lg" placeholder="••••••••" value="demopassword" required>
                 </div>
                 
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <input id="remember-me" type="checkbox" class="h-4 w-4 text-blue-500 border-gray-300 rounded">
-                        <label for="remember-me" class="ml-2 block text-sm text-gray-700">Recordarme</label>
-                    </div>
-                    
-                    <a href="#" class="text-sm text-blue-500 hover:text-blue-700">¿Olvidaste tu contraseña?</a>
-                </div>
-                
                 <div id="login-error" class="text-red-500 text-sm hidden">
                     Credenciales incorrectas. Inténtalo de nuevo.
                 </div>
@@ -152,10 +177,6 @@
                     </button>
                 </div>
             </form>
-            
-            <div class="mt-6 text-center">
-                <p class="text-sm text-gray-600">¿No tienes una cuenta? <a href="#" class="text-blue-500 hover:text-blue-700" id="signup-btn">Regístrate</a></p>
-            </div>
         </div>
     </div>
     
@@ -170,20 +191,25 @@
                 <h1 class="text-xl font-bold text-gray-800">Tidbok</h1>
             </div>
             
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-4 relative">
                 <div id="connection-status" class="flex items-center space-x-1">
                     <i class="fas fa-circle connection-online"></i>
                     <span class="text-sm">Online</span>
                 </div>
                 
-                <div class="relative group">
+                <div class="relative">
                     <div id="user-avatar" class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold cursor-pointer">
                         U
                     </div>
-                    <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10">
+                    <div id="user-menu" class="user-menu">
                         <div id="user-name-display" class="px-4 py-2 text-sm text-gray-700 border-b">Usuario Demo</div>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" id="edit-profile-btn">Editar perfil</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" id="logout-btn">Cerrar sesión</a>
+                        <a class="user-menu-item" id="edit-profile-btn">
+                            <i class="fas fa-user-edit mr-2"></i> Editar perfil
+                        </a>
+                        <div class="user-menu-divider"></div>
+                        <a class="user-menu-item text-red-500" id="logout-btn">
+                            <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
+                        </a>
                     </div>
                 </div>
             </div>
@@ -217,14 +243,6 @@
                     <a href="#" class="nav-item" data-section="history">
                         <i class="fas fa-history mr-3"></i>
                         <span>Historial</span>
-                    </a>
-                    <a href="#" class="nav-item" data-section="reports">
-                        <i class="fas fa-chart-pie mr-3"></i>
-                        <span>Estadísticas</span>
-                    </a>
-                    <a href="#" class="nav-item" data-section="export">
-                        <i class="fas fa-file-export mr-3"></i>
-                        <span>Exportar</span>
                     </a>
                 </div>
             </div>
@@ -389,7 +407,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="recent-entries">
-                                    <!-- Los registros se cargarán dinámicamente -->
                                     <tr>
                                         <td colspan="5" class="text-center py-8 text-gray-500">Cargando registros...</td>
                                     </tr>
@@ -409,7 +426,6 @@
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="projects-container">
-                        <!-- Los proyectos se cargarán dinámicamente -->
                         <div class="text-center py-12 text-gray-500">Cargando proyectos...</div>
                     </div>
                 </div>
@@ -474,134 +490,11 @@
                                     </tr>
                                 </thead>
                                 <tbody id="history-entries">
-                                    <!-- Los registros se cargarán dinámicamente -->
                                     <tr>
                                         <td colspan="8" class="text-center py-8 text-gray-500">Cargando historial...</td>
                                     </tr>
                                 </tbody>
                             </table>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white rounded-xl shadow p-6">
-                        <h3 class="text-lg font-semibold mb-4">Resumen Semanal</h3>
-                        
-                        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-                            <div class="bg-gray-50 rounded-lg p-4 text-center">
-                                <p class="text-sm text-gray-500">Horas totales</p>
-                                <p class="text-xl font-bold"><span id="week-total-hours">0</span>h</p>
-                            </div>
-                            <div class="bg-blue-50 rounded-lg p-4 text-center">
-                                <p class="text-sm text-gray-500">Sueldo base</p>
-                                <p class="text-xl font-bold text-blue-600"><span id="week-base-hours">0</span>h</p>
-                            </div>
-                            <div class="bg-purple-50 rounded-lg p-4 text-center">
-                                <p class="text-sm text-gray-500">OB1</p>
-                                <p class="text-xl font-bold text-purple-600"><span id="week-ob1-hours">0</span>h</p>
-                            </div>
-                            <div class="bg-indigo-50 rounded-lg p-4 text-center">
-                                <p class="text-sm text-gray-500">OB3</p>
-                                <p class="text-xl font-bold text-indigo-600"><span id="week-ob3-hours">0</span>h</p>
-                            </div>
-                            <div class="bg-green-50 rounded-lg p-4 text-center">
-                                <p class="text-sm text-gray-500">Promedio/día</p>
-                                <p class="text-xl font-bold text-green-600"><span id="week-avg-hours">0</span>h</p>
-                            </div>
-                        </div>
-                        
-                        <div class="h-64">
-                            <canvas id="weeklySummaryChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Exportar -->
-                <div id="export-section" class="section-content section-transition hidden-section">
-                    <h2 class="text-2xl font-bold mb-6">Exportar Datos</h2>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div class="bg-white rounded-xl shadow p-6">
-                            <h3 class="text-lg font-semibold mb-4">Exportar a PDF</h3>
-                            <p class="text-gray-600 mb-4">Genera un informe en formato PDF con tus registros de tiempo.</p>
-                            
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Período</label>
-                                    <select class="w-full p-3 border rounded-lg" id="pdf-period">
-                                        <option value="current-week">Última semana</option>
-                                        <option value="current-month">Último mes</option>
-                                        <option value="custom">Personalizado</option>
-                                    </select>
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Formato</label>
-                                    <select class="w-full p-3 border rounded-lg" id="pdf-format">
-                                        <option value="summary">Resumido</option>
-                                        <option value="detailed">Detallado</option>
-                                    </select>
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Idioma</label>
-                                    <select class="w-full p-3 border rounded-lg" id="pdf-language">
-                                        <option value="es">Español</option>
-                                        <option value="en">Inglés</option>
-                                        <option value="sv">Sueco</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <button class="w-full mt-6 px-4 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition" id="generate-pdf-btn">
-                                <i class="fas fa-file-pdf mr-2"></i> Generar PDF
-                            </button>
-                        </div>
-                        
-                        <div class="bg-white rounded-xl shadow p-6">
-                            <h3 class="text-lg font-semibold mb-4">Exportar/Importar Datos</h3>
-                            <p class="text-gray-600 mb-4">Guarda una copia de seguridad de tus datos o restaura desde un archivo.</p>
-                            
-                            <div class="space-y-4 mb-6">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Exportar datos</label>
-                                    <p class="text-sm text-gray-500 mb-2">Descarga todos tus registros y proyectos en formato JSON.</p>
-                                    <button class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition" id="export-json-btn">
-                                        <i class="fas fa-download mr-2"></i> Exportar JSON
-                                    </button>
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Importar datos</label>
-                                    <p class="text-sm text-gray-500 mb-2">Carga datos desde un archivo JSON previamente exportado.</p>
-                                    <div class="flex">
-                                        <input type="file" class="hidden" id="json-upload" accept=".json">
-                                        <label for="json-upload" class="flex-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-l-lg cursor-pointer truncate" id="file-name">Seleccionar archivo</label>
-                                        <button class="px-4 py-2 bg-green-500 text-white rounded-r-lg font-medium hover:bg-green-600 transition" id="import-json-btn">
-                                            <i class="fas fa-upload mr-2"></i> Cargar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="border-t pt-4">
-                                <h4 class="text-md font-medium mb-2">Sincronización con Firebase</h4>
-                                <p class="text-sm text-gray-600 mb-4">Tus datos se sincronizan automáticamente con la nube.</p>
-                                <div class="flex items-center text-sm">
-                                    <i class="fas fa-database mr-2 text-blue-500"></i>
-                                    <span id="last-sync">Última sincronización: Cargando...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white rounded-xl shadow p-6">
-                        <h3 class="text-lg font-semibold mb-4">Vista Previa del PDF</h3>
-                        <div class="border-2 border-dashed border-gray-300 rounded-xl h-96 flex items-center justify-center" id="pdf-preview">
-                            <div class="text-center">
-                                <i class="fas fa-file-pdf text-5xl text-red-500 mb-3"></i>
-                                <p class="text-gray-500">Vista previa del PDF generado</p>
-                                <p class="text-sm text-gray-400 mt-2">Se mostrará aquí después de hacer clic en "Generar PDF"</p>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -624,9 +517,6 @@
                             <div id="profile-avatar" class="w-24 h-24 rounded-full bg-blue-500 flex items-center justify-center text-white text-3xl font-bold mb-2">
                                 U
                             </div>
-                            <button class="absolute bottom-0 right-0 bg-gray-200 rounded-full p-2 hover:bg-gray-300">
-                                <i class="fas fa-camera text-gray-700"></i>
-                            </button>
                         </div>
                     </div>
                     
@@ -719,7 +609,6 @@
         const loginEmail = document.getElementById('login-email');
         const loginPassword = document.getElementById('login-password');
         const loginError = document.getElementById('login-error');
-        const signupBtn = document.getElementById('signup-btn');
         
         const navItems = document.querySelectorAll('.nav-item');
         const sectionContents = document.querySelectorAll('.section-content');
@@ -740,6 +629,7 @@
         const userAvatar = document.getElementById('user-avatar');
         const profileAvatar = document.getElementById('profile-avatar');
         const userNameDisplay = document.getElementById('user-name-display');
+        const userMenu = document.getElementById('user-menu');
         
         // Elementos para gestión de datos
         const projectModal = document.getElementById('project-modal');
@@ -749,15 +639,7 @@
         const historyEntries = document.getElementById('history-entries');
         const projectSelector = document.getElementById('entry-project');
         const applyFiltersBtn = document.getElementById('apply-filters-btn');
-        
-        // Elementos para exportación
-        const exportJsonBtn = document.getElementById('export-json-btn');
-        const importJsonBtn = document.getElementById('import-json-btn');
-        const jsonUpload = document.getElementById('json-upload');
-        const fileName = document.getElementById('file-name');
-        const generatePdfBtn = document.getElementById('generate-pdf-btn');
-        const pdfPreview = document.getElementById('pdf-preview');
-        const lastSync = document.getElementById('last-sync');
+        const addProjectBtn = document.getElementById('add-project-btn');
         
         // Variables globales
         let currentUser = null;
@@ -775,9 +657,6 @@
             "OB 3": { start: "13:00", end: "00:00", days: [6] }, // Sábado
             "OB 4": { start: "00:00", end: "23:59", days: [0] }  // Domingo
         };
-        
-        // Días de la semana en sueco
-        const SWEDISH_DAYS = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
         
         // Initialize Charts
         function initCharts() {
@@ -820,33 +699,6 @@
                         data: [32, 35, 38, 42],
                         backgroundColor: '#10B981'
                     }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-            
-            // Weekly Summary Chart
-            new Chart(document.getElementById('weeklySummaryChart'), {
-                type: 'line',
-                data: {
-                    labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
-                    datasets: [
-                        {
-                            label: 'Horas',
-                            data: [7.5, 6, 7.5, 2.5, 3.5, 5],
-                            borderColor: '#3B82F6',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            fill: true,
-                            tension: 0.3
-                        }
-                    ]
                 },
                 options: {
                     responsive: true,
@@ -936,15 +788,6 @@
             return "Sueldo base";
         }
         
-        // Formatear fecha para Firebase
-        function formatFirebaseDate(date) {
-            const d = new Date(date);
-            const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-        
         // Obtener nombre del proyecto
         function getProjectName(projectId) {
             const project = projects.find(p => p.id === projectId);
@@ -970,11 +813,14 @@
             if (projects.length === 0) {
                 projectsContainer.innerHTML = `
                     <div class="col-span-3 text-center py-12 text-gray-500">
-                        No hay proyectos creados. <button class="text-blue-500 hover:underline" id="create-first-project">Crea tu primer proyecto</button>
+                        No hay proyectos creados. 
+                        <button class="px-4 py-2 mt-4 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition" id="create-first-project">
+                            <i class="fas fa-plus mr-2"></i> Crear primer proyecto
+                        </button>
                     </div>
                 `;
                 document.getElementById('create-first-project').addEventListener('click', () => {
-                    document.getElementById('add-project-btn').click();
+                    openProjectModal();
                 });
                 return;
             }
@@ -1096,13 +942,10 @@
             );
             
             sortedEntries.forEach(entry => {
-                const date = new Date(entry.date);
-                const formattedDate = `${SWEDISH_DAYS[date.getDay()].substring(0, 3)}, ${date.getDate()}/${date.getMonth() + 1}`;
-                
                 const row = document.createElement('tr');
                 row.className = 'border-b hover:bg-gray-50';
                 row.innerHTML = `
-                    <td class="py-4">${formattedDate}</td>
+                    <td class="py-4">${entry.date}</td>
                     <td class="py-4">${getProjectName(entry.projectId)}</td>
                     <td class="py-4">${entry.startTime}</td>
                     <td class="py-4">${entry.endTime}</td>
@@ -1349,114 +1192,6 @@
             }
         }
         
-        // Exportar a JSON
-        function exportToJson() {
-            const data = {
-                projects,
-                timeEntries,
-                exportedAt: new Date().toISOString()
-            };
-            
-            const jsonStr = JSON.stringify(data, null, 2);
-            const blob = new Blob([jsonStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `tidbok-export-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            alert('Datos exportados correctamente');
-        }
-        
-        // Importar desde JSON
-        function importFromJson() {
-            const file = jsonUpload.files[0];
-            if (!file) {
-                alert('Por favor seleccione un archivo JSON');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    
-                    // Validar estructura
-                    if (!data.projects || !data.timeEntries) {
-                        throw new Error('Formato de archivo inválido');
-                    }
-                    
-                    // Confirmar sobreescritura
-                    if (!confirm('¿Estás seguro de que deseas importar estos datos? Se sobrescribirán tus datos actuales.')) {
-                        return;
-                    }
-                    
-                    // Guardar proyectos
-                    const projectsRef = database.ref(`users/${currentUser.uid}/projects`);
-                    projectsRef.set(data.projects)
-                        .then(() => {
-                            // Guardar registros
-                            const recordsRef = database.ref(`users/${currentUser.uid}/records`);
-                            return recordsRef.set(data.timeEntries);
-                        })
-                        .then(() => {
-                            alert('Datos importados correctamente');
-                            jsonUpload.value = '';
-                            fileName.textContent = 'Seleccionar archivo';
-                        })
-                        .catch(error => {
-                            console.error('Error al importar datos:', error);
-                            alert('Error al importar datos');
-                        });
-                } catch (error) {
-                    console.error('Error al analizar JSON:', error);
-                    alert('Error al leer el archivo. Asegúrese de que es un archivo JSON válido exportado desde Tidbok.');
-                }
-            };
-            reader.readAsText(file);
-        }
-        
-        // Generar PDF
-        function generatePdf() {
-            const pdf = new jspdf.jsPDF();
-            const format = document.getElementById('pdf-format').value;
-            const language = document.getElementById('pdf-language').value;
-            
-            // Agregar título
-            pdf.setFontSize(18);
-            pdf.text('Reporte de Tiempo - Tidbok', 105, 15, null, null, 'center');
-            
-            // Agregar fecha
-            pdf.setFontSize(12);
-            pdf.text(`Generado el: ${new Date().toLocaleDateString()}`, 105, 25, null, null, 'center');
-            
-            // Agregar contenido básico
-            pdf.setFontSize(14);
-            pdf.text('Resumen de Horas', 20, 40);
-            
-            pdf.setFontSize(12);
-            pdf.text(`Total de horas registradas: ${timeEntries.reduce((sum, e) => sum + e.totalHours, 0).toFixed(1)}`, 20, 50);
-            
-            // Para una implementación más completa, se agregarían tablas y gráficos
-            
-            // Guardar PDF
-            pdf.save(`reporte-tidbok-${new Date().toISOString().split('T')[0]}.pdf`);
-            
-            // Actualizar vista previa
-            pdfPreview.innerHTML = `
-                <div class="text-center p-4">
-                    <i class="fas fa-file-pdf text-5xl text-red-500 mb-3"></i>
-                    <h4 class="font-bold text-lg">Reporte Generado</h4>
-                    <p class="text-gray-600 mt-2">Se ha generado el PDF correctamente</p>
-                    <p class="text-sm text-gray-400 mt-2">El archivo se ha descargado automáticamente</p>
-                </div>
-            `;
-        }
-        
         // Actualizar resumen de horas en tiempo real
         function updateTimeSummary() {
             const startTime = document.getElementById('start-time').value;
@@ -1484,90 +1219,10 @@
             }
         }
         
-        // Event Listeners
-        navItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                const section = item.getAttribute('data-section');
-                showSection(section);
-            });
-        });
-        
-        editProfileBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            profileModal.classList.remove('hidden');
-        });
-        
-        closeProfileModal.addEventListener('click', () => {
-            profileModal.classList.add('hidden');
-        });
-        
-        cancelProfileEdit.addEventListener('click', () => {
-            profileModal.classList.add('hidden');
-        });
-        
-        logoutBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            auth.signOut().then(() => {
-                console.log('Sesión cerrada correctamente');
-            }).catch((error) => {
-                console.error('Error al cerrar sesión:', error);
-            });
-        });
-        
-        timeEntryForm.addEventListener('submit', saveTimeEntry);
-        
-        timeEntryForm.addEventListener('input', updateTimeSummary);
-        
-        document.getElementById('start-time').addEventListener('change', updateTimeSummary);
-        document.getElementById('end-time').addEventListener('change', updateTimeSummary);
-        document.getElementById('break-time').addEventListener('change', updateTimeSummary);
-        document.getElementById('entry-date').addEventListener('change', updateTimeSummary);
-        
-        profileForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const firstName = firstNameInput.value;
-            const lastName = lastNameInput.value;
-            const phone = phoneInput.value;
-            
-            const displayName = `${firstName} ${lastName}`;
-            updateUserProfile(displayName, emailInput.value);
-            
-            // Aquí guardaríamos los cambios en Firebase en un caso real
-            alert('Perfil actualizado correctamente');
-            profileModal.classList.add('hidden');
-        });
-        
-        document.getElementById('add-project-btn').addEventListener('click', () => {
-            openProjectModal();
-        });
-        
-        document.getElementById('close-project-modal').addEventListener('click', () => {
-            projectModal.classList.add('hidden');
-        });
-        
-        document.getElementById('cancel-project-edit').addEventListener('click', () => {
-            projectModal.classList.add('hidden');
-        });
-        
-        projectForm.addEventListener('submit', saveProject);
-        
-        exportJsonBtn.addEventListener('click', exportToJson);
-        
-        importJsonBtn.addEventListener('click', importFromJson);
-        
-        jsonUpload.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                fileName.textContent = e.target.files[0].name;
-            }
-        });
-        
-        generatePdfBtn.addEventListener('click', generatePdf);
-        
-        applyFiltersBtn.addEventListener('click', () => {
-            alert('Filtros aplicados correctamente');
-            // En una implementación completa, se filtrarían los registros
-        });
+        // Toggle menú de usuario
+        function toggleUserMenu() {
+            userMenu.classList.toggle('visible');
+        }
         
         // Initialize the app
         function initApp() {
@@ -1616,9 +1271,6 @@
                         renderRecentEntries();
                         renderHistory();
                         updateDashboardSummary();
-                        
-                        // Actualizar última sincronización
-                        lastSync.textContent = `Última sincronización: ${new Date().toLocaleTimeString()}`;
                     });
                     
                     // Initialize app components
@@ -1644,7 +1296,6 @@
                     .then((userCredential) => {
                         // Signed in 
                         const user = userCredential.user;
-                        console.log('Usuario autenticado:', user);
                         // Clear form
                         loginForm.reset();
                         loginError.classList.add('hidden');
@@ -1657,10 +1308,87 @@
                     });
             });
             
-            // Signup button
-            signupBtn.addEventListener('click', e => {
+            // Event listeners para menú de usuario
+            userAvatar.addEventListener('click', toggleUserMenu);
+            
+            // Cerrar menú al hacer clic fuera
+            document.addEventListener('click', (e) => {
+                if (!userAvatar.contains(e.target) && !userMenu.contains(e.target)) {
+                    userMenu.classList.remove('visible');
+                }
+            });
+            
+            // Event listeners para navegación
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const section = item.getAttribute('data-section');
+                    showSection(section);
+                });
+            });
+            
+            editProfileBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                alert('Para registrarte, por favor contacta al administrador del sistema.');
+                profileModal.classList.remove('hidden');
+                userMenu.classList.remove('visible');
+            });
+            
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                auth.signOut().then(() => {
+                    console.log('Sesión cerrada correctamente');
+                }).catch((error) => {
+                    console.error('Error al cerrar sesión:', error);
+                });
+            });
+            
+            timeEntryForm.addEventListener('submit', saveTimeEntry);
+            
+            timeEntryForm.addEventListener('input', updateTimeSummary);
+            
+            document.getElementById('start-time').addEventListener('change', updateTimeSummary);
+            document.getElementById('end-time').addEventListener('change', updateTimeSummary);
+            document.getElementById('break-time').addEventListener('change', updateTimeSummary);
+            document.getElementById('entry-date').addEventListener('change', updateTimeSummary);
+            
+            profileForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const firstName = firstNameInput.value;
+                const lastName = lastNameInput.value;
+                const phone = phoneInput.value;
+                
+                const displayName = `${firstName} ${lastName}`;
+                updateUserProfile(displayName, emailInput.value);
+                
+                alert('Perfil actualizado correctamente');
+                profileModal.classList.add('hidden');
+            });
+            
+            addProjectBtn.addEventListener('click', () => {
+                openProjectModal();
+            });
+            
+            document.getElementById('close-project-modal').addEventListener('click', () => {
+                projectModal.classList.add('hidden');
+            });
+            
+            document.getElementById('cancel-project-edit').addEventListener('click', () => {
+                projectModal.classList.add('hidden');
+            });
+            
+            projectForm.addEventListener('submit', saveProject);
+            
+            document.getElementById('close-profile-modal').addEventListener('click', () => {
+                profileModal.classList.add('hidden');
+            });
+            
+            document.getElementById('cancel-profile-edit').addEventListener('click', () => {
+                profileModal.classList.add('hidden');
+            });
+            
+            applyFiltersBtn.addEventListener('click', () => {
+                alert('Filtros aplicados correctamente');
+                // En una implementación completa, se filtrarían los registros
             });
         }
         
