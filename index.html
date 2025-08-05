@@ -1,1193 +1,1076 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TimeBook Pro - Time Tracking Application</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
-  <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-database-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
-  <style>
-    :root {
-      --regular: #10B981;   /* Verde para horas regulares */
-      --night: #3B82F6;     /* Azul para horas nocturnas */
-      --saturday: #F59E0B;  /* Amarillo para sábados */
-      --sunday: #EF4444;    /* Rojo para domingos */
-      --holiday: #8B5CF6;   /* Púrpura para feriados */
-      --overtime: #1F2937;  /* Gris oscuro para horas extra */
-      --light: #f3f4f6;
-      --dark: #1f2937;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tidbok - Sistema de Seguimiento de Tiempo</title>
     
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f9fafb;
-    }
+    <!-- Dependencias -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
     
-    .card {
-      border-radius: 8px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      background-color: white;
-      overflow: hidden;
-    }
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-database-compat.js"></script>
     
-    .btn-primary {
-      background-color: var(--night);
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 0.375rem;
-      font-weight: 500;
-      transition: all 0.2s ease-in-out;
-    }
-    
-    .btn-primary:hover {
-      background-color: #2563eb;
-    }
-    
-    .btn-secondary {
-      background-color: var(--regular);
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 0.375rem;
-      font-weight: 500;
-      transition: all 0.2s ease-in-out;
-    }
-    
-    .btn-secondary:hover {
-      background-color: #059669;
-    }
-    
-    .btn-outline {
-      border: 1px solid var(--night);
-      color: var(--night);
-      padding: 0.5rem 1rem;
-      border-radius: 0.375rem;
-      font-weight: 500;
-      transition: all 0.2s ease-in-out;
-    }
-    
-    .btn-outline:hover {
-      background-color: var(--night);
-      color: white;
-    }
-    
-    .form-group {
-      margin-bottom: 1rem;
-    }
-    
-    .form-control {
-      width: 100%;
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.375rem;
-      transition: border-color 0.15s ease-in-out;
-    }
-    
-    .form-control:focus {
-      outline: none;
-      border-color: var(--night);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
-    }
-    
-    .form-label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      color: #374151;
-    }
-    
-    .alert {
-      padding: 0.75rem 1rem;
-      border-radius: 0.375rem;
-      margin-bottom: 1rem;
-    }
-    
-    .alert-success {
-      background-color: #ecfdf5;
-      color: #064e3b;
-      border: 1px solid #a7f3d0;
-    }
-    
-    .alert-danger {
-      background-color: #fef2f2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-    }
-    
-    .tab-active {
-      border-bottom: 2px solid var(--night);
-      color: var(--night);
-      font-weight: 600;
-    }
-    
-    .entries-container .entry {
-      border-bottom: 1px solid #e5e7eb;
-      padding: 0.75rem 0;
-    }
-    
-    .entries-container .entry:last-child {
-      border-bottom: none;
-    }
-    
-    .stat-card {
-      background-color: white;
-      border-radius: 8px;
-      padding: 1rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      transition: all 0.2s ease-in-out;
-    }
-    
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    
-    .week-separator {
-      background-color: #f3f4f6;
-      padding: 0.5rem 1rem;
-      font-weight: 600;
-    }
-    
-    .hidden {
-      display: none !important;
-    }
-    
-    .fade-in {
-      animation: fadeIn 0.3s ease-in-out;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    
-    .auth-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: rgba(255, 255, 255, 0.9);
-      z-index: 1000;
-    }
-    
-    .auth-card {
-      max-width: 400px;
-      width: 100%;
-      padding: 2rem;
-    }
-    
-    .auth-tabs {
-      display: flex;
-      border-bottom: 1px solid #e5e7eb;
-      margin-bottom: 1.5rem;
-    }
-    
-    .auth-tab {
-      flex: 1;
-      text-align: center;
-      padding: 0.75rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .auth-tab.active {
-      border-bottom: 2px solid var(--night);
-      color: var(--night);
-      font-weight: 600;
-    }
-    
-    .auth-form {
-      display: none;
-    }
-    
-    .auth-form.active {
-      display: block;
-    }
-    
-    .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(255, 255, 255, 0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1001;
-    }
-    
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(0, 0, 0, 0.1);
-      border-left-color: var(--night);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    .sync-indicator {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 8px 12px;
-      border-radius: 20px;
-      background-color: white;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      display: flex;
-      align-items: center;
-      font-size: 14px;
-      z-index: 100;
-    }
-    
-    .sync-indicator .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      margin-right: 8px;
-    }
-    
-    .syncing .dot {
-      background-color: #f59e0b;
-      animation: pulse 1.5s infinite;
-    }
-    
-    .synced .dot {
-      background-color: #10b981;
-    }
-    
-    .offline .dot {
-      background-color: #ef4444;
-    }
-    
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.4; }
-      100% { opacity: 1; }
-    }
-    
-    #pdf-export {
-      position: absolute;
-      left: -9999px;
-      top: 0;
-      width: 800px;
-      background: white;
-      padding: 30px;
-      box-sizing: border-box;
-    }
-    
-    /* Categorías de horas */
-    .hour-categories {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
-    }
-    
-    .category-tag {
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 500;
-    }
-    
-    .category-regular {
-      background-color: #dcfce7;
-      color: #166534;
-      border: 1px solid #bbf7d0;
-    }
-    
-    .category-night {
-      background-color: #dbeafe;
-      color: #1e40af;
-      border: 1px solid #bfdbfe;
-    }
-    
-    .category-saturday {
-      background-color: #fef3c7;
-      color: #92400e;
-      border: 1px solid #fde68a;
-    }
-    
-    .category-sunday {
-      background-color: #fee2e2;
-      color: #b91c1c;
-      border: 1px solid #fecaca;
-    }
-    
-    .category-holiday {
-      background-color: #ede9fe;
-      color: #5b21b6;
-      border: 1px solid #ddd6fe;
-    }
-    
-    .category-overtime {
-      background-color: #e5e7eb;
-      color: #1f2937;
-      border: 1px solid #d1d5db;
-    }
-    
-    .hour-summary-card {
-      background-color: #f9fafb;
-      border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-    
-    .hour-summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1rem;
-    }
-    
-    .hour-summary-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    
-    .hour-summary-item:last-child {
-      border-bottom: none;
-    }
-    
-    .hour-type-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .hour-type-color {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-    }
-    
-    .color-regular { background-color: var(--regular); }
-    .color-night { background-color: var(--night); }
-    .color-saturday { background-color: var(--saturday); }
-    .color-sunday { background-color: var(--sunday); }
-    .color-holiday { background-color: var(--holiday); }
-    .color-overtime { background-color: var(--overtime); }
-  </style>
-</head>
-<body class="min-h-screen">
-  <!-- Loading overlay -->
-  <div id="loading-overlay" class="loading-overlay hidden">
-    <div class="spinner"></div>
-  </div>
-
-  <!-- Sync indicator -->
-  <div id="sync-indicator" class="sync-indicator synced">
-    <div class="dot"></div>
-    <span data-i18n="synchronized">Sincronizado</span>
-  </div>
-
-  <!-- PDF Export Container (hidden) -->
-  <div id="pdf-export">
-    <!-- Contenido PDF se generará aquí -->
-  </div>
-
-  <!-- Authentication Container -->
-  <div id="auth-container" class="auth-container">
-    <!-- Formulario de autenticación -->
-  </div>
-
-  <!-- Main Application -->
-  <div id="app" class="hidden">
-    <!-- Alert Container -->
-    <div id="alert-container" class="fixed top-4 right-4 z-50 max-w-sm"></div>
-    
-    <!-- Header -->
-    <header class="bg-white shadow-sm">
-      <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-800">
-          <i class="fas fa-clock mr-2 text-blue-500"></i> TimeBook Pro
-        </h1>
-        
-        <!-- Controles de usuario -->
-      </div>
-    </header>
-    
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Left Column (1/3) -->
-        <div class="lg:col-span-1 space-y-6">
-          <!-- Time Entry Form Card -->
-          <div class="card p-4">
-            <h2 class="text-xl font-semibold mb-4" data-i18n="register_hours">Registrar Horas</h2>
-            
-            <form id="time-entry-form">
-              <div class="form-group">
-                <label for="entry-date" class="form-label" data-i18n="date">Fecha</label>
-                <input type="date" id="entry-date" class="form-control" required>
-              </div>
-              
-              <div class="form-group">
-                <div class="flex justify-between items-center mb-2">
-                  <label for="project" class="form-label mb-0" data-i18n="project">Proyecto</label>
-                  <button id="manage-projects" type="button" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-cog"></i>
-                  </button>
-                </div>
-                <select id="project" class="form-control" required>
-                  <option value="" data-i18n="select_project">Seleccionar proyecto</option>
-                </select>
-              </div>
-              
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="form-group">
-                  <label for="start-time" class="form-label" data-i18n="start_time">Hora de Inicio</label>
-                  <input type="time" id="start-time" class="form-control" required>
-                </div>
-                
-                <div class="form-group">
-                  <label for="end-time" class="form-label" data-i18n="end_time">Hora de Fin</label>
-                  <input type="time" id="end-time" class="form-control" required>
-                </div>
-              </div>
-              
-              <div class="form-group">
-                <label for="break-time" class="form-label" data-i18n="break_time">Tiempo de Descanso (minutos)</label>
-                <input type="number" id="break-time" class="form-control" min="0" value="30" required>
-              </div>
-              
-              <div class="form-group">
-                <label for="notes" class="form-label" data-i18n="notes">Notas</label>
-                <textarea id="notes" class="form-control" rows="3"></textarea>
-              </div>
-              
-              <div class="flex justify-between mt-6">
-                <button type="button" id="reset-form" class="btn-outline" data-i18n="cancel">Cancelar</button>
-                <button type="submit" id="save-record-btn" class="btn-primary" data-i18n="save_record">Guardar Registro</button>
-              </div>
-            </form>
-          </div>
-          
-          <!-- Records History -->
-          <div class="card">
-            <div class="p-4 border-b flex justify-between items-center">
-              <h2 class="text-xl font-semibold" data-i18n="records_history">Historial de Registros</h2>
-              <button class="text-gray-500 hover:text-gray-700" id="toggle-records">
-                <i class="fas fa-chevron-down"></i>
-              </button>
-            </div>
-            
-            <div id="records-content" class="p-4">
-              <!-- Contenido dinámico -->
-            </div>
-          </div>
-        </div>
-        
-        <!-- Right Column (2/3) -->
-        <div class="lg:col-span-2 space-y-6">
-          <!-- Hour Summary -->
-          <div class="card p-4">
-            <h3 class="text-lg font-semibold mb-4" data-i18n="hours_summary">Resumen de Horas</h3>
-            
-            <div class="hour-summary-grid">
-              <div class="hour-summary-card">
-                <h4 class="font-medium mb-3" data-i18n="current_week">Semana Actual</h4>
-                <div id="current-week-summary">
-                  <!-- Resumen semanal dinámico -->
-                </div>
-              </div>
-              
-              <div class="hour-summary-card">
-                <h4 class="font-medium mb-3" data-i18n="current_month">Mes Actual</h4>
-                <div id="current-month-summary">
-                  <!-- Resumen mensual dinámico -->
-                </div>
-              </div>
-            </div>
-            
-            <div class="mt-6">
-              <h4 class="font-medium mb-3" data-i18n="hour_distribution">Distribución de Horas</h4>
-              <div class="h-64">
-                <canvas id="hour-distribution-chart"></canvas>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Hour Details Table -->
-          <div class="card p-4">
-            <h3 class="text-lg font-semibold mb-4" data-i18n="hour_details">Detalle de Horas</h3>
-            
-            <div class="overflow-x-auto">
-              <table class="w-full" id="hourDetailsTable">
-                <thead>
-                  <tr class="bg-gray-50 border-b">
-                    <th class="py-2 px-3 text-left" data-i18n="date">Fecha</th>
-                    <th class="py-2 px-3 text-left" data-i18n="project">Proyecto</th>
-                    <th class="py-2 px-3 text-left" data-i18n="hour_type">Tipo de Hora</th>
-                    <th class="py-2 px-3 text-right" data-i18n="hours">Horas</th>
-                    <th class="py-2 px-3 text-right" data-i18n="rate">Recargo</th>
-                    <th class="py-2 px-3 text-right" data-i18n="amount">Monto</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <!-- Detalle dinámico -->
-                </tbody>
-                <tfoot>
-                  <tr class="font-semibold">
-                    <td colspan="3" class="py-2 px-3 text-right" data-i18n="total">Total:</td>
-                    <td class="py-2 px-3 text-right" id="total-hours">0</td>
-                    <td class="py-2 px-3"></td>
-                    <td class="py-2 px-3 text-right" id="total-amount">0 SEK</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-    
-    <!-- Modales -->
-  </div>
-
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
-  
-  <script>
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyAI-VxrbSC-d1WscOkpY9d8NaEUgdjneeE",
-      authDomain: "tidbok-df555.firebaseapp.com",
-      databaseURL: "https://tidbok-df555-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "tidbok-df555",
-      storageBucket: "tidbok-df555.firebasestorage.app",
-      messagingSenderId: "467331966400",
-      appId: "1:467331966400:web:abb6949a76918f2eb8d425"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const database = firebase.database();
-    const { jsPDF } = window.jspdf;
-
-    // Application state
-    const state = {
-      user: null,
-      projects: {},
-      records: {},
-      hourDistributionChart: null,
-      hourlyRate: 170, // SEK por hora
-      currentLanguage: 'es',
-      holidays: [
-        '2023-01-01', '2023-01-06', '2023-04-07', '2023-04-09',
-        '2023-04-10', '2023-05-01', '2023-05-18', '2023-05-28',
-        '2023-06-06', '2023-06-23', '2023-06-24', '2023-11-04',
-        '2023-12-24', '2023-12-25', '2023-12-26', '2023-12-31'
-      ]
-    };
-
-    // Translation dictionary
-    const translations = {
-      'es': {
-        // ... traducciones existentes ...
-        'hour_types': 'Tipos de Horas',
-        'regular_hours': 'Horas Regulares',
-        'night_hours': 'Horas Nocturnas',
-        'saturday_hours': 'Horas de Sábado',
-        'sunday_hours': 'Horas de Domingo',
-        'holiday_hours': 'Horas de Feriado',
-        'overtime_hours': 'Horas Extra',
-        'hour_details': 'Detalle de Horas',
-        'hour_distribution': 'Distribución de Horas',
-        'current_week': 'Semana Actual',
-        'current_month': 'Mes Actual',
-        'hour_type': 'Tipo de Hora',
-        'hours': 'Horas',
-        'rate': 'Recargo',
-        'amount': 'Monto',
-        'regular': 'Regular',
-        'night': 'Nocturna',
-        'saturday': 'Sábado',
-        'sunday': 'Domingo',
-        'holiday': 'Feriado',
-        'overtime': 'Extra',
-        'hour_summary': 'Resumen de Horas',
-        'week_total': 'Total Semana',
-        'month_total': 'Total Mes',
-        'surcharge': 'Recargo',
-        'base_rate': 'Tarifa Base'
-      },
-      'en': {
-        // ... traducciones existentes ...
-        'hour_types': 'Hour Types',
-        'regular_hours': 'Regular Hours',
-        'night_hours': 'Night Hours',
-        'saturday_hours': 'Saturday Hours',
-        'sunday_hours': 'Sunday Hours',
-        'holiday_hours': 'Holiday Hours',
-        'overtime_hours': 'Overtime Hours',
-        'hour_details': 'Hour Details',
-        'hour_distribution': 'Hour Distribution',
-        'current_week': 'Current Week',
-        'current_month': 'Current Month',
-        'hour_type': 'Hour Type',
-        'hours': 'Hours',
-        'rate': 'Surcharge',
-        'amount': 'Amount',
-        'regular': 'Regular',
-        'night': 'Night',
-        'saturday': 'Saturday',
-        'sunday': 'Sunday',
-        'holiday': 'Holiday',
-        'overtime': 'Overtime',
-        'hour_summary': 'Hour Summary',
-        'week_total': 'Week Total',
-        'month_total': 'Month Total',
-        'surcharge': 'Surcharge',
-        'base_rate': 'Base Rate'
-      },
-      'sv': {
-        // ... traducciones existentes ...
-        'hour_types': 'Timtyper',
-        'regular_hours': 'Ordinarie timmar',
-        'night_hours': 'Nattetid',
-        'saturday_hours': 'Lördagstid',
-        'sunday_hours': 'Söndagstid',
-        'holiday_hours': 'Helgdagstid',
-        'overtime_hours': 'Övertid',
-        'hour_details': 'Timdetaljer',
-        'hour_distribution': 'Timfördelning',
-        'current_week': 'Aktuell vecka',
-        'current_month': 'Aktuell månad',
-        'hour_type': 'Timtyp',
-        'hours': 'Timmar',
-        'rate': 'Tillägg',
-        'amount': 'Belopp',
-        'regular': 'Ordinarie',
-        'night': 'Natt',
-        'saturday': 'Lördag',
-        'sunday': 'Söndag',
-        'holiday': 'Helgdag',
-        'overtime': 'Övertid',
-        'hour_summary': 'Timsummering',
-        'week_total': 'Veckototal',
-        'month_total': 'Månadstotal',
-        'surcharge': 'Tillägg',
-        'base_rate': 'Basbelopp'
-      }
-    };
-
-    // DOM ready
-    document.addEventListener('DOMContentLoaded', () => {
-      initApp();
-      setupEventListeners();
-      setupConnectionMonitoring();
-      loadLanguagePreference();
-    });
-
-    // Initialize application
-    function initApp() {
-      auth.onAuthStateChanged(user => {
-        if (user) {
-          state.user = {
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            phone: user.phoneNumber
-          };
-          
-          showApp();
-          loadUserProfile();
-          setupRealtimeListeners();
-        } else {
-          showAuthScreen();
-        }
-      });
-    }
-
-    // Setup event listeners
-    function setupEventListeners() {
-      // ... listeners existentes ...
-      
-      // Time entry form
-      document.getElementById('time-entry-form').addEventListener('submit', handleTimeEntrySubmit);
-    }
-
-    // Handle time entry submission
-    function handleTimeEntrySubmit(e) {
-      e.preventDefault();
-      updateSyncStatus('syncing');
-      
-      const date = document.getElementById('entry-date').value;
-      const projectId = document.getElementById('project').value;
-      const startTime = document.getElementById('start-time').value;
-      const endTime = document.getElementById('end-time').value;
-      const breakTime = parseInt(document.getElementById('break-time').value) || 0;
-      
-      // Calcular categorías de horas
-      const hourCategories = calculateHourCategories(date, startTime, endTime, breakTime);
-      
-      const newRecord = {
-        date,
-        projectId,
-        startTime,
-        endTime,
-        breakTime,
-        notes: document.getElementById('notes').value,
-        hourCategories,
-        timestamp: new Date().toISOString()
-      };
-      
-      // Save to Firebase
-      const recordId = uuid.v4();
-      database.ref(`users/${state.user.uid}/records/${recordId}`).set(newRecord)
-        .then(() => {
-          resetTimeEntryForm();
-          showAlert(translations[state.currentLanguage]['record_saved'], 'success');
-        })
-        .catch(error => {
-          showAlert(error.message, 'error');
-        });
-    }
-
-    // Calculate hour categories
-    function calculateHourCategories(date, startTime, endTime, breakTime) {
-      const start = new Date(`${date}T${startTime}:00`);
-      const end = new Date(`${date}T${endTime}:00`);
-      const dayOfWeek = start.getDay(); // 0 = Sunday, 6 = Saturday
-      const isHoliday = state.holidays.includes(date);
-      
-      // Inicializar categorías
-      const categories = {
-        regular: 0,
-        night: 0,
-        saturday: 0,
-        sunday: 0,
-        holiday: 0,
-        overtime: 0
-      };
-      
-      // Si la hora de fin es anterior a la de inicio, asumir que es del día siguiente
-      if (end < start) {
-        end.setDate(end.getDate() + 1);
-      }
-      
-      // Duración total en minutos
-      const totalMinutes = (end - start) / 60000 - breakTime;
-      let remainingMinutes = totalMinutes;
-      
-      // Categorizar por día de la semana y horarios
-      if (isHoliday) {
-        categories.holiday = totalMinutes / 60;
-      } else if (dayOfWeek === 0) { // Domingo
-        categories.sunday = totalMinutes / 60;
-      } else if (dayOfWeek === 6) { // Sábado
-        categories.saturday = totalMinutes / 60;
-      } else {
-        // Horas regulares: 06:00 - 19:00
-        const regularStart = new Date(start);
-        regularStart.setHours(6, 0, 0, 0);
-        const regularEnd = new Date(start);
-        regularEnd.setHours(19, 0, 0, 0);
-        
-        // Horas nocturnas: 22:00 - 06:00
-        const nightStart = new Date(start);
-        nightStart.setHours(22, 0, 0, 0);
-        const nightEnd = new Date(start);
-        nightEnd.setDate(nightEnd.getDate() + 1);
-        nightEnd.setHours(6, 0, 0, 0);
-        
-        // Calcular horas regulares
-        const regularOverlap = getOverlapMinutes(start, end, regularStart, regularEnd);
-        categories.regular = regularOverlap / 60;
-        remainingMinutes -= regularOverlap;
-        
-        // Calcular horas nocturnas
-        const nightOverlap = getOverlapMinutes(start, end, nightStart, nightEnd);
-        categories.night = nightOverlap / 60;
-        remainingMinutes -= nightOverlap;
-        
-        // Cualquier minuto restante se considera nocturno
-        if (remainingMinutes > 0) {
-          categories.night += remainingMinutes / 60;
-        }
-      }
-      
-      return categories;
-    }
-
-    // Helper function to calculate overlap in minutes
-    function getOverlapMinutes(start1, end1, start2, end2) {
-      const overlapStart = new Date(Math.max(start1, start2));
-      const overlapEnd = new Date(Math.min(end1, end2));
-      
-      if (overlapStart < overlapEnd) {
-        return (overlapEnd - overlapStart) / 60000;
-      }
-      return 0;
-    }
-
-    // Load and display records
-    function loadRecords() {
-      const entriesContainer = document.getElementById('entries-container');
-      entriesContainer.innerHTML = '';
-      
-      Object.entries(state.records).forEach(([id, record]) => {
-        const project = state.projects[record.projectId] || { name: 'Unknown', code: '?' };
-        const totalHours = calculateTotalHours(record.hourCategories);
-        
-        const recordElement = document.createElement('div');
-        recordElement.className = 'entry p-3 border-b hover:bg-gray-50';
-        recordElement.innerHTML = `
-          <div class="flex justify-between items-start">
-            <div>
-              <div class="font-medium">${formatDate(record.date)}</div>
-              <div class="text-sm text-gray-600">${record.startTime} - ${record.endTime} (${totalHours.toFixed(2)} h)</div>
-              <div class="text-sm font-medium">${project.code} - ${project.name}</div>
-              
-              <div class="hour-categories mt-2">
-                ${record.hourCategories.regular > 0 ? `
-                  <span class="category-tag category-regular">
-                    <i class="fas fa-sun mr-1"></i> ${translations[state.currentLanguage]['regular']}: ${record.hourCategories.regular.toFixed(2)}h
-                  </span>
-                ` : ''}
-                
-                ${record.hourCategories.night > 0 ? `
-                  <span class="category-tag category-night">
-                    <i class="fas fa-moon mr-1"></i> ${translations[state.currentLanguage]['night']}: ${record.hourCategories.night.toFixed(2)}h
-                  </span>
-                ` : ''}
-                
-                ${record.hourCategories.saturday > 0 ? `
-                  <span class="category-tag category-saturday">
-                    <i class="fas fa-calendar-day mr-1"></i> ${translations[state.currentLanguage]['saturday']}: ${record.hourCategories.saturday.toFixed(2)}h
-                  </span>
-                ` : ''}
-                
-                ${record.hourCategories.sunday > 0 ? `
-                  <span class="category-tag category-sunday">
-                    <i class="fas fa-church mr-1"></i> ${translations[state.currentLanguage]['sunday']}: ${record.hourCategories.sunday.toFixed(2)}h
-                  </span>
-                ` : ''}
-                
-                ${record.hourCategories.holiday > 0 ? `
-                  <span class="category-tag category-holiday">
-                    <i class="fas fa-gift mr-1"></i> ${translations[state.currentLanguage]['holiday']}: ${record.hourCategories.holiday.toFixed(2)}h
-                  </span>
-                ` : ''}
-              </div>
-              
-              ${record.notes ? `<div class="text-sm text-gray-600 mt-2">${record.notes}</div>` : ''}
-            </div>
-            <div class="flex space-x-2">
-              <button class="text-blue-500 hover:text-blue-700 edit-record" data-id="${id}">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button class="text-red-500 hover:text-red-700 delete-record" data-id="${id}">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </div>
-        `;
-        
-        entriesContainer.appendChild(recordElement);
-      });
-      
-      // Add event listeners
-      document.querySelectorAll('.edit-record').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const recordId = btn.dataset.id;
-          openEditRecordModal(recordId);
-        });
-      });
-      
-      document.querySelectorAll('.delete-record').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const recordId = btn.dataset.id;
-          if (confirm(translations[state.currentLanguage]['confirm_delete'])) {
-            deleteRecord(recordId);
-          }
-        });
-      });
-      
-      // Update hour summary
-      updateHourSummary();
-    }
-
-    // Calculate total hours from categories
-    function calculateTotalHours(categories) {
-      return Object.values(categories).reduce((sum, hours) => sum + hours, 0);
-    }
-
-    // Update hour summary
-    function updateHourSummary() {
-      const currentDate = new Date();
-      const currentWeek = getWeekNumber(currentDate);
-      const currentMonth = currentDate.getMonth() + 1;
-      const currentYear = currentDate.getFullYear();
-      
-      let weekSummary = {
-        regular: 0,
-        night: 0,
-        saturday: 0,
-        sunday: 0,
-        holiday: 0,
-        overtime: 0
-      };
-      
-      let monthSummary = {
-        regular: 0,
-        night: 0,
-        saturday: 0,
-        sunday: 0,
-        holiday: 0,
-        overtime: 0
-      };
-      
-      Object.values(state.records).forEach(record => {
-        const recordDate = new Date(record.date);
-        const recordWeek = getWeekNumber(recordDate);
-        const recordMonth = recordDate.getMonth() + 1;
-        const recordYear = recordDate.getFullYear();
-        
-        // Weekly summary
-        if (recordYear === currentYear && recordWeek === currentWeek) {
-          for (const category in weekSummary) {
-            weekSummary[category] += record.hourCategories[category] || 0;
-          }
-        }
-        
-        // Monthly summary
-        if (recordYear === currentYear && recordMonth === currentMonth) {
-          for (const category in monthSummary) {
-            monthSummary[category] += record.hourCategories[category] || 0;
-          }
-        }
-      });
-      
-      // Calculate overtime (exceeding 40 hours per week)
-      weekSummary.overtime = Math.max(0, calculateTotalHours(weekSummary) - 40);
-      
-      // Update weekly summary UI
-      const weekSummaryHtml = `
-        ${createHourSummaryItem('regular', weekSummary.regular)}
-        ${createHourSummaryItem('night', weekSummary.night)}
-        ${createHourSummaryItem('saturday', weekSummary.saturday)}
-        ${createHourSummaryItem('sunday', weekSummary.sunday)}
-        ${createHourSummaryItem('holiday', weekSummary.holiday)}
-        ${createHourSummaryItem('overtime', weekSummary.overtime)}
-        <div class="hour-summary-item font-bold mt-2">
-          <span>${translations[state.currentLanguage]['week_total']}</span>
-          <span>${calculateTotalHours(weekSummary).toFixed(2)} h</span>
-        </div>
-      `;
-      document.getElementById('current-week-summary').innerHTML = weekSummaryHtml;
-      
-      // Update monthly summary UI
-      const monthSummaryHtml = `
-        ${createHourSummaryItem('regular', monthSummary.regular)}
-        ${createHourSummaryItem('night', monthSummary.night)}
-        ${createHourSummaryItem('saturday', monthSummary.saturday)}
-        ${createHourSummaryItem('sunday', monthSummary.sunday)}
-        ${createHourSummaryItem('holiday', monthSummary.holiday)}
-        <div class="hour-summary-item font-bold mt-2">
-          <span>${translations[state.currentLanguage]['month_total']}</span>
-          <span>${calculateTotalHours(monthSummary).toFixed(2)} h</span>
-        </div>
-      `;
-      document.getElementById('current-month-summary').innerHTML = monthSummaryHtml;
-      
-      // Update hour details table
-      updateHourDetailsTable();
-      
-      // Update hour distribution chart
-      updateHourDistributionChart(weekSummary);
-    }
-
-    // Create hour summary item HTML
-    function createHourSummaryItem(type, hours) {
-      if (hours <= 0) return '';
-      
-      return `
-        <div class="hour-summary-item">
-          <div class="hour-type-label">
-            <span class="hour-type-color color-${type}"></span>
-            <span>${translations[state.currentLanguage][`${type}_hours`]}</span>
-          </div>
-          <span>${hours.toFixed(2)} h</span>
-        </div>
-      `;
-    }
-
-    // Update hour details table
-    function updateHourDetailsTable() {
-      const tableBody = document.querySelector('#hourDetailsTable tbody');
-      tableBody.innerHTML = '';
-      
-      let totalHours = 0;
-      let totalAmount = 0;
-      
-      Object.entries(state.records).forEach(([id, record]) => {
-        const project = state.projects[record.projectId] || { name: 'Unknown', code: '?' };
-        const date = new Date(record.date);
-        
-        Object.entries(record.hourCategories).forEach(([category, hours]) => {
-          if (hours > 0) {
-            // Calcular recargo y monto
-            let surchargeRate = 0;
-            let amount = 0;
-            
-            switch(category) {
-              case 'regular':
-                surchargeRate = 0;
-                amount = hours * state.hourlyRate;
-                break;
-              case 'night':
-                surchargeRate = 0.4; // +40%
-                amount = hours * state.hourlyRate * (1 + surchargeRate);
-                break;
-              case 'saturday':
-                surchargeRate = 0.5; // +50%
-                amount = hours * state.hourlyRate * (1 + surchargeRate);
-                break;
-              case 'sunday':
-                surchargeRate = 1.0; // +100%
-                amount = hours * state.hourlyRate * (1 + surchargeRate);
-                break;
-              case 'holiday':
-                surchargeRate = 1.0; // +100%
-                amount = hours * state.hourlyRate * (1 + surchargeRate);
-                break;
-              case 'overtime':
-                surchargeRate = 0.5; // +50% (o +100% en fines de semana)
-                amount = hours * state.hourlyRate * (1 + surchargeRate);
-                break;
-            }
-            
-            totalHours += hours;
-            totalAmount += amount;
-            
-            const row = document.createElement('tr');
-            row.className = 'border-b hover:bg-gray-50';
-            row.innerHTML = `
-              <td class="py-2 px-3">${formatDate(record.date)}</td>
-              <td class="py-2 px-3">${project.code}</td>
-              <td class="py-2 px-3">
-                <span class="category-tag category-${category}">${translations[state.currentLanguage][category]}</span>
-              </td>
-              <td class="py-2 px-3 text-right">${hours.toFixed(2)}</td>
-              <td class="py-2 px-3 text-right">${(surchargeRate * 100).toFixed(0)}%</td>
-              <td class="py-2 px-3 text-right">${amount.toFixed(0)} SEK</td>
-            `;
-            tableBody.appendChild(row);
-          }
-        });
-      });
-      
-      document.getElementById('total-hours').textContent = totalHours.toFixed(2);
-      document.getElementById('total-amount').textContent = `${totalAmount.toFixed(0)} SEK`;
-    }
-
-    // Update hour distribution chart
-    function updateHourDistributionChart(summary) {
-      const ctx = document.getElementById('hour-distribution-chart').getContext('2d');
-      
-      // Destroy existing chart if it exists
-      if (state.hourDistributionChart) {
-        state.hourDistributionChart.destroy();
-      }
-      
-      const labels = [
-        translations[state.currentLanguage]['regular_hours'],
-        translations[state.currentLanguage]['night_hours'],
-        translations[state.currentLanguage]['saturday_hours'],
-        translations[state.currentLanguage]['sunday_hours'],
-        translations[state.currentLanguage]['holiday_hours'],
-        translations[state.currentLanguage]['overtime_hours']
-      ];
-      
-      const data = [
-        summary.regular,
-        summary.night,
-        summary.saturday,
-        summary.sunday,
-        summary.holiday,
-        summary.overtime
-      ];
-      
-      const backgroundColors = [
-        'rgba(16, 185, 129, 0.7)',   // Regular
-        'rgba(59, 130, 246, 0.7)',   // Night
-        'rgba(245, 158, 11, 0.7)',   // Saturday
-        'rgba(239, 68, 68, 0.7)',    // Sunday
-        'rgba(139, 92, 246, 0.7)',   // Holiday
-        'rgba(31, 41, 55, 0.7)'      // Overtime
-      ];
-      
-      state.hourDistributionChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels,
-          datasets: [{
-            data,
-            backgroundColor: backgroundColors,
-            borderColor: 'white',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'right',
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const label = context.label || '';
-                  const value = context.raw || 0;
-                  return `${label}: ${value.toFixed(2)} h`;
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: '#1F2937',
+                        light: '#F9FAFB'
+                    }
                 }
-              }
             }
-          }
         }
-      });
-    }
-
-    // Helper functions
-    function getWeekNumber(date) {
-      const d = new Date(date);
-      d.setHours(0, 0, 0, 0);
-      d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
-      const week1 = new Date(d.getFullYear(), 0, 4);
-      return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
-    }
-
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleDateString(state.currentLanguage, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-    }
-
-    // ... resto de funciones (showAlert, showLoading, etc.) ...
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    // Initialize the rest of the application
-    // (authentication, project management, etc.)
-    
-  </script>
+    <style>
+        .avatar-initials {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #3B82F6, #10B981);
+        }
+        
+        .ob-base { background-color: #D1FAE5; }
+        .ob-1 { background-color: #DBEAFE; }
+        .ob-2 { background-color: #E0E7FF; }
+        .ob-3 { background-color: #EDE9FE; }
+        .ob-4 { background-color: #FCE7F3; }
+        
+        .connection-online { color: #10B981; }
+        .connection-syncing { color: #F59E0B; animation: pulse 1.5s infinite; }
+        .connection-offline { color: #EF4444; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .scrollbar-custom::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        .scrollbar-custom::-webkit-scrollbar-thumb {
+            background-color: #9CA3AF;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- Barra de navegación -->
+        <nav class="bg-white shadow-md py-4 px-6 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center">
+                    <i class="fas fa-clock text-white"></i>
+                </div>
+                <h1 class="text-xl font-bold text-gray-800">Tidbok</h1>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div id="connection-status" class="flex items-center space-x-1">
+                    <i class="fas fa-circle connection-online"></i>
+                    <span class="text-sm">Online</span>
+                </div>
+                
+                <div class="relative group">
+                    <div id="user-avatar" class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold cursor-pointer">
+                        U
+                    </div>
+                    <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10">
+                        <div class="px-4 py-2 text-sm text-gray-700 border-b">Usuario Demo</div>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" id="edit-profile-btn">Editar perfil</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" id="logout-btn">Cerrar sesión</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Contenido principal -->
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Barra lateral -->
+            <div class="w-64 bg-white shadow-md flex flex-col">
+                <div class="p-4 border-b">
+                    <select id="language-selector" class="w-full p-2 border rounded-lg text-sm">
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                        <option value="sv">Svenska</option>
+                    </select>
+                </div>
+                
+                <div class="flex-1 flex flex-col py-4 overflow-y-auto scrollbar-custom">
+                    <a href="#" class="nav-item active" data-section="dashboard">
+                        <i class="fas fa-home mr-3"></i>
+                        <span>Panel Principal</span>
+                    </a>
+                    <a href="#" class="nav-item" data-section="time-entry">
+                        <i class="fas fa-plus-circle mr-3"></i>
+                        <span>Registrar Horas</span>
+                    </a>
+                    <a href="#" class="nav-item" data-section="projects">
+                        <i class="fas fa-folder mr-3"></i>
+                        <span>Proyectos</span>
+                    </a>
+                    <a href="#" class="nav-item" data-section="history">
+                        <i class="fas fa-history mr-3"></i>
+                        <span>Historial</span>
+                    </a>
+                    <a href="#" class="nav-item" data-section="reports">
+                        <i class="fas fa-chart-pie mr-3"></i>
+                        <span>Estadísticas</span>
+                    </a>
+                    <a href="#" class="nav-item" data-section="export">
+                        <i class="fas fa-file-export mr-3"></i>
+                        <span>Exportar</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Área de contenido -->
+            <div class="flex-1 p-6 overflow-y-auto scrollbar-custom">
+                <!-- Panel Principal -->
+                <div id="dashboard-section" class="section-content">
+                    <h2 class="text-2xl font-bold mb-6">Resumen de Actividades</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-gray-500 text-sm font-medium">Horas esta semana</h3>
+                                    <p class="text-3xl font-bold mt-2">38.5 <span class="text-lg">horas</span></p>
+                                </div>
+                                <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                                    <i class="fas fa-clock text-blue-500 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-100">
+                                <p class="text-sm text-gray-600">+2.5 horas respecto a la semana pasada</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-gray-500 text-sm font-medium">Proyectos activos</h3>
+                                    <p class="text-3xl font-bold mt-2">7 <span class="text-lg">proyectos</span></p>
+                                </div>
+                                <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
+                                    <i class="fas fa-folder text-green-500 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-100">
+                                <p class="text-sm text-gray-600">3 proyectos con horas pendientes</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-gray-500 text-sm font-medium">Horas extraordinarias</h3>
+                                    <p class="text-3xl font-bold mt-2">12.5 <span class="text-lg">horas</span></p>
+                                </div>
+                                <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                                    <i class="fas fa-star text-purple-500 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-100">
+                                <p class="text-sm text-gray-600">OB1: 8.5h | OB2: 4h</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">Distribución de Horas por Proyecto</h3>
+                            <div class="h-64">
+                                <canvas id="projectDistributionChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">Horas por Semana</h3>
+                            <div class="h-64">
+                                <canvas id="weeklyHoursChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Registrar Horas -->
+                <div id="time-entry-section" class="section-content hidden">
+                    <h2 class="text-2xl font-bold mb-6">Registrar Nuevo Tiempo</h2>
+                    
+                    <div class="bg-white rounded-xl shadow p-6 mb-6">
+                        <form id="time-entry-form">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                                    <input type="date" class="w-full p-3 border rounded-lg" id="entry-date" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Proyecto</label>
+                                    <select class="w-full p-3 border rounded-lg" id="entry-project" required>
+                                        <option value="">Seleccionar proyecto</option>
+                                        <option value="1">Tidbok - Desarrollo App</option>
+                                        <option value="2">Client A - Sitio Web</option>
+                                        <option value="3">Client B - Mantenimiento</option>
+                                        <option value="4">Internal - Reuniones</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Hora de inicio</label>
+                                    <input type="time" class="w-full p-3 border rounded-lg" id="start-time" value="09:00" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Hora de fin</label>
+                                    <input type="time" class="w-full p-3 border rounded-lg" id="end-time" value="17:00" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Tiempo de descanso (minutos)</label>
+                                    <input type="number" class="w-full p-3 border rounded-lg" id="break-time" value="30" min="0" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Compañeros</label>
+                                    <input type="text" class="w-full p-3 border rounded-lg" id="colleagues" placeholder="Nombres separados por comas">
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+                                <textarea class="w-full p-3 border rounded-lg" id="entry-notes" rows="3" placeholder="Detalles de la actividad..."></textarea>
+                            </div>
+                            
+                            <div class="mt-8 flex justify-between">
+                                <div>
+                                    <h3 class="text-sm font-medium text-gray-700">Resumen de horas:</h3>
+                                    <div class="mt-2 flex space-x-4">
+                                        <div class="bg-blue-50 px-4 py-2 rounded-lg">
+                                            <span class="block text-xs text-gray-500">Total</span>
+                                            <span class="block text-lg font-semibold" id="total-hours">7.5 horas</span>
+                                        </div>
+                                        <div class="bg-green-50 px-4 py-2 rounded-lg">
+                                            <span class="block text-xs text-gray-500">Sueldo base</span>
+                                            <span class="block text-lg font-semibold" id="base-hours">7.5 horas</span>
+                                        </div>
+                                        <div class="bg-purple-50 px-4 py-2 rounded-lg">
+                                            <span class="block text-xs text-gray-500">OB</span>
+                                            <span class="block text-lg font-semibold" id="ob-hours">0 horas</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <button type="reset" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium mr-3">Limpiar</button>
+                                    <button type="submit" class="px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition">Guardar Registro</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h3 class="text-lg font-semibold mb-4">Registros Recientes</h3>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-left text-sm text-gray-500 border-b">
+                                        <th class="pb-3">Fecha</th>
+                                        <th class="pb-3">Proyecto</th>
+                                        <th class="pb-3">Horas</th>
+                                        <th class="pb-3">Tipo</th>
+                                        <th class="pb-3">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="py-4">2023-10-25</td>
+                                        <td class="py-4">Tidbok - Desarrollo App</td>
+                                        <td class="py-4">7.5 horas</td>
+                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Base</span></td>
+                                        <td class="py-4">
+                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
+                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="py-4">2023-10-24</td>
+                                        <td class="py-4">Client A - Sitio Web</td>
+                                        <td class="py-4">6.0 horas</td>
+                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">OB1</span></td>
+                                        <td class="py-4">
+                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
+                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="py-4">2023-10-23</td>
+                                        <td class="py-4">Internal - Reuniones</td>
+                                        <td class="py-4">3.5 horas</td>
+                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Base</span></td>
+                                        <td class="py-4">
+                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
+                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="py-4">2023-10-22</td>
+                                        <td class="py-4">Client B - Mantenimiento</td>
+                                        <td class="py-4">5.0 horas</td>
+                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-indigo-100 text-indigo-800">OB3</span></td>
+                                        <td class="py-4">
+                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
+                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gestión de Proyectos -->
+                <div id="projects-section" class="section-content hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">Gestión de Proyectos</h2>
+                        <button class="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition" id="add-project-btn">
+                            <i class="fas fa-plus mr-2"></i> Nuevo Proyecto
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-white rounded-xl shadow p-5 border-l-4 border-blue-500">
+                            <div class="flex justify-between">
+                                <h3 class="font-semibold text-lg">Tidbok - Desarrollo App</h3>
+                                <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">ACT-001</span>
+                            </div>
+                            <p class="text-gray-600 mt-2 text-sm">Desarrollo de la aplicación de seguimiento de tiempo Tidbok</p>
+                            <div class="flex mt-4">
+                                <button class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit mr-1"></i> Editar</button>
+                                <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash mr-1"></i> Eliminar</button>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-5 border-l-4 border-green-500">
+                            <div class="flex justify-between">
+                                <h3 class="font-semibold text-lg">Client A - Sitio Web</h3>
+                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">WEB-045</span>
+                            </div>
+                            <p class="text-gray-600 mt-2 text-sm">Rediseño del sitio web corporativo para Client A</p>
+                            <div class="flex mt-4">
+                                <button class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit mr-1"></i> Editar</button>
+                                <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash mr-1"></i> Eliminar</button>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-5 border-l-4 border-purple-500">
+                            <div class="flex justify-between">
+                                <h3 class="font-semibold text-lg">Client B - Mantenimiento</h3>
+                                <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">MNT-023</span>
+                            </div>
+                            <p class="text-gray-600 mt-2 text-sm">Mantenimiento mensual del sistema para Client B</p>
+                            <div class="flex mt-4">
+                                <button class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit mr-1"></i> Editar</button>
+                                <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash mr-1"></i> Eliminar</button>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-5 border-l-4 border-yellow-500">
+                            <div class="flex justify-between">
+                                <h3 class="font-semibold text-lg">Internal - Reuniones</h3>
+                                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">INT-007</span>
+                            </div>
+                            <p class="text-gray-600 mt-2 text-sm">Reuniones internas de equipo y planificación</p>
+                            <div class="flex mt-4">
+                                <button class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit mr-1"></i> Editar</button>
+                                <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash mr-1"></i> Eliminar</button>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-5 border-l-4 border-red-500">
+                            <div class="flex justify-between">
+                                <h3 class="font-semibold text-lg">Client C - E-commerce</h3>
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">ECO-012</span>
+                            </div>
+                            <p class="text-gray-600 mt-2 text-sm">Desarrollo de plataforma e-commerce para Client C</p>
+                            <div class="flex mt-4">
+                                <button class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit mr-1"></i> Editar</button>
+                                <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash mr-1"></i> Eliminar</button>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-5 border-l-4 border-indigo-500">
+                            <div class="flex justify-between">
+                                <h3 class="font-semibold text-lg">Client D - App Móvil</h3>
+                                <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">APP-031</span>
+                            </div>
+                            <p class="text-gray-600 mt-2 text-sm">Desarrollo de aplicación móvil para Client D</p>
+                            <div class="flex mt-4">
+                                <button class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit mr-1"></i> Editar</button>
+                                <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash mr-1"></i> Eliminar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Historial -->
+                <div id="history-section" class="section-content hidden">
+                    <h2 class="text-2xl font-bold mb-6">Historial de Registros</h2>
+                    
+                    <div class="bg-white rounded-xl shadow p-6 mb-6">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                            <div class="mb-4 md:mb-0">
+                                <h3 class="text-lg font-semibold">Filtrar por período</h3>
+                                <div class="flex space-x-2 mt-2">
+                                    <select class="p-2 border rounded-lg text-sm" id="filter-year">
+                                        <option>2023</option>
+                                        <option>2022</option>
+                                        <option>2021</option>
+                                    </select>
+                                    <select class="p-2 border rounded-lg text-sm" id="filter-month">
+                                        <option value="01">Enero</option>
+                                        <option value="02">Febrero</option>
+                                        <option value="03">Marzo</option>
+                                        <option value="04">Abril</option>
+                                        <option value="05">Mayo</option>
+                                        <option value="06">Junio</option>
+                                        <option value="07">Julio</option>
+                                        <option value="08">Agosto</option>
+                                        <option value="09">Septiembre</option>
+                                        <option value="10" selected>Octubre</option>
+                                        <option value="11">Noviembre</option>
+                                        <option value="12">Diciembre</option>
+                                    </select>
+                                    <select class="p-2 border rounded-lg text-sm" id="filter-week">
+                                        <option value="1">Semana 1 (1-7)</option>
+                                        <option value="2">Semana 2 (8-14)</option>
+                                        <option value="3">Semana 3 (15-21)</option>
+                                        <option value="4" selected>Semana 4 (22-28)</option>
+                                        <option value="5">Semana 5 (29-31)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="flex space-x-3">
+                                <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium">
+                                    <i class="fas fa-file-export mr-2"></i> Exportar
+                                </button>
+                                <button class="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium">
+                                    <i class="fas fa-filter mr-2"></i> Aplicar Filtros
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-left text-sm text-gray-500 border-b">
+                                        <th class="pb-3">Fecha</th>
+                                        <th class="pb-3">Proyecto</th>
+                                        <th class="pb-3">Inicio</th>
+                                        <th class="pb-3">Fin</th>
+                                        <th class="pb-3">Descanso</th>
+                                        <th class="pb-3">Total</th>
+                                        <th class="pb-3">Tipo</th>
+                                        <th class="pb-3">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="py-4">Lun, 23/10</td>
+                                        <td class="py-4">Tidbok - Desarrollo App</td>
+                                        <td class="py-4">09:00</td>
+                                        <td class="py-4">17:30</td>
+                                        <td class="py-4">45 min</td>
+                                        <td class="py-4">7.75h</td>
+                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Base</span></td>
+                                        <td class="py-4">
+                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
+                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="py-4">Mar, 24/10</td>
+                                        <td class="py-4">Client A - Sitio Web</td>
+                                        <td class="py-4">18:00</td>
+                                        <td class="py-4">22:30</td>
+                                        <td class="py-4">30 min</td>
+                                        <td class="py-4">4.0h</td>
+                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">OB1</span></td>
+                                        <td class="py-4">
+                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
+                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="py-4">Mié, 25/10</td>
+                                        <td class="py-4">Client B - Mantenimiento</td>
+                                        <td class="py-4">08:30</td>
+                                        <td class="py-4">16:45</td>
+                                        <td class="py-4">45 min</td>
+                                        <td class="py-4">7.5h</td>
+                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Base</span></td>
+                                        <td class="py-4">
+                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
+                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="py-4">Jue, 26/10</td>
+                                        <td class="py-4">Internal - Reuniones</td>
+                                        <td class="py-4">10:00</td>
+                                        <td class="py-4">12:30</td>
+                                        <td class="py-4">0 min</td>
+                                        <td class="py-4">2.5h</td>
+                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Base</span></td>
+                                        <td class="py-4">
+                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
+                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="py-4">Vie, 27/10</td>
+                                        <td class="py-4">Client C - E-commerce</td>
+                                        <td class="py-4">14:00</td>
+                                        <td class="py-4">18:00</td>
+                                        <td class="py-4">30 min</td>
+                                        <td class="py-4">3.5h</td>
+                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Base</span></td>
+                                        <td class="py-4">
+                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
+                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="py-4">Sáb, 28/10</td>
+                                        <td class="py-4">Client D - App Móvil</td>
+                                        <td class="py-4">13:30</td>
+                                        <td class="py-4">19:00</td>
+                                        <td class="py-4">30 min</td>
+                                        <td class="py-4">5.0h</td>
+                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-indigo-100 text-indigo-800">OB3</span></td>
+                                        <td class="py-4">
+                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
+                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h3 class="text-lg font-semibold mb-4">Resumen Semanal</h3>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                            <div class="bg-gray-50 rounded-lg p-4 text-center">
+                                <p class="text-sm text-gray-500">Horas totales</p>
+                                <p class="text-xl font-bold">30.25h</p>
+                            </div>
+                            <div class="bg-blue-50 rounded-lg p-4 text-center">
+                                <p class="text-sm text-gray-500">Sueldo base</p>
+                                <p class="text-xl font-bold text-blue-600">21.75h</p>
+                            </div>
+                            <div class="bg-purple-50 rounded-lg p-4 text-center">
+                                <p class="text-sm text-gray-500">OB1</p>
+                                <p class="text-xl font-bold text-purple-600">4.0h</p>
+                            </div>
+                            <div class="bg-indigo-50 rounded-lg p-4 text-center">
+                                <p class="text-sm text-gray-500">OB3</p>
+                                <p class="text-xl font-bold text-indigo-600">5.0h</p>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-4 text-center">
+                                <p class="text-sm text-gray-500">Promedio/día</p>
+                                <p class="text-xl font-bold text-green-600">6.05h</p>
+                            </div>
+                        </div>
+                        
+                        <div class="h-64">
+                            <canvas id="weeklySummaryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Estadísticas -->
+                <div id="reports-section" class="section-content hidden">
+                    <h2 class="text-2xl font-bold mb-6">Estadísticas y Reportes</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">Horas por Proyecto</h3>
+                            <div class="h-64">
+                                <canvas id="projectHoursChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">Distribución de OB</h3>
+                            <div class="h-64">
+                                <canvas id="obDistributionChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">Comparación Mensual</h3>
+                            <div class="h-64">
+                                <canvas id="monthlyComparisonChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h3 class="text-lg font-semibold mb-4">Resumen de Productividad</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <p class="text-sm text-gray-500 mb-1">Horas totales (mes)</p>
+                                <p class="text-2xl font-bold">124.5h</p>
+                            </div>
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <p class="text-sm text-gray-500 mb-1">Horas promedio/día</p>
+                                <p class="text-2xl font-bold text-blue-600">6.2h</p>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <p class="text-sm text-gray-500 mb-1">Días trabajados</p>
+                                <p class="text-2xl font-bold text-green-600">20</p>
+                            </div>
+                            <div class="bg-purple-50 rounded-lg p-4">
+                                <p class="text-sm text-gray-500 mb-1">Horas OB</p>
+                                <p class="text-2xl font-bold text-purple-600">24.5h</p>
+                            </div>
+                        </div>
+                        
+                        <div class="h-72">
+                            <canvas id="productivityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Exportar -->
+                <div id="export-section" class="section-content hidden">
+                    <h2 class="text-2xl font-bold mb-6">Exportar Datos</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">Exportar a PDF</h3>
+                            <p class="text-gray-600 mb-4">Genera un informe en formato PDF con tus registros de tiempo.</p>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Período</label>
+                                    <select class="w-full p-3 border rounded-lg">
+                                        <option>Última semana</option>
+                                        <option>Último mes</option>
+                                        <option>Personalizado</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Formato</label>
+                                    <select class="w-full p-3 border rounded-lg">
+                                        <option>Resumido</option>
+                                        <option>Detallado</option>
+                                        <option>Para contabilidad</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Idioma</label>
+                                    <select class="w-full p-3 border rounded-lg">
+                                        <option>Español</option>
+                                        <option>Inglés</option>
+                                        <option>Sueco</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <button class="w-full mt-6 px-4 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition">
+                                <i class="fas fa-file-pdf mr-2"></i> Generar PDF
+                            </button>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">Exportar/Importar Datos</h3>
+                            <p class="text-gray-600 mb-4">Guarda una copia de seguridad de tus datos o restaura desde un archivo.</p>
+                            
+                            <div class="space-y-4 mb-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Exportar datos</label>
+                                    <p class="text-sm text-gray-500 mb-2">Descarga todos tus registros y proyectos en formato JSON.</p>
+                                    <button class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition">
+                                        <i class="fas fa-download mr-2"></i> Exportar JSON
+                                    </button>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Importar datos</label>
+                                    <p class="text-sm text-gray-500 mb-2">Carga datos desde un archivo JSON previamente exportado.</p>
+                                    <div class="flex">
+                                        <input type="file" class="hidden" id="json-upload">
+                                        <label for="json-upload" class="flex-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-l-lg cursor-pointer truncate">Seleccionar archivo</label>
+                                        <button class="px-4 py-2 bg-green-500 text-white rounded-r-lg font-medium hover:bg-green-600 transition">
+                                            <i class="fas fa-upload mr-2"></i> Cargar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="border-t pt-4">
+                                <h4 class="text-md font-medium mb-2">Sincronización con Firebase</h4>
+                                <p class="text-sm text-gray-600 mb-4">Tus datos se sincronizan automáticamente con la nube.</p>
+                                <div class="flex items-center text-sm">
+                                    <i class="fas fa-database mr-2 text-blue-500"></i>
+                                    <span>Última sincronización: Hoy, 14:32</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h3 class="text-lg font-semibold mb-4">Vista Previa del PDF</h3>
+                        <div class="border-2 border-dashed border-gray-300 rounded-xl h-96 flex items-center justify-center">
+                            <div class="text-center">
+                                <i class="fas fa-file-pdf text-5xl text-red-500 mb-3"></i>
+                                <p class="text-gray-500">Vista previa del PDF generado</p>
+                                <p class="text-sm text-gray-400 mt-2">Se mostrará aquí después de hacer clic en "Generar PDF"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal Editar Perfil -->
+        <div id="profile-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+            <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 fade-in">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Editar Perfil</h3>
+                    <button id="close-profile-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form class="space-y-4">
+                    <div class="flex justify-center">
+                        <div class="relative">
+                            <div id="profile-avatar" class="w-24 h-24 rounded-full bg-blue-500 flex items-center justify-center text-white text-3xl font-bold mb-2">
+                                U
+                            </div>
+                            <button class="absolute bottom-0 right-0 bg-gray-200 rounded-full p-2 hover:bg-gray-300">
+                                <i class="fas fa-camera text-gray-700"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                        <input type="text" class="w-full p-3 border rounded-lg" value="Usuario">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
+                        <input type="text" class="w-full p-3 border rounded-lg" value="Demo">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                        <input type="tel" class="w-full p-3 border rounded-lg" value="+34 600 123 456">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
+                        <input type="email" class="w-full p-3 border rounded-lg" value="usuario@demo.com" disabled>
+                    </div>
+                    
+                    <div class="pt-4 flex justify-end space-x-3">
+                        <button type="button" id="cancel-profile-edit" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAI-VxrbSC-d1WscOkpY9d8NaEUgdjneeE",
+            authDomain: "tidbok-df555.firebaseapp.com",
+            databaseURL: "https://tidbok-df555-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "tidbok-df555",
+            storageBucket: "tidbok-df555.firebasestorage.app",
+            messagingSenderId: "467331966400",
+            appId: "1:467331966400:web:abb6949a76918f2eb8d425"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        
+        // DOM Elements
+        const appContainer = document.getElementById('app');
+        const navItems = document.querySelectorAll('.nav-item');
+        const sectionContents = document.querySelectorAll('.section-content');
+        const profileModal = document.getElementById('profile-modal');
+        const editProfileBtn = document.getElementById('edit-profile-btn');
+        const closeProfileModal = document.getElementById('close-profile-modal');
+        const cancelProfileEdit = document.getElementById('cancel-profile-edit');
+        const logoutBtn = document.getElementById('logout-btn');
+        const timeEntryForm = document.getElementById('time-entry-form');
+        const languageSelector = document.getElementById('language-selector');
+        const connectionStatus = document.getElementById('connection-status');
+        
+        // Initialize Charts
+        function initCharts() {
+            // Project Distribution Chart (Doughnut)
+            new Chart(document.getElementById('projectDistributionChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Tidbok', 'Client A', 'Client B', 'Internal', 'Client C', 'Client D'],
+                    datasets: [{
+                        data: [35, 20, 15, 10, 12, 8],
+                        backgroundColor: [
+                            '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444', '#0EA5E9'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        }
+                    }
+                }
+            });
+            
+            // Weekly Hours Chart (Bar)
+            new Chart(document.getElementById('weeklyHoursChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
+                    datasets: [{
+                        label: 'Horas trabajadas',
+                        data: [32, 35, 38, 42],
+                        backgroundColor: '#10B981'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // OB Distribution Chart
+            new Chart(document.getElementById('obDistributionChart'), {
+                type: 'pie',
+                data: {
+                    labels: ['Sueldo base', 'OB 1', 'OB 2', 'OB 3', 'OB 4'],
+                    datasets: [{
+                        data: [75, 15, 5, 4, 1],
+                        backgroundColor: [
+                            '#D1FAE5', '#DBEAFE', '#E0E7FF', '#EDE9FE', '#FCE7F3'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            // Project Hours Chart
+            new Chart(document.getElementById('projectHoursChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Tidbok', 'Client A', 'Client B', 'Internal', 'Client C'],
+                    datasets: [{
+                        label: 'Horas',
+                        data: [42, 32, 28, 15, 20],
+                        backgroundColor: '#3B82F6'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            // Weekly Summary Chart
+            new Chart(document.getElementById('weeklySummaryChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+                    datasets: [
+                        {
+                            label: 'Horas',
+                            data: [7.5, 6, 7.5, 2.5, 3.5, 5],
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Navigation
+        function showSection(sectionId) {
+            sectionContents.forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(`${sectionId}-section`).classList.remove('hidden');
+            
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-section') === sectionId) {
+                    item.classList.add('active');
+                }
+            });
+        }
+        
+        // Event Listeners
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = item.getAttribute('data-section');
+                showSection(section);
+            });
+        });
+        
+        editProfileBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            profileModal.classList.remove('hidden');
+        });
+        
+        closeProfileModal.addEventListener('click', () => {
+            profileModal.classList.add('hidden');
+        });
+        
+        cancelProfileEdit.addEventListener('click', () => {
+            profileModal.classList.add('hidden');
+        });
+        
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            auth.signOut().then(() => {
+                // Redirect to login or show login screen
+                alert('Sesión cerrada correctamente');
+            }).catch((error) => {
+                console.error('Error al cerrar sesión:', error);
+            });
+        });
+        
+        timeEntryForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Registro guardado correctamente');
+            timeEntryForm.reset();
+        });
+        
+        // Simulate connection status changes
+        function simulateConnectionChanges() {
+            const statusIcon = connectionStatus.querySelector('i');
+            const statusText = connectionStatus.querySelector('span');
+            
+            statusIcon.classList.remove('connection-online', 'connection-syncing', 'connection-offline');
+            statusText.textContent = 'Online';
+            statusIcon.classList.add('connection-online');
+            
+            setTimeout(() => {
+                statusIcon.classList.remove('connection-online');
+                statusIcon.classList.add('connection-syncing');
+                statusText.textContent = 'Sincronizando...';
+                
+                setTimeout(() => {
+                    statusIcon.classList.remove('connection-syncing');
+                    statusIcon.classList.add('connection-online');
+                    statusText.textContent = 'Online';
+                }, 3000);
+            }, 8000);
+            
+            setTimeout(() => {
+                statusIcon.classList.remove('connection-online');
+                statusIcon.classList.add('connection-offline');
+                statusText.textContent = 'Sin conexión';
+            }, 15000);
+            
+            setTimeout(() => {
+                statusIcon.classList.remove('connection-offline');
+                statusIcon.classList.add('connection-online');
+                statusText.textContent = 'Online';
+            }, 25000);
+        }
+        
+        // Initialize the app
+        function initApp() {
+            showSection('dashboard');
+            initCharts();
+            simulateConnectionChanges();
+            
+            // Firebase Auth State Listener
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    // User is signed in
+                    const displayName = user.displayName || "Usuario Demo";
+                    const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase();
+                    
+                    document.getElementById('user-avatar').textContent = initials;
+                    document.getElementById('profile-avatar').textContent = initials;
+                } else {
+                    // User is signed out
+                    // Redirect to login or show login screen
+                }
+            });
+        }
+        
+        // Start the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
 </body>
 </html>
