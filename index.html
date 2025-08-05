@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
@@ -94,6 +95,19 @@
             transform: translateY(0);
             pointer-events: all;
         }
+        
+        .ob-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .ob-base-badge { background-color: #D1FAE5; color: #065F46; }
+        .ob-1-badge { background-color: #DBEAFE; color: #1E40AF; }
+        .ob-2-badge { background-color: #E0E7FF; color: #4338CA; }
+        .ob-3-badge { background-color: #EDE9FE; color: #5B21B6; }
+        .ob-4-badge { background-color: #FCE7F3; color: #9D174D; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -226,14 +240,14 @@
                             <div class="flex justify-between items-start">
                                 <div>
                                     <h3 class="text-gray-500 text-sm font-medium">Horas esta semana</h3>
-                                    <p class="text-3xl font-bold mt-2">38.5 <span class="text-lg">horas</span></p>
+                                    <p class="text-3xl font-bold mt-2"><span id="week-hours">0</span> <span class="text-lg">horas</span></p>
                                 </div>
                                 <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
                                     <i class="fas fa-clock text-blue-500 text-xl"></i>
                                 </div>
                             </div>
                             <div class="mt-4 pt-4 border-t border-gray-100">
-                                <p class="text-sm text-gray-600">+2.5 horas respecto a la semana pasada</p>
+                                <p class="text-sm text-gray-600" id="week-comparison">Cargando datos...</p>
                             </div>
                         </div>
                         
@@ -241,14 +255,14 @@
                             <div class="flex justify-between items-start">
                                 <div>
                                     <h3 class="text-gray-500 text-sm font-medium">Proyectos activos</h3>
-                                    <p class="text-3xl font-bold mt-2">7 <span class="text-lg">proyectos</span></p>
+                                    <p class="text-3xl font-bold mt-2"><span id="active-projects">0</span> <span class="text-lg">proyectos</span></p>
                                 </div>
                                 <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
                                     <i class="fas fa-folder text-green-500 text-xl"></i>
                                 </div>
                             </div>
                             <div class="mt-4 pt-4 border-t border-gray-100">
-                                <p class="text-sm text-gray-600">3 proyectos con horas pendientes</p>
+                                <p class="text-sm text-gray-600" id="pending-projects">Cargando datos...</p>
                             </div>
                         </div>
                         
@@ -256,14 +270,14 @@
                             <div class="flex justify-between items-start">
                                 <div>
                                     <h3 class="text-gray-500 text-sm font-medium">Horas extraordinarias</h3>
-                                    <p class="text-3xl font-bold mt-2">12.5 <span class="text-lg">horas</span></p>
+                                    <p class="text-3xl font-bold mt-2"><span id="ob-hours-total">0</span> <span class="text-lg">horas</span></p>
                                 </div>
                                 <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
                                     <i class="fas fa-star text-purple-500 text-xl"></i>
                                 </div>
                             </div>
                             <div class="mt-4 pt-4 border-t border-gray-100">
-                                <p class="text-sm text-gray-600">OB1: 8.5h | OB2: 4h</p>
+                                <p class="text-sm text-gray-600" id="ob-breakdown">Cargando datos...</p>
                             </div>
                         </div>
                     </div>
@@ -291,6 +305,8 @@
                     
                     <div class="bg-white rounded-xl shadow p-6 mb-6">
                         <form id="time-entry-form">
+                            <input type="hidden" id="entry-id" value="">
+                            
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
@@ -301,10 +317,7 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Proyecto</label>
                                     <select class="w-full p-3 border rounded-lg" id="entry-project" required>
                                         <option value="">Seleccionar proyecto</option>
-                                        <option value="1">Tidbok - Desarrollo App</option>
-                                        <option value="2">Client A - Sitio Web</option>
-                                        <option value="3">Client B - Mantenimiento</option>
-                                        <option value="4">Internal - Reuniones</option>
+                                        <!-- Los proyectos se cargarán dinámicamente -->
                                     </select>
                                 </div>
                                 
@@ -340,11 +353,11 @@
                                     <div class="mt-2 flex space-x-4">
                                         <div class="bg-blue-50 px-4 py-2 rounded-lg">
                                             <span class="block text-xs text-gray-500">Total</span>
-                                            <span class="block text-lg font-semibold" id="total-hours">7.5 horas</span>
+                                            <span class="block text-lg font-semibold" id="total-hours">0 horas</span>
                                         </div>
                                         <div class="bg-green-50 px-4 py-2 rounded-lg">
                                             <span class="block text-xs text-gray-500">Sueldo base</span>
-                                            <span class="block text-lg font-semibold" id="base-hours">7.5 horas</span>
+                                            <span class="block text-lg font-semibold" id="base-hours">0 horas</span>
                                         </div>
                                         <div class="bg-purple-50 px-4 py-2 rounded-lg">
                                             <span class="block text-xs text-gray-500">OB</span>
@@ -375,46 +388,10 @@
                                         <th class="pb-3">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr class="border-b hover:bg-gray-50">
-                                        <td class="py-4">2023-10-25</td>
-                                        <td class="py-4">Tidbok - Desarrollo App</td>
-                                        <td class="py-4">7.5 horas</td>
-                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Base</span></td>
-                                        <td class="py-4">
-                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
-                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                                        </td>
-                                    </tr>
-                                    <tr class="border-b hover:bg-gray-50">
-                                        <td class="py-4">2023-10-24</td>
-                                        <td class="py-4">Client A - Sitio Web</td>
-                                        <td class="py-4">6.0 horas</td>
-                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">OB1</span></td>
-                                        <td class="py-4">
-                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
-                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                                        </td>
-                                    </tr>
-                                    <tr class="border-b hover:bg-gray-50">
-                                        <td class="py-4">2023-10-23</td>
-                                        <td class="py-4">Internal - Reuniones</td>
-                                        <td class="py-4">3.5 horas</td>
-                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Base</span></td>
-                                        <td class="py-4">
-                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
-                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="py-4">2023-10-22</td>
-                                        <td class="py-4">Client B - Mantenimiento</td>
-                                        <td class="py-4">5.0 horas</td>
-                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-indigo-100 text-indigo-800">OB3</span></td>
-                                        <td class="py-4">
-                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
-                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                                        </td>
+                                <tbody id="recent-entries">
+                                    <!-- Los registros se cargarán dinámicamente -->
+                                    <tr>
+                                        <td colspan="5" class="text-center py-8 text-gray-500">Cargando registros...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -431,78 +408,9 @@
                         </button>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div class="bg-white rounded-xl shadow p-5 border-l-4 border-blue-500">
-                            <div class="flex justify-between">
-                                <h3 class="font-semibold text-lg">Tidbok - Desarrollo App</h3>
-                                <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">ACT-001</span>
-                            </div>
-                            <p class="text-gray-600 mt-2 text-sm">Desarrollo de la aplicación de seguimiento de tiempo Tidbok</p>
-                            <div class="flex mt-4">
-                                <button class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit mr-1"></i> Editar</button>
-                                <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash mr-1"></i> Eliminar</button>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white rounded-xl shadow p-5 border-l-4 border-green-500">
-                            <div class="flex justify-between">
-                                <h3 class="font-semibold text-lg">Client A - Sitio Web</h3>
-                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">WEB-045</span>
-                            </div>
-                            <p class="text-gray-600 mt-2 text-sm">Rediseño del sitio web corporativo para Client A</p>
-                            <div class="flex mt-4">
-                                <button class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit mr-1"></i> Editar</button>
-                                <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash mr-1"></i> Eliminar</button>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white rounded-xl shadow p-5 border-l-4 border-purple-500">
-                            <div class="flex justify-between">
-                                <h3 class="font-semibold text-lg">Client B - Mantenimiento</h3>
-                                <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">MNT-023</span>
-                            </div>
-                            <p class="text-gray-600 mt-2 text-sm">Mantenimiento mensual del sistema para Client B</p>
-                            <div class="flex mt-4">
-                                <button class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit mr-1"></i> Editar</button>
-                                <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash mr-1"></i> Eliminar</button>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white rounded-xl shadow p-5 border-l-4 border-yellow-500">
-                            <div class="flex justify-between">
-                                <h3 class="font-semibold text-lg">Internal - Reuniones</h3>
-                                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">INT-007</span>
-                            </div>
-                            <p class="text-gray-600 mt-2 text-sm">Reuniones internas de equipo y planificación</p>
-                            <div class="flex mt-4">
-                                <button class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit mr-1"></i> Editar</button>
-                                <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash mr-1"></i> Eliminar</button>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white rounded-xl shadow p-5 border-l-4 border-red-500">
-                            <div class="flex justify-between">
-                                <h3 class="font-semibold text-lg">Client C - E-commerce</h3>
-                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">ECO-012</span>
-                            </div>
-                            <p class="text-gray-600 mt-2 text-sm">Desarrollo de plataforma e-commerce para Client C</p>
-                            <div class="flex mt-4">
-                                <button class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit mr-1"></i> Editar</button>
-                                <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash mr-1"></i> Eliminar</button>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white rounded-xl shadow p-5 border-l-4 border-indigo-500">
-                            <div class="flex justify-between">
-                                <h3 class="font-semibold text-lg">Client D - App Móvil</h3>
-                                <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">APP-031</span>
-                            </div>
-                            <p class="text-gray-600 mt-2 text-sm">Desarrollo de aplicación móvil para Client D</p>
-                            <div class="flex mt-4">
-                                <button class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit mr-1"></i> Editar</button>
-                                <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash mr-1"></i> Eliminar</button>
-                            </div>
-                        </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="projects-container">
+                        <!-- Los proyectos se cargarán dinámicamente -->
+                        <div class="text-center py-12 text-gray-500">Cargando proyectos...</div>
                     </div>
                 </div>
                 
@@ -545,10 +453,7 @@
                             </div>
                             
                             <div class="flex space-x-3">
-                                <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium">
-                                    <i class="fas fa-file-export mr-2"></i> Exportar
-                                </button>
-                                <button class="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium">
+                                <button class="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium" id="apply-filters-btn">
                                     <i class="fas fa-filter mr-2"></i> Aplicar Filtros
                                 </button>
                             </div>
@@ -568,84 +473,10 @@
                                         <th class="pb-3">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr class="border-b hover:bg-gray-50">
-                                        <td class="py-4">Lun, 23/10</td>
-                                        <td class="py-4">Tidbok - Desarrollo App</td>
-                                        <td class="py-4">09:00</td>
-                                        <td class="py-4">17:30</td>
-                                        <td class="py-4">45 min</td>
-                                        <td class="py-4">7.75h</td>
-                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Base</span></td>
-                                        <td class="py-4">
-                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
-                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                                        </td>
-                                    </tr>
-                                    <tr class="border-b hover:bg-gray-50">
-                                        <td class="py-4">Mar, 24/10</td>
-                                        <td class="py-4">Client A - Sitio Web</td>
-                                        <td class="py-4">18:00</td>
-                                        <td class="py-4">22:30</td>
-                                        <td class="py-4">30 min</td>
-                                        <td class="py-4">4.0h</td>
-                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">OB1</span></td>
-                                        <td class="py-4">
-                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
-                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                                        </td>
-                                    </tr>
-                                    <tr class="border-b hover:bg-gray-50">
-                                        <td class="py-4">Mié, 25/10</td>
-                                        <td class="py-4">Client B - Mantenimiento</td>
-                                        <td class="py-4">08:30</td>
-                                        <td class="py-4">16:45</td>
-                                        <td class="py-4">45 min</td>
-                                        <td class="py-4">7.5h</td>
-                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Base</span></td>
-                                        <td class="py-4">
-                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
-                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                                        </td>
-                                    </tr>
-                                    <tr class="border-b hover:bg-gray-50">
-                                        <td class="py-4">Jue, 26/10</td>
-                                        <td class="py-4">Internal - Reuniones</td>
-                                        <td class="py-4">10:00</td>
-                                        <td class="py-4">12:30</td>
-                                        <td class="py-4">0 min</td>
-                                        <td class="py-4">2.5h</td>
-                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Base</span></td>
-                                        <td class="py-4">
-                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
-                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                                        </td>
-                                    </tr>
-                                    <tr class="border-b hover:bg-gray-50">
-                                        <td class="py-4">Vie, 27/10</td>
-                                        <td class="py-4">Client C - E-commerce</td>
-                                        <td class="py-4">14:00</td>
-                                        <td class="py-4">18:00</td>
-                                        <td class="py-4">30 min</td>
-                                        <td class="py-4">3.5h</td>
-                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Base</span></td>
-                                        <td class="py-4">
-                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
-                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="py-4">Sáb, 28/10</td>
-                                        <td class="py-4">Client D - App Móvil</td>
-                                        <td class="py-4">13:30</td>
-                                        <td class="py-4">19:00</td>
-                                        <td class="py-4">30 min</td>
-                                        <td class="py-4">5.0h</td>
-                                        <td class="py-4"><span class="px-2 py-1 rounded-full text-xs bg-indigo-100 text-indigo-800">OB3</span></td>
-                                        <td class="py-4">
-                                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
-                                            <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                                        </td>
+                                <tbody id="history-entries">
+                                    <!-- Los registros se cargarán dinámicamente -->
+                                    <tr>
+                                        <td colspan="8" class="text-center py-8 text-gray-500">Cargando historial...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -658,83 +489,28 @@
                         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                             <div class="bg-gray-50 rounded-lg p-4 text-center">
                                 <p class="text-sm text-gray-500">Horas totales</p>
-                                <p class="text-xl font-bold">30.25h</p>
+                                <p class="text-xl font-bold"><span id="week-total-hours">0</span>h</p>
                             </div>
                             <div class="bg-blue-50 rounded-lg p-4 text-center">
                                 <p class="text-sm text-gray-500">Sueldo base</p>
-                                <p class="text-xl font-bold text-blue-600">21.75h</p>
+                                <p class="text-xl font-bold text-blue-600"><span id="week-base-hours">0</span>h</p>
                             </div>
                             <div class="bg-purple-50 rounded-lg p-4 text-center">
                                 <p class="text-sm text-gray-500">OB1</p>
-                                <p class="text-xl font-bold text-purple-600">4.0h</p>
+                                <p class="text-xl font-bold text-purple-600"><span id="week-ob1-hours">0</span>h</p>
                             </div>
                             <div class="bg-indigo-50 rounded-lg p-4 text-center">
                                 <p class="text-sm text-gray-500">OB3</p>
-                                <p class="text-xl font-bold text-indigo-600">5.0h</p>
+                                <p class="text-xl font-bold text-indigo-600"><span id="week-ob3-hours">0</span>h</p>
                             </div>
                             <div class="bg-green-50 rounded-lg p-4 text-center">
                                 <p class="text-sm text-gray-500">Promedio/día</p>
-                                <p class="text-xl font-bold text-green-600">6.05h</p>
+                                <p class="text-xl font-bold text-green-600"><span id="week-avg-hours">0</span>h</p>
                             </div>
                         </div>
                         
                         <div class="h-64">
                             <canvas id="weeklySummaryChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Estadísticas -->
-                <div id="reports-section" class="section-content section-transition hidden-section">
-                    <h2 class="text-2xl font-bold mb-6">Estadísticas y Reportes</h2>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                        <div class="bg-white rounded-xl shadow p-6">
-                            <h3 class="text-lg font-semibold mb-4">Horas por Proyecto</h3>
-                            <div class="h-64">
-                                <canvas id="projectHoursChart"></canvas>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white rounded-xl shadow p-6">
-                            <h3 class="text-lg font-semibold mb-4">Distribución de OB</h3>
-                            <div class="h-64">
-                                <canvas id="obDistributionChart"></canvas>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white rounded-xl shadow p-6">
-                            <h3 class="text-lg font-semibold mb-4">Comparación Mensual</h3>
-                            <div class="h-64">
-                                <canvas id="monthlyComparisonChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white rounded-xl shadow p-6">
-                        <h3 class="text-lg font-semibold mb-4">Resumen de Productividad</h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                            <div class="bg-gray-50 rounded-lg p-4">
-                                <p class="text-sm text-gray-500 mb-1">Horas totales (mes)</p>
-                                <p class="text-2xl font-bold">124.5h</p>
-                            </div>
-                            <div class="bg-blue-50 rounded-lg p-4">
-                                <p class="text-sm text-gray-500 mb-1">Horas promedio/día</p>
-                                <p class="text-2xl font-bold text-blue-600">6.2h</p>
-                            </div>
-                            <div class="bg-green-50 rounded-lg p-4">
-                                <p class="text-sm text-gray-500 mb-1">Días trabajados</p>
-                                <p class="text-2xl font-bold text-green-600">20</p>
-                            </div>
-                            <div class="bg-purple-50 rounded-lg p-4">
-                                <p class="text-sm text-gray-500 mb-1">Horas OB</p>
-                                <p class="text-2xl font-bold text-purple-600">24.5h</p>
-                            </div>
-                        </div>
-                        
-                        <div class="h-72">
-                            <canvas id="productivityChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -751,33 +527,32 @@
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Período</label>
-                                    <select class="w-full p-3 border rounded-lg">
-                                        <option>Última semana</option>
-                                        <option>Último mes</option>
-                                        <option>Personalizado</option>
+                                    <select class="w-full p-3 border rounded-lg" id="pdf-period">
+                                        <option value="current-week">Última semana</option>
+                                        <option value="current-month">Último mes</option>
+                                        <option value="custom">Personalizado</option>
                                     </select>
                                 </div>
                                 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Formato</label>
-                                    <select class="w-full p-3 border rounded-lg">
-                                        <option>Resumido</option>
-                                        <option>Detallado</option>
-                                        <option>Para contabilidad</option>
+                                    <select class="w-full p-3 border rounded-lg" id="pdf-format">
+                                        <option value="summary">Resumido</option>
+                                        <option value="detailed">Detallado</option>
                                     </select>
                                 </div>
                                 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Idioma</label>
-                                    <select class="w-full p-3 border rounded-lg">
-                                        <option>Español</option>
-                                        <option>Inglés</option>
-                                        <option>Sueco</option>
+                                    <select class="w-full p-3 border rounded-lg" id="pdf-language">
+                                        <option value="es">Español</option>
+                                        <option value="en">Inglés</option>
+                                        <option value="sv">Sueco</option>
                                     </select>
                                 </div>
                             </div>
                             
-                            <button class="w-full mt-6 px-4 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition">
+                            <button class="w-full mt-6 px-4 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition" id="generate-pdf-btn">
                                 <i class="fas fa-file-pdf mr-2"></i> Generar PDF
                             </button>
                         </div>
@@ -790,7 +565,7 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Exportar datos</label>
                                     <p class="text-sm text-gray-500 mb-2">Descarga todos tus registros y proyectos en formato JSON.</p>
-                                    <button class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition">
+                                    <button class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition" id="export-json-btn">
                                         <i class="fas fa-download mr-2"></i> Exportar JSON
                                     </button>
                                 </div>
@@ -799,9 +574,9 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Importar datos</label>
                                     <p class="text-sm text-gray-500 mb-2">Carga datos desde un archivo JSON previamente exportado.</p>
                                     <div class="flex">
-                                        <input type="file" class="hidden" id="json-upload">
-                                        <label for="json-upload" class="flex-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-l-lg cursor-pointer truncate">Seleccionar archivo</label>
-                                        <button class="px-4 py-2 bg-green-500 text-white rounded-r-lg font-medium hover:bg-green-600 transition">
+                                        <input type="file" class="hidden" id="json-upload" accept=".json">
+                                        <label for="json-upload" class="flex-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-l-lg cursor-pointer truncate" id="file-name">Seleccionar archivo</label>
+                                        <button class="px-4 py-2 bg-green-500 text-white rounded-r-lg font-medium hover:bg-green-600 transition" id="import-json-btn">
                                             <i class="fas fa-upload mr-2"></i> Cargar
                                         </button>
                                     </div>
@@ -813,7 +588,7 @@
                                 <p class="text-sm text-gray-600 mb-4">Tus datos se sincronizan automáticamente con la nube.</p>
                                 <div class="flex items-center text-sm">
                                     <i class="fas fa-database mr-2 text-blue-500"></i>
-                                    <span>Última sincronización: Hoy, 14:32</span>
+                                    <span id="last-sync">Última sincronización: Cargando...</span>
                                 </div>
                             </div>
                         </div>
@@ -821,7 +596,7 @@
                     
                     <div class="bg-white rounded-xl shadow p-6">
                         <h3 class="text-lg font-semibold mb-4">Vista Previa del PDF</h3>
-                        <div class="border-2 border-dashed border-gray-300 rounded-xl h-96 flex items-center justify-center">
+                        <div class="border-2 border-dashed border-gray-300 rounded-xl h-96 flex items-center justify-center" id="pdf-preview">
                             <div class="text-center">
                                 <i class="fas fa-file-pdf text-5xl text-red-500 mb-3"></i>
                                 <p class="text-gray-500">Vista previa del PDF generado</p>
@@ -882,18 +657,54 @@
                 </form>
             </div>
         </div>
+        
+        <!-- Modal de Proyecto -->
+        <div id="project-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+            <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 fade-in">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold" id="project-modal-title">Nuevo Proyecto</h3>
+                    <button id="close-project-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="project-form" class="space-y-4">
+                    <input type="hidden" id="project-id">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Código del Proyecto</label>
+                        <input type="text" id="project-code" class="w-full p-3 border rounded-lg" placeholder="Ej: ACT-001" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Proyecto</label>
+                        <input type="text" id="project-name" class="w-full p-3 border rounded-lg" placeholder="Ej: Desarrollo App" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                        <textarea id="project-description" class="w-full p-3 border rounded-lg" rows="3" placeholder="Descripción del proyecto..."></textarea>
+                    </div>
+                    
+                    <div class="pt-4 flex justify-end space-x-3">
+                        <button type="button" id="cancel-project-edit" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition">Guardar Proyecto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Firebase Configuration
+        // Nueva configuración de Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyAI-VxrbSC-d1WscOkpY9d8NaEUgdjneeE",
-            authDomain: "tidbok-df555.firebaseapp.com",
-            databaseURL: "https://tidbok-df555-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "tidbok-df555",
-            storageBucket: "tidbok-df555.firebasestorage.app",
-            messagingSenderId: "467331966400",
-            appId: "1:467331966400:web:abb6949a76918f2eb8d425"
+            apiKey: "AIzaSyDLezJUZMmeLllsdEPCUVkDBKwwR6OuoD8",
+            authDomain: "userbase-5061c.firebaseapp.com",
+            databaseURL: "https://userbase-5061c-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "userbase-5061c",
+            storageBucket: "userbase-5061c.firebasestorage.app",
+            messagingSenderId: "414829360217",
+            appId: "1:414829360217:web:21d0839ee0ccfbea336d48"
         };
         
         // Initialize Firebase
@@ -930,15 +741,58 @@
         const profileAvatar = document.getElementById('profile-avatar');
         const userNameDisplay = document.getElementById('user-name-display');
         
+        // Elementos para gestión de datos
+        const projectModal = document.getElementById('project-modal');
+        const projectForm = document.getElementById('project-form');
+        const projectsContainer = document.getElementById('projects-container');
+        const recentEntries = document.getElementById('recent-entries');
+        const historyEntries = document.getElementById('history-entries');
+        const projectSelector = document.getElementById('entry-project');
+        const applyFiltersBtn = document.getElementById('apply-filters-btn');
+        
+        // Elementos para exportación
+        const exportJsonBtn = document.getElementById('export-json-btn');
+        const importJsonBtn = document.getElementById('import-json-btn');
+        const jsonUpload = document.getElementById('json-upload');
+        const fileName = document.getElementById('file-name');
+        const generatePdfBtn = document.getElementById('generate-pdf-btn');
+        const pdfPreview = document.getElementById('pdf-preview');
+        const lastSync = document.getElementById('last-sync');
+        
+        // Variables globales
+        let currentUser = null;
+        let projects = [];
+        let timeEntries = [];
+        let editMode = false;
+        let currentEditId = null;
+        let connectionState = 'online';
+        
+        // OB Periods
+        const OB_PERIODS = {
+            "Sueldo base": { start: "06:00", end: "18:00" },
+            "OB 1": { start: "18:00", end: "22:00" },
+            "OB 2": { start: "22:00", end: "06:00" },
+            "OB 3": { start: "13:00", end: "00:00", days: [6] }, // Sábado
+            "OB 4": { start: "00:00", end: "23:59", days: [0] }  // Domingo
+        };
+        
+        // Días de la semana en sueco
+        const SWEDISH_DAYS = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+        
         // Initialize Charts
         function initCharts() {
             // Project Distribution Chart (Doughnut)
             new Chart(document.getElementById('projectDistributionChart'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['Tidbok', 'Client A', 'Client B', 'Internal', 'Client C', 'Client D'],
+                    labels: projects.map(p => p.name),
                     datasets: [{
-                        data: [35, 20, 15, 10, 12, 8],
+                        data: projects.map(p => {
+                            const projectHours = timeEntries
+                                .filter(e => e.projectId === p.id)
+                                .reduce((sum, e) => sum + e.totalHours, 0);
+                            return projectHours;
+                        }),
                         backgroundColor: [
                             '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444', '#0EA5E9'
                         ],
@@ -975,42 +829,6 @@
                             beginAtZero: true
                         }
                     }
-                }
-            });
-            
-            // OB Distribution Chart
-            new Chart(document.getElementById('obDistributionChart'), {
-                type: 'pie',
-                data: {
-                    labels: ['Sueldo base', 'OB 1', 'OB 2', 'OB 3', 'OB 4'],
-                    datasets: [{
-                        data: [75, 15, 5, 4, 1],
-                        backgroundColor: [
-                            '#D1FAE5', '#DBEAFE', '#E0E7FF', '#EDE9FE', '#FCE7F3'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-            
-            // Project Hours Chart
-            new Chart(document.getElementById('projectHoursChart'), {
-                type: 'bar',
-                data: {
-                    labels: ['Tidbok', 'Client A', 'Client B', 'Internal', 'Client C'],
-                    datasets: [{
-                        label: 'Horas',
-                        data: [42, 32, 28, 15, 20],
-                        backgroundColor: '#3B82F6'
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false
                 }
             });
             
@@ -1075,6 +893,597 @@
             emailInput.value = email || '';
         }
         
+        // Calcular horas trabajadas
+        function calculateWorkHours(start, end, breakMinutes) {
+            const startTime = new Date(`2000-01-01T${start}`);
+            const endTime = new Date(`2000-01-01T${end}`);
+            
+            // Si la hora de fin es anterior a la de inicio, asumimos que es al día siguiente
+            if (endTime < startTime) {
+                endTime.setDate(endTime.getDate() + 1);
+            }
+            
+            const diffMs = endTime - startTime;
+            const diffHours = diffMs / (1000 * 60 * 60);
+            
+            // Restar tiempo de descanso (convertido a horas)
+            const breakHours = breakMinutes / 60;
+            return Math.max(0, diffHours - breakHours);
+        }
+        
+        // Clasificar horas OB
+        function classifyHours(date, startTime, endTime) {
+            const dayOfWeek = new Date(date).getDay();
+            const startHour = parseInt(startTime.split(':')[0]);
+            const endHour = parseInt(endTime.split(':')[0]);
+            
+            // Para OB 3 (sábado) y OB 4 (domingo)
+            if (dayOfWeek === 6 && startHour >= 13) { // Sábado después de las 13:00
+                return "OB 3";
+            }
+            if (dayOfWeek === 0) { // Domingo
+                return "OB 4";
+            }
+            
+            // Para horas durante la semana
+            if (startHour >= 18 && startHour < 22) {
+                return "OB 1";
+            }
+            if (startHour >= 22 || endHour < 6) {
+                return "OB 2";
+            }
+            
+            return "Sueldo base";
+        }
+        
+        // Formatear fecha para Firebase
+        function formatFirebaseDate(date) {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        // Obtener nombre del proyecto
+        function getProjectName(projectId) {
+            const project = projects.find(p => p.id === projectId);
+            return project ? project.name : 'Proyecto eliminado';
+        }
+        
+        // Obtener clase para el badge OB
+        function getObClass(obType) {
+            switch(obType) {
+                case 'Sueldo base': return 'ob-base-badge';
+                case 'OB 1': return 'ob-1-badge';
+                case 'OB 2': return 'ob-2-badge';
+                case 'OB 3': return 'ob-3-badge';
+                case 'OB 4': return 'ob-4-badge';
+                default: return 'ob-base-badge';
+            }
+        }
+        
+        // Renderizar proyectos
+        function renderProjects() {
+            projectsContainer.innerHTML = '';
+            
+            if (projects.length === 0) {
+                projectsContainer.innerHTML = `
+                    <div class="col-span-3 text-center py-12 text-gray-500">
+                        No hay proyectos creados. <button class="text-blue-500 hover:underline" id="create-first-project">Crea tu primer proyecto</button>
+                    </div>
+                `;
+                document.getElementById('create-first-project').addEventListener('click', () => {
+                    document.getElementById('add-project-btn').click();
+                });
+                return;
+            }
+            
+            const colors = ['blue', 'green', 'purple', 'yellow', 'red', 'indigo'];
+            
+            projects.forEach((project, index) => {
+                const color = colors[index % colors.length];
+                const projectElement = document.createElement('div');
+                projectElement.className = `bg-white rounded-xl shadow p-5 border-l-4 border-${color}-500`;
+                projectElement.innerHTML = `
+                    <div class="flex justify-between">
+                        <h3 class="font-semibold text-lg">${project.name}</h3>
+                        <span class="bg-${color}-100 text-${color}-800 text-xs px-2 py-1 rounded-full">${project.code}</span>
+                    </div>
+                    <p class="text-gray-600 mt-2 text-sm">${project.description || 'Sin descripción'}</p>
+                    <div class="flex mt-4">
+                        <button class="edit-project-btn text-blue-500 hover:text-blue-700 mr-3" data-id="${project.id}">
+                            <i class="fas fa-edit mr-1"></i> Editar
+                        </button>
+                        <button class="delete-project-btn text-red-500 hover:text-red-700" data-id="${project.id}">
+                            <i class="fas fa-trash mr-1"></i> Eliminar
+                        </button>
+                    </div>
+                `;
+                projectsContainer.appendChild(projectElement);
+            });
+            
+            // Agregar event listeners
+            document.querySelectorAll('.edit-project-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const projectId = e.currentTarget.getAttribute('data-id');
+                    openProjectModal(projectId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-project-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const projectId = e.currentTarget.getAttribute('data-id');
+                    deleteProject(projectId);
+                });
+            });
+        }
+        
+        // Renderizar registros recientes
+        function renderRecentEntries() {
+            recentEntries.innerHTML = '';
+            
+            if (timeEntries.length === 0) {
+                recentEntries.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-8 text-gray-500">No hay registros recientes</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Ordenar por fecha descendente
+            const sortedEntries = [...timeEntries].sort((a, b) => 
+                new Date(b.date) - new Date(a.date)
+            ).slice(0, 5);
+            
+            sortedEntries.forEach(entry => {
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="py-4">${entry.date}</td>
+                    <td class="py-4">${getProjectName(entry.projectId)}</td>
+                    <td class="py-4">${entry.totalHours.toFixed(1)} horas</td>
+                    <td class="py-4">
+                        <span class="px-2 py-1 rounded-full text-xs ${getObClass(entry.obType)} ob-badge">
+                            ${entry.obType}
+                        </span>
+                    </td>
+                    <td class="py-4">
+                        <button class="edit-entry-btn text-blue-500 hover:text-blue-700 mr-2" data-id="${entry.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="delete-entry-btn text-red-500 hover:text-red-700" data-id="${entry.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                recentEntries.appendChild(row);
+            });
+            
+            // Agregar event listeners
+            document.querySelectorAll('.edit-entry-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const entryId = e.currentTarget.getAttribute('data-id');
+                    loadEntryForEditing(entryId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-entry-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const entryId = e.currentTarget.getAttribute('data-id');
+                    deleteTimeEntry(entryId);
+                });
+            });
+        }
+        
+        // Renderizar historial
+        function renderHistory() {
+            historyEntries.innerHTML = '';
+            
+            if (timeEntries.length === 0) {
+                historyEntries.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-8 text-gray-500">No hay registros en el historial</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Ordenar por fecha descendente
+            const sortedEntries = [...timeEntries].sort((a, b) => 
+                new Date(b.date) - new Date(a.date)
+            );
+            
+            sortedEntries.forEach(entry => {
+                const date = new Date(entry.date);
+                const formattedDate = `${SWEDISH_DAYS[date.getDay()].substring(0, 3)}, ${date.getDate()}/${date.getMonth() + 1}`;
+                
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="py-4">${formattedDate}</td>
+                    <td class="py-4">${getProjectName(entry.projectId)}</td>
+                    <td class="py-4">${entry.startTime}</td>
+                    <td class="py-4">${entry.endTime}</td>
+                    <td class="py-4">${entry.breakTime} min</td>
+                    <td class="py-4">${entry.totalHours.toFixed(1)}h</td>
+                    <td class="py-4">
+                        <span class="px-2 py-1 rounded-full text-xs ${getObClass(entry.obType)} ob-badge">
+                            ${entry.obType}
+                        </span>
+                    </td>
+                    <td class="py-4">
+                        <button class="edit-entry-btn text-blue-500 hover:text-blue-700 mr-2" data-id="${entry.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="delete-entry-btn text-red-500 hover:text-red-700" data-id="${entry.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                historyEntries.appendChild(row);
+            });
+            
+            // Agregar event listeners
+            document.querySelectorAll('.edit-entry-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const entryId = e.currentTarget.getAttribute('data-id');
+                    loadEntryForEditing(entryId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-entry-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const entryId = e.currentTarget.getAttribute('data-id');
+                    deleteTimeEntry(entryId);
+                });
+            });
+        }
+        
+        // Actualizar resumen del panel principal
+        function updateDashboardSummary() {
+            // Horas de esta semana
+            const now = new Date();
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay() + 1); // Lunes de esta semana
+            startOfWeek.setHours(0, 0, 0, 0);
+            
+            const weekEntries = timeEntries.filter(entry => {
+                const entryDate = new Date(entry.date);
+                return entryDate >= startOfWeek;
+            });
+            
+            const weekHours = weekEntries.reduce((sum, entry) => sum + entry.totalHours, 0);
+            document.getElementById('week-hours').textContent = weekHours.toFixed(1);
+            
+            // Proyectos activos
+            const activeProjects = new Set(timeEntries.map(entry => entry.projectId)).size;
+            document.getElementById('active-projects').textContent = activeProjects;
+            
+            // Horas extraordinarias
+            const obEntries = timeEntries.filter(entry => entry.obType !== 'Sueldo base');
+            const obHours = obEntries.reduce((sum, entry) => sum + entry.totalHours, 0);
+            document.getElementById('ob-hours-total').textContent = obHours.toFixed(1);
+            
+            // Actualizar gráficos
+            initCharts();
+        }
+        
+        // Abrir modal de proyecto
+        function openProjectModal(projectId = null) {
+            if (projectId) {
+                // Modo edición
+                const project = projects.find(p => p.id === projectId);
+                if (project) {
+                    document.getElementById('project-modal-title').textContent = 'Editar Proyecto';
+                    document.getElementById('project-id').value = project.id;
+                    document.getElementById('project-code').value = project.code;
+                    document.getElementById('project-name').value = project.name;
+                    document.getElementById('project-description').value = project.description || '';
+                }
+            } else {
+                // Modo creación
+                document.getElementById('project-modal-title').textContent = 'Nuevo Proyecto';
+                document.getElementById('project-id').value = '';
+                document.getElementById('project-code').value = '';
+                document.getElementById('project-name').value = '';
+                document.getElementById('project-description').value = '';
+            }
+            
+            projectModal.classList.remove('hidden');
+        }
+        
+        // Cargar entrada para edición
+        function loadEntryForEditing(entryId) {
+            const entry = timeEntries.find(e => e.id === entryId);
+            if (entry) {
+                document.getElementById('entry-id').value = entry.id;
+                document.getElementById('entry-date').value = entry.date;
+                document.getElementById('entry-project').value = entry.projectId;
+                document.getElementById('start-time').value = entry.startTime;
+                document.getElementById('end-time').value = entry.endTime;
+                document.getElementById('break-time').value = entry.breakTime;
+                document.getElementById('colleagues').value = entry.colleagues || '';
+                document.getElementById('entry-notes').value = entry.notes || '';
+                
+                // Actualizar resumen de horas
+                document.getElementById('total-hours').textContent = `${entry.totalHours.toFixed(1)} horas`;
+                document.getElementById('base-hours').textContent = `${entry.obType === 'Sueldo base' ? entry.totalHours.toFixed(1) : '0.0'} horas`;
+                document.getElementById('ob-hours').textContent = `${entry.obType !== 'Sueldo base' ? entry.totalHours.toFixed(1) : '0.0'} horas`;
+                
+                // Desplazar a la sección de registro
+                showSection('time-entry');
+                document.getElementById('time-entry-section').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        
+        // Guardar entrada de tiempo
+        function saveTimeEntry(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('entry-id').value || uuid.v4();
+            const date = document.getElementById('entry-date').value;
+            const projectId = document.getElementById('entry-project').value;
+            const startTime = document.getElementById('start-time').value;
+            const endTime = document.getElementById('end-time').value;
+            const breakTime = parseInt(document.getElementById('break-time').value) || 0;
+            const colleagues = document.getElementById('colleagues').value;
+            const notes = document.getElementById('entry-notes').value;
+            
+            // Validaciones
+            if (!date || !projectId || !startTime || !endTime) {
+                alert('Por favor complete todos los campos requeridos');
+                return;
+            }
+            
+            // Calcular horas totales
+            const totalHours = calculateWorkHours(startTime, endTime, breakTime);
+            if (totalHours <= 0) {
+                alert('La hora de fin debe ser posterior a la hora de inicio');
+                return;
+            }
+            
+            // Clasificar horas OB
+            const obType = classifyHours(date, startTime, endTime);
+            
+            const timeEntry = {
+                id,
+                date,
+                projectId,
+                startTime,
+                endTime,
+                breakTime,
+                totalHours,
+                obType,
+                colleagues,
+                notes,
+                userId: currentUser.uid,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Guardar en Firebase
+            const entryRef = database.ref(`users/${currentUser.uid}/records/${id}`);
+            entryRef.set(timeEntry)
+                .then(() => {
+                    alert('Registro guardado correctamente');
+                    timeEntryForm.reset();
+                    document.getElementById('entry-id').value = '';
+                    
+                    // Actualizar resumen de horas
+                    document.getElementById('total-hours').textContent = '0.0 horas';
+                    document.getElementById('base-hours').textContent = '0.0 horas';
+                    document.getElementById('ob-hours').textContent = '0.0 horas';
+                })
+                .catch(error => {
+                    console.error('Error al guardar registro:', error);
+                    alert('Error al guardar el registro');
+                });
+        }
+        
+        // Eliminar entrada de tiempo
+        function deleteTimeEntry(entryId) {
+            if (confirm('¿Estás seguro de que deseas eliminar este registro?')) {
+                const entryRef = database.ref(`users/${currentUser.uid}/records/${entryId}`);
+                entryRef.remove()
+                    .then(() => {
+                        alert('Registro eliminado correctamente');
+                    })
+                    .catch(error => {
+                        console.error('Error al eliminar registro:', error);
+                        alert('Error al eliminar el registro');
+                    });
+            }
+        }
+        
+        // Guardar proyecto
+        function saveProject(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('project-id').value || uuid.v4();
+            const code = document.getElementById('project-code').value;
+            const name = document.getElementById('project-name').value;
+            const description = document.getElementById('project-description').value;
+            
+            // Validaciones
+            if (!code || !name) {
+                alert('Por favor complete todos los campos requeridos');
+                return;
+            }
+            
+            const project = {
+                id,
+                code,
+                name,
+                description,
+                userId: currentUser.uid,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Guardar en Firebase
+            const projectRef = database.ref(`users/${currentUser.uid}/projects/${id}`);
+            projectRef.set(project)
+                .then(() => {
+                    alert('Proyecto guardado correctamente');
+                    projectForm.reset();
+                    projectModal.classList.add('hidden');
+                })
+                .catch(error => {
+                    console.error('Error al guardar proyecto:', error);
+                    alert('Error al guardar el proyecto');
+                });
+        }
+        
+        // Eliminar proyecto
+        function deleteProject(projectId) {
+            if (confirm('¿Estás seguro de que deseas eliminar este proyecto? Esta acción no se puede deshacer.')) {
+                const projectRef = database.ref(`users/${currentUser.uid}/projects/${projectId}`);
+                projectRef.remove()
+                    .then(() => {
+                        alert('Proyecto eliminado correctamente');
+                    })
+                    .catch(error => {
+                        console.error('Error al eliminar proyecto:', error);
+                        alert('Error al eliminar el proyecto');
+                    });
+            }
+        }
+        
+        // Exportar a JSON
+        function exportToJson() {
+            const data = {
+                projects,
+                timeEntries,
+                exportedAt: new Date().toISOString()
+            };
+            
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `tidbok-export-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('Datos exportados correctamente');
+        }
+        
+        // Importar desde JSON
+        function importFromJson() {
+            const file = jsonUpload.files[0];
+            if (!file) {
+                alert('Por favor seleccione un archivo JSON');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    // Validar estructura
+                    if (!data.projects || !data.timeEntries) {
+                        throw new Error('Formato de archivo inválido');
+                    }
+                    
+                    // Confirmar sobreescritura
+                    if (!confirm('¿Estás seguro de que deseas importar estos datos? Se sobrescribirán tus datos actuales.')) {
+                        return;
+                    }
+                    
+                    // Guardar proyectos
+                    const projectsRef = database.ref(`users/${currentUser.uid}/projects`);
+                    projectsRef.set(data.projects)
+                        .then(() => {
+                            // Guardar registros
+                            const recordsRef = database.ref(`users/${currentUser.uid}/records`);
+                            return recordsRef.set(data.timeEntries);
+                        })
+                        .then(() => {
+                            alert('Datos importados correctamente');
+                            jsonUpload.value = '';
+                            fileName.textContent = 'Seleccionar archivo';
+                        })
+                        .catch(error => {
+                            console.error('Error al importar datos:', error);
+                            alert('Error al importar datos');
+                        });
+                } catch (error) {
+                    console.error('Error al analizar JSON:', error);
+                    alert('Error al leer el archivo. Asegúrese de que es un archivo JSON válido exportado desde Tidbok.');
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        // Generar PDF
+        function generatePdf() {
+            const pdf = new jspdf.jsPDF();
+            const format = document.getElementById('pdf-format').value;
+            const language = document.getElementById('pdf-language').value;
+            
+            // Agregar título
+            pdf.setFontSize(18);
+            pdf.text('Reporte de Tiempo - Tidbok', 105, 15, null, null, 'center');
+            
+            // Agregar fecha
+            pdf.setFontSize(12);
+            pdf.text(`Generado el: ${new Date().toLocaleDateString()}`, 105, 25, null, null, 'center');
+            
+            // Agregar contenido básico
+            pdf.setFontSize(14);
+            pdf.text('Resumen de Horas', 20, 40);
+            
+            pdf.setFontSize(12);
+            pdf.text(`Total de horas registradas: ${timeEntries.reduce((sum, e) => sum + e.totalHours, 0).toFixed(1)}`, 20, 50);
+            
+            // Para una implementación más completa, se agregarían tablas y gráficos
+            
+            // Guardar PDF
+            pdf.save(`reporte-tidbok-${new Date().toISOString().split('T')[0]}.pdf`);
+            
+            // Actualizar vista previa
+            pdfPreview.innerHTML = `
+                <div class="text-center p-4">
+                    <i class="fas fa-file-pdf text-5xl text-red-500 mb-3"></i>
+                    <h4 class="font-bold text-lg">Reporte Generado</h4>
+                    <p class="text-gray-600 mt-2">Se ha generado el PDF correctamente</p>
+                    <p class="text-sm text-gray-400 mt-2">El archivo se ha descargado automáticamente</p>
+                </div>
+            `;
+        }
+        
+        // Actualizar resumen de horas en tiempo real
+        function updateTimeSummary() {
+            const startTime = document.getElementById('start-time').value;
+            const endTime = document.getElementById('end-time').value;
+            const breakTime = parseInt(document.getElementById('break-time').value) || 0;
+            const date = document.getElementById('entry-date').value;
+            
+            if (startTime && endTime && date) {
+                try {
+                    const totalHours = calculateWorkHours(startTime, endTime, breakTime);
+                    const obType = classifyHours(date, startTime, endTime);
+                    
+                    document.getElementById('total-hours').textContent = `${totalHours.toFixed(1)} horas`;
+                    
+                    if (obType === 'Sueldo base') {
+                        document.getElementById('base-hours').textContent = `${totalHours.toFixed(1)} horas`;
+                        document.getElementById('ob-hours').textContent = '0.0 horas';
+                    } else {
+                        document.getElementById('base-hours').textContent = '0.0 horas';
+                        document.getElementById('ob-hours').textContent = `${totalHours.toFixed(1)} horas`;
+                    }
+                } catch (e) {
+                    console.error('Error al calcular horas:', e);
+                }
+            }
+        }
+        
         // Event Listeners
         navItems.forEach(item => {
             item.addEventListener('click', (e) => {
@@ -1106,11 +1515,14 @@
             });
         });
         
-        timeEntryForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert('Registro guardado correctamente');
-            timeEntryForm.reset();
-        });
+        timeEntryForm.addEventListener('submit', saveTimeEntry);
+        
+        timeEntryForm.addEventListener('input', updateTimeSummary);
+        
+        document.getElementById('start-time').addEventListener('change', updateTimeSummary);
+        document.getElementById('end-time').addEventListener('change', updateTimeSummary);
+        document.getElementById('break-time').addEventListener('change', updateTimeSummary);
+        document.getElementById('entry-date').addEventListener('change', updateTimeSummary);
         
         profileForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -1126,46 +1538,44 @@
             profileModal.classList.add('hidden');
         });
         
-        // Simulate connection status changes
-        function simulateConnectionChanges() {
-            const statusIcon = connectionStatus.querySelector('i');
-            const statusText = connectionStatus.querySelector('span');
-            
-            statusIcon.classList.remove('connection-online', 'connection-syncing', 'connection-offline');
-            statusText.textContent = 'Online';
-            statusIcon.classList.add('connection-online');
-            
-            setTimeout(() => {
-                statusIcon.classList.remove('connection-online');
-                statusIcon.classList.add('connection-syncing');
-                statusText.textContent = 'Sincronizando...';
-                
-                setTimeout(() => {
-                    statusIcon.classList.remove('connection-syncing');
-                    statusIcon.classList.add('connection-online');
-                    statusText.textContent = 'Online';
-                }, 3000);
-            }, 8000);
-            
-            setTimeout(() => {
-                statusIcon.classList.remove('connection-online');
-                statusIcon.classList.add('connection-offline');
-                statusText.textContent = 'Sin conexión';
-            }, 15000);
-            
-            setTimeout(() => {
-                statusIcon.classList.remove('connection-offline');
-                statusIcon.classList.add('connection-online');
-                statusText.textContent = 'Online';
-            }, 25000);
-        }
+        document.getElementById('add-project-btn').addEventListener('click', () => {
+            openProjectModal();
+        });
+        
+        document.getElementById('close-project-modal').addEventListener('click', () => {
+            projectModal.classList.add('hidden');
+        });
+        
+        document.getElementById('cancel-project-edit').addEventListener('click', () => {
+            projectModal.classList.add('hidden');
+        });
+        
+        projectForm.addEventListener('submit', saveProject);
+        
+        exportJsonBtn.addEventListener('click', exportToJson);
+        
+        importJsonBtn.addEventListener('click', importFromJson);
+        
+        jsonUpload.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                fileName.textContent = e.target.files[0].name;
+            }
+        });
+        
+        generatePdfBtn.addEventListener('click', generatePdf);
+        
+        applyFiltersBtn.addEventListener('click', () => {
+            alert('Filtros aplicados correctamente');
+            // En una implementación completa, se filtrarían los registros
+        });
         
         // Initialize the app
         function initApp() {
-            // Firebase Auth State Listener - CORRECCIÓN CLAVE
+            // Firebase Auth State Listener
             auth.onAuthStateChanged(user => {
                 if (user) {
-                    // User is signed in
+                    currentUser = user;
+                    
                     const displayName = user.displayName || "Usuario Demo";
                     const email = user.email || "usuario@demo.com";
                     
@@ -1175,10 +1585,48 @@
                     loginScreen.classList.add('hidden');
                     mainApp.classList.remove('hidden');
                     
+                    // Cargar proyectos
+                    const projectsRef = database.ref(`users/${user.uid}/projects`);
+                    projectsRef.on('value', (snapshot) => {
+                        projects = [];
+                        snapshot.forEach(childSnapshot => {
+                            projects.push(childSnapshot.val());
+                        });
+                        
+                        renderProjects();
+                        
+                        // Actualizar selector de proyectos
+                        projectSelector.innerHTML = '<option value="">Seleccionar proyecto</option>';
+                        projects.forEach(project => {
+                            const option = document.createElement('option');
+                            option.value = project.id;
+                            option.textContent = `${project.code} - ${project.name}`;
+                            projectSelector.appendChild(option);
+                        });
+                    });
+                    
+                    // Cargar registros de tiempo
+                    const recordsRef = database.ref(`users/${user.uid}/records`);
+                    recordsRef.on('value', (snapshot) => {
+                        timeEntries = [];
+                        snapshot.forEach(childSnapshot => {
+                            timeEntries.push(childSnapshot.val());
+                        });
+                        
+                        renderRecentEntries();
+                        renderHistory();
+                        updateDashboardSummary();
+                        
+                        // Actualizar última sincronización
+                        lastSync.textContent = `Última sincronización: ${new Date().toLocaleTimeString()}`;
+                    });
+                    
                     // Initialize app components
                     showSection('dashboard');
                     initCharts();
-                    simulateConnectionChanges();
+                    
+                    // Actualizar resumen de horas
+                    updateTimeSummary();
                 } else {
                     // User is signed out
                     mainApp.classList.add('hidden');
