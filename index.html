@@ -887,7 +887,44 @@
             <i class="fas fa-times"></i>
           </button>
         </div>
+
+    <!-- PDF Filter Modal (NEW) -->
+    <div id="pdf-filter-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg max-w-md w-full">
+        <div class="p-4 border-b flex justify-between items-center">
+          <h3 class="text-xl font-semibold" data-i18n="pdf_filter_title">Filtrar Informe PDF</h3>
+          <button id="close-pdf-filter-modal" class="text-gray-500 hover:text-gray-700">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
         
+        <div class="p-4">
+          <form id="pdf-filter-form">
+            <div class="form-group mb-4">
+              <label for="pdf-month-filter" class="form-label" data-i18n="month">Mes</label>
+              <select id="pdf-month-filter" class="form-control">
+                <option value="all" data-i18n="all_months">Todos los Meses</option>
+                <!-- Months will be populated dynamically -->
+              </select>
+            </div>
+            
+            <div class="form-group mb-6">
+              <label for="pdf-project-filter" class="form-label" data-i18n="project">Proyecto</label>
+              <select id="pdf-project-filter" class="form-control">
+                <option value="all" data-i18n="all_projects">Todos los Proyectos</option>
+                <!-- Projects will be populated dynamically -->
+              </select>
+            </div>
+            
+            <div class="flex justify-end">
+              <button type="button" id="cancel-pdf-filter" class="btn-outline mr-2" data-i18n="cancel">Cancelar</button>
+              <button type="submit" class="btn-primary" data-i18n="generate_report">Generar Informe</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+		  
         <div class="p-4">
           <form id="edit-record-form">
             <input type="hidden" id="edit-record-id">
@@ -999,6 +1036,9 @@
         'register_hours': 'Registrar Horas',
         'date': 'Fecha',
         'project': 'Proyecto',
+		'pdf_filter_title': 'Filtrar Informe PDF',
+    	'all_projects': 'Todos los Proyectos',
+    	'generate_report': 'Generar Informe' 
         'select_project': 'Seleccionar proyecto',
         'start_time': 'Hora de Inicio',
         'end_time': 'Hora de Fin',
@@ -1071,6 +1111,9 @@
         'register_hours': 'Register Hours',
         'date': 'Date',
         'project': 'Project',
+		'pdf_filter_title': 'Filter PDF Report',
+    	'all_projects': 'All Projects',
+    	'generate_report': 'Generate Report'
         'select_project': 'Select a project',
         'start_time': 'Start Time',
         'end_time': 'End Time',
@@ -1143,6 +1186,9 @@
         'register_hours': 'Registrera timmar',
         'date': 'Datum',
         'project': 'Projekt',
+		'pdf_filter_title': 'Filtrera PDF-rapport',
+    	'all_projects': 'Alla projekt',
+    	'generate_report': 'Generera rapport'
         'select_project': 'Välj ett projekt',
         'start_time': 'Starttid',
         'end_time': 'Sluttid',
@@ -1346,11 +1392,15 @@
       document.getElementById('delete-record').addEventListener('click', handleDeleteRecord);
       
       // Import/Export
-      document.getElementById('export-pdf').addEventListener('click', exportToPDF);
+      document.getElementById('export-pdf').addEventListener('click', openPdfFilterModal);
       document.getElementById('export-json').addEventListener('click', exportToJSON);
       document.getElementById('import-json').addEventListener('click', () => document.getElementById('import-file').click());
       document.getElementById('import-file').addEventListener('change', importFromJSON);
-      
+	
+      // NEW: PDF Filter events
+      document.getElementById('close-pdf-filter-modal').addEventListener('click', closePdfFilterModal);
+      document.getElementById('cancel-pdf-filter').addEventListener('click', closePdfFilterModal);
+      document.getElementById('pdf-filter-form').addEventListener('submit', handlePdfFilterSubmit);
       // Chart view toggle
       document.querySelectorAll('.view-toggle').forEach(btn => {
         btn.addEventListener('click', toggleChartView);
@@ -2575,8 +2625,9 @@ function getSwedishDayName(date) {
 }
 
 // Export to PDF
-async function exportToPDF() {
-  showLoading(true);
+function exportToPDF() {
+  openPdfFilterModal();
+}
   
   const pdfExport = document.getElementById('pdf-export');
   if (!pdfExport) {
@@ -2742,7 +2793,264 @@ async function exportToPDF() {
     showLoading(false);
   }
 }
+// ===== [NEW PDF FILTER FUNCTIONS] ===== //
 
+// Open PDF filter modal
+function openPdfFilterModal() {
+  // Populate month filter
+  const monthFilter = document.getElementById('pdf-month-filter');
+  monthFilter.innerHTML = '<option value="all">' + translations[state.currentLanguage]['all_months'] + '</option>';
+  
+  for (let i = 1; i <= 12; i++) {
+    const option = document.createElement('option');
+    option.value = i;
+    option.textContent = new Date(2023, i - 1, 1).toLocaleString(state.currentLanguage, { month: 'long' });
+    monthFilter.appendChild(option);
+  }
+  
+  // Populate project filter
+  const projectFilter = document.getElementById('pdf-project-filter');
+  projectFilter.innerHTML = '<option value="all">' + translations[state.currentLanguage]['all_projects'] + '</option>';
+  
+  Object.entries(state.projects).forEach(([id, project]) => {
+    const option = document.createElement('option');
+    option.value = id;
+    option.textContent = `${project.code} - ${project.name}`;
+    projectFilter.appendChild(option);
+  });
+  
+  // Show modal
+  document.getElementById('pdf-filter-modal').classList.remove('hidden');
+  document.getElementById('pdf-filter-modal').classList.add('flex');
+}
+
+// Close PDF filter modal
+function closePdfFilterModal() {
+  document.getElementById('pdf-filter-modal').classList.add('hidden');
+  document.getElementById('pdf-filter-modal').classList.remove('flex');
+}
+
+// Handle PDF filter submission
+function handlePdfFilterSubmit(e) {
+  e.preventDefault();
+  
+  const monthFilter = document.getElementById('pdf-month-filter').value;
+  const projectFilter = document.getElementById('pdf-project-filter').value;
+  
+  closePdfFilterModal();
+  generatePDF(monthFilter, projectFilter);
+}
+
+// Generate PDF with filters
+async function generatePDF(monthFilter, projectFilter) {
+  showLoading(true);
+  
+  const pdfExport = document.getElementById('pdf-export');
+  const originalContent = pdfExport.innerHTML;
+  const originalStyles = {
+    position: pdfExport.style.position,
+    left: pdfExport.style.left,
+    top: pdfExport.style.top,
+    zIndex: pdfExport.style.zIndex,
+    transform: pdfExport.style.transform,
+    width: pdfExport.style.width,
+    padding: pdfExport.style.padding
+  };
+  
+  try {
+    // Apply temporary styles for PDF generation
+    pdfExport.style.position = 'fixed';
+    pdfExport.style.left = '50%';
+    pdfExport.style.top = '50%';
+    pdfExport.style.transform = 'translate(-50%, -50%)';
+    pdfExport.style.zIndex = '9999';
+    pdfExport.style.width = '210mm';
+    pdfExport.style.padding = '20px';
+    
+    // Build PDF content with filters
+    pdfExport.innerHTML = `
+      <div style="text-align: left; margin-bottom: 20px; font-size: 11px; line-height: 1.4;">
+        <div>Köpmangatan 5, plan 10</div>
+        <div>151 71 Södertälje</div>
+        <div>Tel 079-079 00 45</div>
+        <div>Organisationsnummer: 559096-5983</div>
+      </div>
+      
+      <h1 style="text-align: left; font-size: 24px; font-weight: bold; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;">
+        Tidrapport
+      </h1>
+      
+      <div style="margin-bottom: 20px; font-size: 14px;">
+        <strong>Mätningsingenjör:</strong> ${state.user.firstName} ${state.user.lastName}
+        <div style="margin-top: 5px;">
+          <strong>Period:</strong> ${getFilterDescription(monthFilter, projectFilter)}
+        </div>
+      </div>
+      
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 10px;" border="1" id="pdf-summary-table">
+        <thead>
+          <tr>
+            <th style="border: 1px solid #000; padding: 5px;">Datum (yy-mm-d)</th>
+            <th style="border: 1px solid #000; padding: 5px;">Dag</th>
+            <th style="border: 1px solid #000; padding: 5px;">Från</th>
+            <th style="border: 1px solid #000; padding: 5px;">Till</th>
+            <th style="border: 1px solid #000; padding: 5px;">Rast (h)</th>
+            <th style="border: 1px solid #000; padding: 5px;">Tim</th>
+            <th style="border: 1px solid #000; padding: 5px;">Projektnamn</th>
+            <th style="border: 1px solid #000; padding: 5px;">Arbetsbeskrivning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Records will be populated here -->
+        </tbody>
+      </table>
+    `;
+    
+    const tableBody = pdfExport.querySelector('#pdf-summary-table tbody');
+    let totalHours = 0;
+    
+    // Apply filters to records
+    const filteredRecords = Object.entries(state.records).filter(([id, record]) => {
+      const recordDate = new Date(record.date);
+      const recordMonth = recordDate.getMonth() + 1;
+      
+      // Apply month filter
+      if (monthFilter !== 'all' && parseInt(monthFilter) !== recordMonth) {
+        return false;
+      }
+      
+      // Apply project filter
+      if (projectFilter !== 'all' && projectFilter !== record.projectId) {
+        return false;
+      }
+      
+      return true;
+    });
+    
+    // Sort records by date
+    filteredRecords.sort((a, b) => new Date(a[1].date) - new Date(b[1].date));
+    
+    // Add records to PDF
+    filteredRecords.forEach(([id, record]) => {
+      const project = state.projects[record.projectId] || { 
+        name: 'Okänd', 
+        code: '?' 
+      };
+      
+      const date = new Date(record.date);
+      const dateStr = formatDateShort(record.date);
+      const dayName = getSwedishDayName(date);
+      
+      // Calculate worked hours
+      const [startHours, startMinutes] = record.startTime.split(':').map(Number);
+      const [endHours, endMinutes] = record.endTime.split(':').map(Number);
+      const startTotalMinutes = startHours * 60 + startMinutes;
+      const endTotalMinutes = endHours * 60 + endMinutes;
+      const workedMinutes = endTotalMinutes - startTotalMinutes - record.breakTime;
+      const workedHours = workedMinutes / 60;
+      
+      totalHours += workedHours;
+      
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td style="border: 1px solid #000; padding: 5px;">${dateStr}</td>
+        <td style="border: 1px solid #000; padding: 5px;">${dayName}</td>
+        <td style="border: 1px solid #000; padding: 5px;">${record.startTime}</td>
+        <td style="border: 1px solid #000; padding: 5px;">${record.endTime}</td>
+        <td style="border: 1px solid #000; padding: 5px; text-align: center;">${(record.breakTime / 60).toFixed(2)}</td>
+        <td style="border: 1px solid #000; padding: 5px; text-align: right;">${workedHours.toFixed(2)}</td>
+        <td style="border: 1px solid #000; padding: 5px;">
+          ${project.name}<br>
+          <small style="color: #555;">${project.code}</small>
+        </td>
+        <td style="border: 1px solid #000; padding: 5px;">${record.notes || ''}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+    
+    // Add totals row
+    const footerRow = document.createElement('tr');
+    footerRow.innerHTML = `
+      <td colspan="5" style="border: 1px solid #000; padding: 5px; text-align: right; font-weight: bold;">Totalt:</td>
+      <td style="border: 1px solid #000; padding: 5px; text-align: right; font-weight: bold;">${totalHours.toFixed(2)}</td>
+      <td colspan="2" style="border: 1px solid #000; padding: 5px;"></td>
+    `;
+    tableBody.appendChild(footerRow);
+    
+    // Wait for rendering
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Generate PDF
+    const canvas = await html2canvas(pdfExport, {
+      scale: 2,
+      useCORS: true,
+      logging: false
+    });
+    
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgWidth = 210;
+    const pageHeight = 295;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+    
+    pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+    pdf.save(`tidrapport_${new Date().getTime()}.pdf`);
+    
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    showAlert('Error generating PDF: ' + error.message, 'error');
+  } finally {
+    // Restore original content
+    pdfExport.innerHTML = originalContent;
+    // Restore original styles
+    Object.assign(pdfExport.style, originalStyles);
+    showLoading(false);
+  }
+}
+
+// Get filter description for PDF header
+function getFilterDescription(monthFilter, projectFilter) {
+  const monthNames = [
+    'Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni',
+    'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'
+  ];
+  
+  let description = '';
+  
+  // Month description
+  if (monthFilter === 'all') {
+    description += 'Alla månader';
+  } else {
+    description += monthNames[parseInt(monthFilter) - 1];
+  }
+  
+  description += ' - ';
+  
+  // Project description
+  if (projectFilter === 'all') {
+    description += 'Alla projekt';
+  } else {
+    const project = state.projects[projectFilter];
+    description += project ? `${project.code} - ${project.name}` : 'Valt projekt';
+  }
+  
+  return description;
+}
+
+// Format date as yy-mm-dd
+function formatDateShort(dateString) {
+  const date = new Date(dateString);
+  const year = date.getFullYear().toString().substring(2);
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// Get Swedish day name
+function getSwedishDayName(date) {
+  const days = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+  return days[date.getDay()];
+}
     // Export to JSON
     function exportToJSON() {
       const data = {
@@ -2817,6 +3125,7 @@ async function exportToPDF() {
   </script>
 </body>
 </html>
+
 
 
 
