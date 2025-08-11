@@ -2628,503 +2628,264 @@ function getSwedishDayName(date) {
 function exportToPDF() {
   openPdfFilterModal();
 }
-  
+
+// Abrir modal de filtros
+function openPdfFilterModal() {
+  const monthFilter = document.getElementById('pdf-month-filter');
+  const projectFilter = document.getElementById('pdf-project-filter');
+
+  // Meses
+  monthFilter.innerHTML = `<option value="all">${translations[state.currentLanguage]['all_months']}</option>`;
+  for (let i = 1; i <= 12; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = new Date(2023, i - 1, 1)
+      .toLocaleString(state.currentLanguage, { month: 'long' });
+    monthFilter.appendChild(opt);
+  }
+
+  // Proyectos
+  projectFilter.innerHTML = `<option value="all">${translations[state.currentLanguage]['all_projects']}</option>`;
+  Object.entries(state.projects).forEach(([id, project]) => {
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = `${project.code} - ${project.name}`;
+    projectFilter.appendChild(opt);
+  });
+
+  // Mostrar modal
+  document.getElementById('pdf-filter-modal').classList.remove('hidden');
+  document.getElementById('pdf-filter-modal').classList.add('flex');
+}
+
+// Cerrar modal
+function closePdfFilterModal() {
+  document.getElementById('pdf-filter-modal').classList.add('hidden');
+  document.getElementById('pdf-filter-modal').classList.remove('flex');
+}
+
+// Manejar envío de filtros
+function handlePdfFilterSubmit(e) {
+  e.preventDefault();
+  const monthFilter = document.getElementById('pdf-month-filter').value;
+  const projectFilter = document.getElementById('pdf-project-filter').value;
+  closePdfFilterModal();
+  generatePDF(monthFilter, projectFilter);
+}
+
+// Generar PDF
+async function generatePDF(monthFilter, projectFilter) {
+  showLoading(true);
+
   const pdfExport = document.getElementById('pdf-export');
   if (!pdfExport) {
     showAlert('PDF export container not found', 'error');
     showLoading(false);
     return;
   }
-  
-  // Guardar contenido original ANTES de modificarlo
+
   const originalContent = pdfExport.innerHTML;
-  const originalStyles = {
-    position: pdfExport.style.position,
-    left: pdfExport.style.left,
-    top: pdfExport.style.top,
-    zIndex: pdfExport.style.zIndex,
-    transform: pdfExport.style.transform,
-    width: pdfExport.style.width,
-    padding: pdfExport.style.padding
-  };
+  const originalStyles = { ...pdfExport.style };
 
   try {
-    // Hacer visible temporalmente el contenedor PDF
-    pdfExport.style.position = 'fixed';
-    pdfExport.style.left = '50%';
-    pdfExport.style.top = '50%';
-    pdfExport.style.transform = 'translate(-50%, -50%)';
-    pdfExport.style.zIndex = '9999';
-    pdfExport.style.width = '210mm';
-    pdfExport.style.padding = '20px';
-    
-    // Construir nuevo contenido para el PDF
+    // Estilos temporales
+    Object.assign(pdfExport.style, {
+      position: 'fixed',
+      left: '50%',
+      top: '50%',
+      transform: 'translate(-50%, -50%)',
+      zIndex: '9999',
+      width: '210mm',
+      padding: '20px'
+    });
+
+    // Contenido inicial
     pdfExport.innerHTML = `
-      <div style="text-align: left; margin-bottom: 20px; font-size: 11px; line-height: 1.4;">
+      <div style="text-align:left;margin-bottom:20px;font-size:11px;line-height:1.4;">
         <div>Köpmangatan 5, plan 10</div>
         <div>151 71 Södertälje</div>
         <div>Tel 079-079 00 45</div>
         <div>Organisationsnummer: 559096-5983</div>
       </div>
-      
-      <h1 style="text-align: left; font-size: 24px; font-weight: bold; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;">
+      <h1 style="text-align:left;font-size:24px;font-weight:bold;margin-bottom:20px;border-bottom:2px solid #000;padding-bottom:10px;">
         Tidrapport
       </h1>
-      
-      <div style="margin-bottom: 20px; font-size: 14px;">
+      <div style="margin-bottom:20px;font-size:14px;">
         <strong>Mätningsingenjör:</strong> ${state.user.firstName} ${state.user.lastName}
-      </div>
-      
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 10px;" border="1" id="pdf-summary-table">
-        <thead>
-          <tr>
-            <th style="border: 1px solid #000; padding: 5px;">Datum (yy-mm-d)</th>
-            <th style="border: 1px solid #000; padding: 5px;">Dag</th>
-            <th style="border: 1px solid #000; padding: 5px;">Från</th>
-            <th style="border: 1px solid #000; padding: 5px;">Till</th>
-            <th style="border: 1px solid #000; padding: 5px;">Rast (h)</th>
-            <th style="border: 1px solid #000; padding: 5px;">Tim</th>
-            <th style="border: 1px solid #000; padding: 5px;">Projektnamn</th>
-            <th style="border: 1px solid #000; padding: 5px;">Arbetsbeskrivning</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Registros se llenarán aquí -->
-        </tbody>
-      </table>
-    `;
-    
-    const tableBody = pdfExport.querySelector('#pdf-summary-table tbody');
-    let totalHours = 0;
-    
-    // Obtener registros filtrados
-    const filteredRecords = Object.entries(state.records).filter(([id, record]) => {
-      const recordDate = new Date(record.date);
-      const recordYear = recordDate.getFullYear();
-      
-      if (recordYear !== state.currentYearFilter) return false;
-      if (state.currentMonthFilter !== 'all' && 
-          (recordDate.getMonth() + 1) !== parseInt(state.currentMonthFilter)) return false;
-      if (state.currentWeekFilter !== 'all' && 
-          getWeekNumber(recordDate) !== parseInt(state.currentWeekFilter)) return false;
-      
-      return true;
-    });
-    
-    // Ordenar registros por fecha
-    filteredRecords.sort((a, b) => new Date(a[1].date) - new Date(b[1].date));
-    
-    // Añadir registros a la tabla PDF
-    filteredRecords.forEach(([id, record]) => {
-      const project = state.projects[record.projectId] || { 
-        name: 'Okänd', 
-        code: '?' 
-      };
-      
-      const date = new Date(record.date);
-      const dateStr = formatDateShort(record.date);
-      const dayName = getSwedishDayName(date);
-      
-      // Calcular horas trabajadas
-      const [startHours, startMinutes] = record.startTime.split(':').map(Number);
-      const [endHours, endMinutes] = record.endTime.split(':').map(Number);
-      const startTotalMinutes = startHours * 60 + startMinutes;
-      const endTotalMinutes = endHours * 60 + endMinutes;
-      const workedMinutes = endTotalMinutes - startTotalMinutes - record.breakTime;
-      const workedHours = workedMinutes / 60;
-      
-      totalHours += workedHours;
-      
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td style="border: 1px solid #000; padding: 5px;">${dateStr}</td>
-        <td style="border: 1px solid #000; padding: 5px;">${dayName}</td>
-        <td style="border: 1px solid #000; padding: 5px;">${record.startTime}</td>
-        <td style="border: 1px solid #000; padding: 5px;">${record.endTime}</td>
-        <td style="border: 1px solid #000; padding: 5px; text-align: center;">${(record.breakTime / 60).toFixed(2)}</td>
-        <td style="border: 1px solid #000; padding: 5px; text-align: right;">${workedHours.toFixed(2)}</td>
-        <td style="border: 1px solid #000; padding: 5px;">
-          ${project.name}<br>
-          <small style="color: #555;">${project.code}</small>
-        </td>
-        <td style="border: 1px solid #000; padding: 5px;">${record.notes || ''}</td>
-      `;
-      tableBody.appendChild(row);
-    });
-    
-    // Añadir fila de totales
-    const footerRow = document.createElement('tr');
-    footerRow.innerHTML = `
-      <td colspan="5" style="border: 1px solid #000; padding: 5px; text-align: right; font-weight: bold;">Totalt:</td>
-      <td style="border: 1px solid #000; padding: 5px; text-align: right; font-weight: bold;">${totalHours.toFixed(2)}</td>
-      <td colspan="2" style="border: 1px solid #000; padding: 5px;"></td>
-    `;
-    tableBody.appendChild(footerRow);
-    
-    // Esperar a que se renderice el contenido
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Generar PDF
-    const canvas = await html2canvas(pdfExport, {
-      scale: 2,
-      useCORS: true,
-      logging: false
-    });
-    
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgWidth = 210;
-    const pageHeight = 295;
-    const imgHeight = canvas.height * imgWidth / canvas.width;
-    
-    pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
-    pdf.save(`tidrapport_${new Date().getTime()}.pdf`);
-    
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-    showAlert('Error generating PDF: ' + error.message, 'error');
-  } finally {
-    // Restaurar estilos originales
-    if (pdfExport) {
-      Object.assign(pdfExport.style, originalStyles);
-      // Restaurar contenido original también aquí
-      pdfExport.innerHTML = originalContent;
-    }
-    showLoading(false);
-  }
-}
-// ===== [NEW PDF FILTER FUNCTIONS] ===== //
-
-// Open PDF filter modal
-function openPdfFilterModal() {
-  // Populate month filter
-  const monthFilter = document.getElementById('pdf-month-filter');
-  monthFilter.innerHTML = '<option value="all">' + translations[state.currentLanguage]['all_months'] + '</option>';
-  
-  for (let i = 1; i <= 12; i++) {
-    const option = document.createElement('option');
-    option.value = i;
-    option.textContent = new Date(2023, i - 1, 1).toLocaleString(state.currentLanguage, { month: 'long' });
-    monthFilter.appendChild(option);
-  }
-  
-  // Populate project filter
-  const projectFilter = document.getElementById('pdf-project-filter');
-  projectFilter.innerHTML = '<option value="all">' + translations[state.currentLanguage]['all_projects'] + '</option>';
-  
-  Object.entries(state.projects).forEach(([id, project]) => {
-    const option = document.createElement('option');
-    option.value = id;
-    option.textContent = `${project.code} - ${project.name}`;
-    projectFilter.appendChild(option);
-  });
-  
-  // Show modal
-  document.getElementById('pdf-filter-modal').classList.remove('hidden');
-  document.getElementById('pdf-filter-modal').classList.add('flex');
-}
-
-// Close PDF filter modal
-function closePdfFilterModal() {
-  document.getElementById('pdf-filter-modal').classList.add('hidden');
-  document.getElementById('pdf-filter-modal').classList.remove('flex');
-}
-
-// Handle PDF filter submission
-function handlePdfFilterSubmit(e) {
-  e.preventDefault();
-  
-  const monthFilter = document.getElementById('pdf-month-filter').value;
-  const projectFilter = document.getElementById('pdf-project-filter').value;
-  
-  closePdfFilterModal();
-  generatePDF(monthFilter, projectFilter);
-}
-
-// Generate PDF with filters
-async function generatePDF(monthFilter, projectFilter) {
-  showLoading(true);
-  
-  const pdfExport = document.getElementById('pdf-export');
-  const originalContent = pdfExport.innerHTML;
-  const originalStyles = {
-    position: pdfExport.style.position,
-    left: pdfExport.style.left,
-    top: pdfExport.style.top,
-    zIndex: pdfExport.style.zIndex,
-    transform: pdfExport.style.transform,
-    width: pdfExport.style.width,
-    padding: pdfExport.style.padding
-  };
-  
-  try {
-    // Apply temporary styles for PDF generation
-    pdfExport.style.position = 'fixed';
-    pdfExport.style.left = '50%';
-    pdfExport.style.top = '50%';
-    pdfExport.style.transform = 'translate(-50%, -50%)';
-    pdfExport.style.zIndex = '9999';
-    pdfExport.style.width = '210mm';
-    pdfExport.style.padding = '20px';
-    
-    // Build PDF content with filters
-    pdfExport.innerHTML = `
-      <div style="text-align: left; margin-bottom: 20px; font-size: 11px; line-height: 1.4;">
-        <div>Köpmangatan 5, plan 10</div>
-        <div>151 71 Södertälje</div>
-        <div>Tel 079-079 00 45</div>
-        <div>Organisationsnummer: 559096-5983</div>
-      </div>
-      
-      <h1 style="text-align: left; font-size: 24px; font-weight: bold; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;">
-        Tidrapport
-      </h1>
-      
-      <div style="margin-bottom: 20px; font-size: 14px;">
-        <strong>Mätningsingenjör:</strong> ${state.user.firstName} ${state.user.lastName}
-        <div style="margin-top: 5px;">
+        <div style="margin-top:5px;">
           <strong>Period:</strong> ${getFilterDescription(monthFilter, projectFilter)}
         </div>
       </div>
-      
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 10px;" border="1" id="pdf-summary-table">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:10px;" border="1" id="pdf-summary-table">
         <thead>
           <tr>
-            <th style="border: 1px solid #000; padding: 5px;">Datum (yy-mm-d)</th>
-            <th style="border: 1px solid #000; padding: 5px;">Dag</th>
-            <th style="border: 1px solid #000; padding: 5px;">Från</th>
-            <th style="border: 1px solid #000; padding: 5px;">Till</th>
-            <th style="border: 1px solid #000; padding: 5px;">Rast (h)</th>
-            <th style="border: 1px solid #000; padding: 5px;">Tim</th>
-            <th style="border: 1px solid #000; padding: 5px;">Projektnamn</th>
-            <th style="border: 1px solid #000; padding: 5px;">Arbetsbeskrivning</th>
+            <th style="padding:5px;border:1px solid #000;">Datum (yy-mm-d)</th>
+            <th style="padding:5px;border:1px solid #000;">Dag</th>
+            <th style="padding:5px;border:1px solid #000;">Från</th>
+            <th style="padding:5px;border:1px solid #000;">Till</th>
+            <th style="padding:5px;border:1px solid #000;">Rast (h)</th>
+            <th style="padding:5px;border:1px solid #000;">Tim</th>
+            <th style="padding:5px;border:1px solid #000;">Projektnamn</th>
+            <th style="padding:5px;border:1px solid #000;">Arbetsbeskrivning</th>
           </tr>
         </thead>
-        <tbody>
-          <!-- Records will be populated here -->
-        </tbody>
+        <tbody></tbody>
       </table>
     `;
-    
+
     const tableBody = pdfExport.querySelector('#pdf-summary-table tbody');
     let totalHours = 0;
-    
-    // Apply filters to records
-    const filteredRecords = Object.entries(state.records).filter(([id, record]) => {
-      const recordDate = new Date(record.date);
-      const recordMonth = recordDate.getMonth() + 1;
-      
-      // Apply month filter
-      if (monthFilter !== 'all' && parseInt(monthFilter) !== recordMonth) {
-        return false;
-      }
-      
-      // Apply project filter
-      if (projectFilter !== 'all' && projectFilter !== record.projectId) {
-        return false;
-      }
-      
-      return true;
+
+    // Filtrar registros
+    const filteredRecords = Object.entries(state.records).filter(([_, record]) => {
+      const date = new Date(record.date);
+      const month = date.getMonth() + 1;
+      return (monthFilter === 'all' || parseInt(monthFilter) === month) &&
+             (projectFilter === 'all' || record.projectId === projectFilter);
     });
-    
-    // Sort records by date
+
+    // Ordenar
     filteredRecords.sort((a, b) => new Date(a[1].date) - new Date(b[1].date));
-    
-    // Add records to PDF
-    filteredRecords.forEach(([id, record]) => {
-      const project = state.projects[record.projectId] || { 
-        name: 'Okänd', 
-        code: '?' 
-      };
-      
+
+    // Añadir filas
+    filteredRecords.forEach(([_, record]) => {
+      const project = state.projects[record.projectId] || { name: 'Okänd', code: '?' };
       const date = new Date(record.date);
       const dateStr = formatDateShort(record.date);
       const dayName = getSwedishDayName(date);
-      
-      // Calculate worked hours
-      const [startHours, startMinutes] = record.startTime.split(':').map(Number);
-      const [endHours, endMinutes] = record.endTime.split(':').map(Number);
-      const startTotalMinutes = startHours * 60 + startMinutes;
-      const endTotalMinutes = endHours * 60 + endMinutes;
-      const workedMinutes = endTotalMinutes - startTotalMinutes - record.breakTime;
-      const workedHours = workedMinutes / 60;
-      
+
+      const [sh, sm] = record.startTime.split(':').map(Number);
+      const [eh, em] = record.endTime.split(':').map(Number);
+      const workedHours = ((eh * 60 + em) - (sh * 60 + sm) - record.breakTime) / 60;
+
       totalHours += workedHours;
-      
+
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td style="border: 1px solid #000; padding: 5px;">${dateStr}</td>
-        <td style="border: 1px solid #000; padding: 5px;">${dayName}</td>
-        <td style="border: 1px solid #000; padding: 5px;">${record.startTime}</td>
-        <td style="border: 1px solid #000; padding: 5px;">${record.endTime}</td>
-        <td style="border: 1px solid #000; padding: 5px; text-align: center;">${(record.breakTime / 60).toFixed(2)}</td>
-        <td style="border: 1px solid #000; padding: 5px; text-align: right;">${workedHours.toFixed(2)}</td>
-        <td style="border: 1px solid #000; padding: 5px;">
-          ${project.name}<br>
-          <small style="color: #555;">${project.code}</small>
-        </td>
-        <td style="border: 1px solid #000; padding: 5px;">${record.notes || ''}</td>
+        <td style="padding:5px;border:1px solid #000;">${dateStr}</td>
+        <td style="padding:5px;border:1px solid #000;">${dayName}</td>
+        <td style="padding:5px;border:1px solid #000;">${record.startTime}</td>
+        <td style="padding:5px;border:1px solid #000;">${record.endTime}</td>
+        <td style="padding:5px;border:1px solid #000;text-align:center;">${(record.breakTime / 60).toFixed(2)}</td>
+        <td style="padding:5px;border:1px solid #000;text-align:right;">${workedHours.toFixed(2)}</td>
+        <td style="padding:5px;border:1px solid #000;">${project.name}<br><small style="color:#555;">${project.code}</small></td>
+        <td style="padding:5px;border:1px solid #000;">${record.notes || ''}</td>
       `;
       tableBody.appendChild(row);
     });
-    
-    // Add totals row
+
+    // Totales
     const footerRow = document.createElement('tr');
     footerRow.innerHTML = `
-      <td colspan="5" style="border: 1px solid #000; padding: 5px; text-align: right; font-weight: bold;">Totalt:</td>
-      <td style="border: 1px solid #000; padding: 5px; text-align: right; font-weight: bold;">${totalHours.toFixed(2)}</td>
-      <td colspan="2" style="border: 1px solid #000; padding: 5px;"></td>
+      <td colspan="5" style="padding:5px;border:1px solid #000;text-align:right;font-weight:bold;">Totalt:</td>
+      <td style="padding:5px;border:1px solid #000;text-align:right;font-weight:bold;">${totalHours.toFixed(2)}</td>
+      <td colspan="2" style="padding:5px;border:1px solid #000;"></td>
     `;
     tableBody.appendChild(footerRow);
-    
-    // Wait for rendering
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Generate PDF
-    const canvas = await html2canvas(pdfExport, {
-      scale: 2,
-      useCORS: true,
-      logging: false
-    });
-    
+
+    // Render y exportar
+    await new Promise(res => setTimeout(res, 100));
+    const canvas = await html2canvas(pdfExport, { scale: 2, useCORS: true, logging: false });
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
     const pdf = new jsPDF('p', 'mm', 'a4');
     const imgWidth = 210;
-    const pageHeight = 295;
     const imgHeight = canvas.height * imgWidth / canvas.width;
-    
     pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
-    pdf.save(`tidrapport_${new Date().getTime()}.pdf`);
-    
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-    showAlert('Error generating PDF: ' + error.message, 'error');
+    pdf.save(`tidrapport_${Date.now()}.pdf`);
+
+  } catch (err) {
+    console.error('Error generating PDF:', err);
+    showAlert(`Error generating PDF: ${err.message}`, 'error');
   } finally {
-    // Restore original content
     pdfExport.innerHTML = originalContent;
-    // Restore original styles
     Object.assign(pdfExport.style, originalStyles);
     showLoading(false);
   }
 }
 
-// Get filter description for PDF header
+// Descripción de filtros
 function getFilterDescription(monthFilter, projectFilter) {
-  const monthNames = [
-    'Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni',
-    'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'
-  ];
-  
-  let description = '';
-  
-  // Month description
-  if (monthFilter === 'all') {
-    description += 'Alla månader';
-  } else {
-    description += monthNames[parseInt(monthFilter) - 1];
-  }
-  
-  description += ' - ';
-  
-  // Project description
-  if (projectFilter === 'all') {
-    description += 'Alla projekt';
-  } else {
-    const project = state.projects[projectFilter];
-    description += project ? `${project.code} - ${project.name}` : 'Valt projekt';
-  }
-  
-  return description;
+  const months = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
+  const monthText = monthFilter === 'all' ? 'Alla månader' : months[parseInt(monthFilter) - 1];
+  const projectText = projectFilter === 'all'
+    ? 'Alla projekt'
+    : state.projects[projectFilter]
+      ? `${state.projects[projectFilter].code} - ${state.projects[projectFilter].name}`
+      : 'Valt projekt';
+  return `${monthText} - ${projectText}`;
 }
 
-// Format date as yy-mm-dd
-function formatDateShort(dateString) {
-  const date = new Date(dateString);
-  const year = date.getFullYear().toString().substring(2);
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  return `${year}-${month}-${day}`;
+// Fecha corta
+function formatDateShort(dateStr) {
+  const d = new Date(dateStr);
+  return `${d.getFullYear().toString().slice(2)}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-// Get Swedish day name
+// Día en sueco
 function getSwedishDayName(date) {
-  const days = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
-  return days[date.getDay()];
+  return ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'][date.getDay()];
 }
-    // Export to JSON
-    function exportToJSON() {
-      const data = {
-        user: state.user,
-        projects: state.projects,
-        records: state.records
-      };
-      
-      const dataStr = JSON.stringify(data);
-      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-      
-      const exportFileDefaultName = 'timebook-export.json';
-      
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportFileDefaultName);
-      linkElement.click();
-      
-      showAlert(translations[state.currentLanguage]['export_success'], 'success');
-    }
 
-    // Import from JSON
-    function importFromJSON(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      
-      const reader = new FileReader();
-      updateSyncStatus('syncing');
-      
-      reader.onload = function(event) {
-        try {
-          const data = JSON.parse(event.target.result);
-          
-          // Validate data structure
-          if (data.projects && data.records) {
-            // Import data
-            database.ref(`users/${state.user.uid}`).update({
-              projects: data.projects,
-              records: data.records
-            }).then(() => {
-              showAlert(translations[state.currentLanguage]['import_success'], 'success');
-            }).catch(error => {
-              showAlert(translations[state.currentLanguage]['import_error'] + error.message, 'error');
-            });
-          } else {
-            showAlert(translations[state.currentLanguage]['invalid_format'], 'error');
-          }
-        } catch (error) {
-          showAlert(translations[state.currentLanguage]['import_error'], 'error');
-        }
-      };
-      
-      reader.readAsText(file);
-      
-      // Reset file input
-      e.target.value = '';
-    }
+// =============================
+// EXPORTAR / IMPORTAR JSON
+// =============================
+function exportToJSON() {
+  const data = { user: state.user, projects: state.projects, records: state.records };
+  const dataStr = JSON.stringify(data);
+  const uri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+  const link = document.createElement('a');
+  link.setAttribute('href', uri);
+  link.setAttribute('download', 'timebook-export.json');
+  link.click();
+  showAlert(translations[state.currentLanguage]['export_success'], 'success');
+}
 
-    // Toggle records visibility
-    function toggleRecordsVisibility() {
-      const recordsContent = document.getElementById('records-content');
-      const toggleButton = document.getElementById('toggle-records');
-      
-      if (recordsContent.classList.contains('hidden')) {
-        recordsContent.classList.remove('hidden');
-        toggleButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
+function importFromJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  updateSyncStatus('syncing');
+  reader.onload = function(evt) {
+    try {
+      const data = JSON.parse(evt.target.result);
+      if (data.projects && data.records) {
+        database.ref(`users/${state.user.uid}`).update({
+          projects: data.projects,
+          records: data.records
+        }).then(() => {
+          showAlert(translations[state.currentLanguage]['import_success'], 'success');
+        }).catch(error => {
+          showAlert(translations[state.currentLanguage]['import_error'] + error.message, 'error');
+        });
       } else {
-        recordsContent.classList.add('hidden');
-        toggleButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
+        showAlert(translations[state.currentLanguage]['invalid_format'], 'error');
       }
+    } catch {
+      showAlert(translations[state.currentLanguage]['import_error'], 'error');
     }
-  </script>
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// =============================
+// MOSTRAR / OCULTAR REGISTROS
+// =============================
+function toggleRecordsVisibility() {
+  const content = document.getElementById('records-content');
+  const btn = document.getElementById('toggle-records');
+  if (content.classList.contains('hidden')) {
+    content.classList.remove('hidden');
+    btn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+  } else {
+    content.classList.add('hidden');
+    btn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+  }
+}
+</script>
 </body>
 </html>
+
 
 
 
