@@ -637,7 +637,7 @@
             
             <div id="records-content" class="p-4">
               <!-- Filters -->
-              <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
                   <label for="year-filter" class="form-label" data-i18n="year">Año</label>
                   <select id="year-filter" class="form-control">
@@ -653,22 +653,22 @@
                   </select>
                 </div>
                 
-                <div>
-                  <label for="week-filter" class="form-label" data-i18n="week">Semana</label>
-                  <select id="week-filter" class="form-control">
-                    <option value="all" data-i18n="all_weeks">Todas las Semanas</option>
-                    <!-- Weeks will be added dynamically -->
-                  </select>
-                </div>
-                
-                <div>
-                  <label for="project-filter" class="form-label" data-i18n="project">Proyecto</label>
-                  <select id="project-filter" class="form-control">
-                    <option value="all" data-i18n="all_projects">Todos los Proyectos</option>
-                    <!-- Projects will be added dynamically -->
-                  </select>
-                </div>
-              </div>
+				<div>
+				  <label for="week-filter" class="form-label" data-i18n="week">Semana</label>
+				  <select id="week-filter" class="form-control">
+					<option value="all" data-i18n="all_weeks">Todas las Semanas</option>
+					<!-- Weeks will be added dynamically -->
+				  </select>
+				</div>
+				
+				<div>
+				  <label for="project-filter" class="form-label" data-i18n="project">Proyecto</label>
+				  <select id="project-filter" class="form-control">
+					<option value="all" data-i18n="all_projects">Todos los Proyectos</option>
+					<!-- Projects will be added dynamically -->
+				  </select>
+				</div>
+			  </div>
               
               <!-- Entries Container -->
               <div id="entries-container" class="mt-4">
@@ -718,7 +718,7 @@
             </div>
             
             <!-- Quick Stats Cards -->
-            <div class="md:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="md:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div class="stat-card">
                 <div class="text-sm text-gray-500 mb-1" data-i18n="total_hours">Horas Totales</div>
                 <div class="text-xl font-bold" id="total-hours">0</div>
@@ -786,11 +786,10 @@
                 </tbody>
                 <tfoot>
                   <tr class="font-semibold">
-                    <td colspan="3" class="py-2 px-3 text-right" data
-Continua escribiendo el codigo, ya falta poco, solo completa el codigo que ya empzaste.
-Aquí está el resto del código completo con la implementación del filtro por proyecto en el historial:
-
-html
+                    <td colspan="3" class="py-2 px-3 text-right" data-i18n="total">Total:</td>
+                    <td class="py-2 px-3 text-right" id="total-mes">0</td>
+                    <td class="py-2 px-3"></td>
+                  </tr>
                 </tfoot>
               </table>
             </div>
@@ -979,7 +978,6 @@ html
       currentYearFilter: new Date().getFullYear(),
       currentMonthFilter: 'all',
       currentWeekFilter: 'all',
-      currentProjectFilter: 'all',
       isOnline: true,
       currentLanguage: 'es'
     };
@@ -1002,7 +1000,6 @@ html
         'date': 'Fecha',
         'project': 'Proyecto',
         'select_project': 'Seleccionar proyecto',
-        'all_projects': 'Todos los Proyectos',
         'start_time': 'Hora de Inicio',
         'end_time': 'Hora de Fin',
         'break_time': 'Tiempo de Descanso (minutos)',
@@ -1057,23 +1054,7 @@ html
         'break_0': '0 minutos',
         'break_30': 'Media hora',
         'break_60': '1 hora',
-        'break_120': '2 horas',
-        'confirm_delete': '¿Estás seguro de que deseas eliminar este registro?',
-        'record_saved': 'Registro guardado correctamente',
-        'record_updated': 'Registro actualizado correctamente',
-        'record_deleted': 'Registro eliminado correctamente',
-        'profile_updated': 'Perfil actualizado correctamente',
-        'project_added': 'Proyecto agregado correctamente',
-        'required_fields': 'Por favor complete todos los campos requeridos',
-        'save_error': 'Error al guardar: ',
-        'update_error': 'Error al actualizar: ',
-        'delete_error': 'Error al eliminar: ',
-        'export_success': 'Exportación completada correctamente',
-        'import_success': 'Importación completada correctamente',
-        'import_error': 'Error al importar: ',
-        'invalid_format': 'Formato de archivo no válido',
-        'syncing': 'Sincronizando...',
-        'offline': 'Sin conexión'
+        'break_120': '2 horas'
       },
       'en': {
         'app-title': 'TimeBook Pro',
@@ -1091,7 +1072,6 @@ html
         'date': 'Date',
         'project': 'Project',
         'select_project': 'Select a project',
-        'all_projects': 'All Projects',
         'start_time': 'Start Time',
         'end_time': 'End Time',
         'break_time': 'Break Time (minutes)',
@@ -1146,23 +1126,7 @@ html
         'break_0': '0 minutes',
         'break_30': 'Half an hour',
         'break_60': '1 hour',
-        'break_120': '2 hours',
-        'confirm_delete': 'Are you sure you want to delete this record?',
-        'record_saved': 'Record saved successfully',
-        'record_updated': 'Record updated successfully',
-        'record_deleted': 'Record deleted successfully',
-        'profile_updated': 'Profile updated successfully',
-        'project_added': 'Project added successfully',
-        'required_fields': 'Please fill all required fields',
-        'save_error': 'Error saving: ',
-        'update_error': 'Error updating: ',
-        'delete_error': 'Error deleting: ',
-        'export_success': 'Export completed successfully',
-        'import_success': 'Import completed successfully',
-        'import_error': 'Error importing: ',
-        'invalid_format': 'Invalid file format',
-        'syncing': 'Syncing...',
-        'offline': 'Offline'
+        'break_120': '2 hours'
       },
       'sv': {
         'app-title': 'TimeBook Pro',
@@ -1180,7 +1144,6 @@ html
         'date': 'Datum',
         'project': 'Projekt',
         'select_project': 'Välj ett projekt',
-        'all_projects': 'Alla projekt',
         'start_time': 'Starttid',
         'end_time': 'Sluttid',
         'break_time': 'Rasttid (minuter)',
@@ -1235,25 +1198,10 @@ html
         'break_0': '0 minuter',
         'break_30': 'En halvtimme',
         'break_60': '1 timme',
-        'break_120': '2 timmar',
-        'confirm_delete': 'Är du säker på att du vill radera denna post?',
-        'record_saved': 'Post sparad',
-        'record_updated': 'Post uppdaterad',
-        'record_deleted': 'Post raderad',
-        'profile_updated': 'Profil uppdaterad',
-        'project_added': 'Projekt tillagt',
-        'required_fields': 'Vänligen fyll i alla obligatoriska fält',
-        'save_error': 'Fel vid sparande: ',
-        'update_error': 'Fel vid uppdatering: ',
-        'delete_error': 'Fel vid radering: ',
-        'export_success': 'Export slutförd',
-        'import_success': 'Import slutförd',
-        'import_error': 'Fel vid import: ',
-        'invalid_format': 'Ogiltigt filformat',
-        'syncing': 'Synkroniserar...',
-        'offline': 'Utan anslutning'
+        'break_120': '2 timmar'
       }
     };
+
 
     // DOM ready
     document.addEventListener('DOMContentLoaded', () => {
@@ -1760,15 +1708,13 @@ html
       const projectSelect = document.getElementById('project');
       const editProjectSelect = document.getElementById('edit-project');
       const projectsList = document.getElementById('projects-list');
-      const projectFilter = document.getElementById('project-filter');
       
       // Clear existing options/items
       projectSelect.innerHTML = '';
       editProjectSelect.innerHTML = '';
       projectsList.innerHTML = '';
-      projectFilter.innerHTML = '';
       
-      // Add default options
+      // Add default option
       const defaultOption = document.createElement('option');
       defaultOption.value = '';
       defaultOption.textContent = translations[state.currentLanguage]['select_project'];
@@ -1778,11 +1724,6 @@ html
       editDefaultOption.value = '';
       editDefaultOption.textContent = translations[state.currentLanguage]['select_project'];
       editProjectSelect.appendChild(editDefaultOption);
-      
-      const allProjectsOption = document.createElement('option');
-      allProjectsOption.value = 'all';
-      allProjectsOption.textContent = translations[state.currentLanguage]['all_projects'];
-      projectFilter.appendChild(allProjectsOption);
       
       // Add projects
       Object.entries(state.projects).forEach(([id, project]) => {
@@ -1795,10 +1736,6 @@ html
         // Add to edit select
         const editOption = option.cloneNode(true);
         editProjectSelect.appendChild(editOption);
-        
-        // Add to filter select
-        const filterOption = option.cloneNode(true);
-        projectFilter.appendChild(filterOption);
         
         // Add to projects list
         const projectItem = document.createElement('div');
@@ -2622,20 +2559,20 @@ html
         });
     }
 
-    // Función para formatear fecha en formato yy-mm-dd
-    function formatDateShort(dateString) {
-      const date = new Date(dateString);
-      const year = date.getFullYear().toString().substring(2);
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const day = date.getDate().toString().padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
+// Función para formatear fecha en formato yy-mm-dd
+function formatDateShort(dateString) {
+  const date = new Date(dateString);
+  const year = date.getFullYear().toString().substring(2);
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
-    // Función para obtener el nombre del día en sueco
-    function getSwedishDayName(date) {
-      const days = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
-      return days[date.getDay()];
-    }
+// Función para obtener el nombre del día en sueco
+function getSwedishDayName(date) {
+  const days = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+  return days[date.getDay()];
+}
 
 // Export to PDF
 async function exportToPDF() {
@@ -2880,4 +2817,8 @@ async function exportToPDF() {
   </script>
 </body>
 </html>
-    
+
+
+
+
+
