@@ -2685,7 +2685,15 @@ async function generatePDF(monthFilter, projectFilter) {
   }
 
   const originalContent = pdfExport.innerHTML;
-  const originalStyles = { ...pdfExport.style };
+  const originalStyles = {
+    position: pdfExport.style.position,
+    left: pdfExport.style.left,
+    top: pdfExport.style.top,
+    transform: pdfExport.style.transform,
+    zIndex: pdfExport.style.zIndex,
+    width: pdfExport.style.width,
+    padding: pdfExport.style.padding
+  };
 
   try {
     // Estilos temporales
@@ -2696,7 +2704,8 @@ async function generatePDF(monthFilter, projectFilter) {
       transform: 'translate(-50%, -50%)',
       zIndex: '9999',
       width: '210mm',
-      padding: '20px'
+      padding: '20px',
+      background: 'white'
     });
 
     // Contenido inicial
@@ -2756,7 +2765,8 @@ async function generatePDF(monthFilter, projectFilter) {
 
       const [sh, sm] = record.startTime.split(':').map(Number);
       const [eh, em] = record.endTime.split(':').map(Number);
-      const workedHours = ((eh * 60 + em) - (sh * 60 + sm) - record.breakTime) / 60;
+      const workedMinutes = (eh * 60 + em) - (sh * 60 + sm) - record.breakTime;
+      const workedHours = workedMinutes / 60;
 
       totalHours += workedHours;
 
@@ -2784,86 +2794,132 @@ async function generatePDF(monthFilter, projectFilter) {
     tableBody.appendChild(footerRow);
 
     // Render y exportar
-    await new Promise(res => setTimeout(res, 100));
-    const canvas = await html2canvas(pdfExport, { scale: 2, useCORS: true, logging: false });
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const canvas = await html2canvas(pdfExport, { 
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#FFFFFF'
+    });
+    
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
     const pdf = new jsPDF('p', 'mm', 'a4');
     const imgWidth = 210;
-    const imgHeight = canvas.height * imgWidth / canvas.width;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
     pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
-    pdf.save(`tidrapport_${Date.now()}.pdf`);
+    pdf.save(`tidrapport_${state.user.lastName}_${new Date().toISOString().slice(0, 10)}.pdf`);
 
   } catch (err) {
     console.error('Error generating PDF:', err);
     showAlert(`Error generating PDF: ${err.message}`, 'error');
   } finally {
+    // Restaurar contenido original
     pdfExport.innerHTML = originalContent;
-    Object.assign(pdfExport.style, originalStyles);
+    
+    // Restaurar estilos
+    Object.keys(originalStyles).forEach(key => {
+      pdfExport.style[key] = originalStyles[key];
+    });
+    
     showLoading(false);
   }
 }
 
 // Descripción de filtros
 function getFilterDescription(monthFilter, projectFilter) {
-  const months = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
-  const monthText = monthFilter === 'all' ? 'Alla månader' : months[parseInt(monthFilter) - 1];
+  const months = [
+    'Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 
+    'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'
+  ];
+  
+  const monthText = monthFilter === 'all' 
+    ? 'Alla månader' 
+    : months[parseInt(monthFilter) - 1];
+  
   const projectText = projectFilter === 'all'
     ? 'Alla projekt'
-    : state.projects[projectFilter]
-      ? `${state.projects[projectFilter].code} - ${state.projects[projectFilter].name}`
-      : 'Valt projekt';
+    : (state.projects[projectFilter]
+        ? `${state.projects[projectFilter].code} - ${state.projects[projectFilter].name}`
+        : 'Valt projekt');
+  
   return `${monthText} - ${projectText}`;
 }
 
-// Fecha corta
+// Fecha corta (yy-mm-dd)
 function formatDateShort(dateStr) {
   const d = new Date(dateStr);
-  return `${d.getFullYear().toString().slice(2)}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return `${d.getFullYear().toString().slice(2)}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
 }
 
 // Día en sueco
 function getSwedishDayName(date) {
-  return ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'][date.getDay()];
+  return ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'][date.getDay()];
 }
 
 // =============================
 // EXPORTAR / IMPORTAR JSON
 // =============================
 function exportToJSON() {
-  const data = { user: state.user, projects: state.projects, records: state.records };
+  const data = { 
+    user: state.user, 
+    projects: state.projects, 
+    records: state.records 
+  };
+  
   const dataStr = JSON.stringify(data);
-  const uri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+  const uri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
+  
   const link = document.createElement('a');
-  link.setAttribute('href', uri);
-  link.setAttribute('download', 'timebook-export.json');
+  link.href = uri;
+  link.download = `timebook_export_${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(link);
   link.click();
+  document.body.removeChild(link);
+  
   showAlert(translations[state.currentLanguage]['export_success'], 'success');
 }
 
 function importFromJSON(e) {
   const file = e.target.files[0];
   if (!file) return;
+  
   const reader = new FileReader();
   updateSyncStatus('syncing');
+  
   reader.onload = function(evt) {
     try {
       const data = JSON.parse(evt.target.result);
-      if (data.projects && data.records) {
-        database.ref(`users/${state.user.uid}`).update({
-          projects: data.projects,
-          records: data.records
-        }).then(() => {
-          showAlert(translations[state.currentLanguage]['import_success'], 'success');
-        }).catch(error => {
-          showAlert(translations[state.currentLanguage]['import_error'] + error.message, 'error');
-        });
-      } else {
-        showAlert(translations[state.currentLanguage]['invalid_format'], 'error');
+      
+      if (!data.projects || !data.records) {
+        throw new Error('Invalid file format');
       }
-    } catch {
-      showAlert(translations[state.currentLanguage]['import_error'], 'error');
+      
+      // Validar estructura básica
+      const isValid = Object.values(data.projects).every(p => p.name && p.code) &&
+                     Object.values(data.records).every(r => r.date && r.projectId);
+      
+      if (!isValid) {
+        throw new Error('Invalid data structure');
+      }
+      
+      database.ref(`users/${state.user.uid}`).update({
+        projects: data.projects,
+        records: data.records
+      }).then(() => {
+        showAlert(translations[state.currentLanguage]['import_success'], 'success');
+      }).catch(error => {
+        showAlert(`${translations[state.currentLanguage]['import_error']}: ${error.message}`, 'error');
+      });
+    } catch (error) {
+      showAlert(`${translations[state.currentLanguage]['import_error']}: ${error.message}`, 'error');
     }
   };
+  
+  reader.onerror = () => {
+    showAlert(translations[state.currentLanguage]['import_error'], 'error');
+  };
+  
   reader.readAsText(file);
   e.target.value = '';
 }
@@ -2873,18 +2929,20 @@ function importFromJSON(e) {
 // =============================
 function toggleRecordsVisibility() {
   const content = document.getElementById('records-content');
-  const btn = document.getElementById('toggle-records');
+  const btnIcon = document.getElementById('toggle-records').querySelector('i');
+  
   if (content.classList.contains('hidden')) {
     content.classList.remove('hidden');
-    btn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+    btnIcon.classList.replace('fa-chevron-down', 'fa-chevron-up');
   } else {
     content.classList.add('hidden');
-    btn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+    btnIcon.classList.replace('fa-chevron-up', 'fa-chevron-down');
   }
 }
 </script>
 </body>
 </html>
+
 
 
 
