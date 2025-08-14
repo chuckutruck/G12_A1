@@ -3,352 +3,544 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tidbok OB - Registrering av arbetade timmar</title>
+    <title>Tidbok OB - Tidrapportering</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <style>
-        :root {
-            --primary: #1e40af;
-            --secondary: #3b82f6;
-            --accent: #10b981;
-            --light: #f3f4f6;
-            --dark: #1f2937;
+        .ob-base { background-color: #e5e7eb; }
+        .ob-1 { background-color: #dbeafe; }
+        .ob-2 { background-color: #ffedd5; }
+        .ob-3 { background-color: #fce7f3; }
+        .ob-4 { background-color: #dcfce7; }
+        
+        .dashboard-card {
+            transition: transform 0.3s, box-shadow 0.3s;
         }
         
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8fafc;
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
         }
         
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
+        @media (max-width: 768px) {
+            .mobile-flex-col {
+                flex-direction: column;
+            }
+            
+            .mobile-w-full {
+                width: 100% !important;
+            }
         }
         
-        .btn-primary:hover {
-            background-color: #1e3a8a;
-        }
-        
-        .btn-secondary {
-            background-color: var(--secondary);
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background-color: #2563eb;
-        }
-        
-        .ob-base { background-color: #dbeafe; border-left: 4px solid #3b82f6; }
-        .ob-1 { background-color: #dcfce7; border-left: 4px solid #10b981; }
-        .ob-2 { background-color: #fef3c7; border-left: 4px solid #f59e0b; }
-        .ob-3 { background-color: #fee2e2; border-left: 4px solid #ef4444; }
-        .ob-4 { background-color: #ede9fe; border-left: 4px solid #8b5cf6; }
-        
-        .time-entry:hover {
-            transform: translateY(-2px);
-            transition: transform 0.2s;
+        .firebase-error {
+            color: #e53e3e;
+            background-color: #fed7d7;
+            border: 1px solid #feb2b2;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            margin-top: 0.5rem;
+            display: none;
         }
     </style>
 </head>
-<body class="bg-gray-50">
-    <!-- Auth Screen -->
-    <div id="auth-screen" class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-            <div class="text-center mb-8">
-                <h1 class="text-3xl font-bold text-blue-800">Tidbok OB</h1>
-                <p class="text-gray-600 mt-2">Registrera och hantera dina arbetade timmar</p>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Encabezado -->
+    <header class="bg-blue-700 text-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center">
+                <i class="fas fa-clock text-2xl mr-3"></i>
+                <h1 class="text-xl md:text-2xl font-bold">Tidbok OB</h1>
             </div>
-            
-            <div id="login-section">
-                <h2 class="text-xl font-semibold mb-4">Logga in</h2>
-                <form id="login-form">
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2" for="email">E-post</label>
-                        <input type="email" id="email" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
-                    </div>
-                    <div class="mb-6">
-                        <label class="block text-gray-700 mb-2" for="password">Lösenord</label>
-                        <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
-                    </div>
-                    <button type="submit" class="w-full btn-primary py-2 rounded-md font-medium">Logga in</button>
-                </form>
-                <div class="mt-4 text-center">
-                    <button id="show-register" class="text-blue-600 hover:underline">Skapa konto</button>
+            <div class="flex items-center space-x-4">
+                <div id="user-info" class="hidden">
+                    <span id="user-name" class="mr-3"></span>
+                    <button id="logout-btn" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Logga ut
+                    </button>
                 </div>
-            </div>
-            
-            <div id="register-section" class="hidden">
-                <h2 class="text-xl font-semibold mb-4">Skapa konto</h2>
-                <form id="register-form">
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2" for="reg-email">E-post</label>
-                        <input type="email" id="reg-email" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2" for="reg-password">Lösenord</label>
-                        <input type="password" id="reg-password" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
-                    </div>
-                    <div class="mb-6">
-                        <label class="block text-gray-700 mb-2" for="reg-confirm">Bekräfta lösenord</label>
-                        <input type="password" id="reg-confirm" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
-                    </div>
-                    <button type="submit" class="w-full btn-primary py-2 rounded-md font-medium">Skapa konto</button>
-                </form>
-                <div class="mt-4 text-center">
-                    <button id="show-login" class="text-blue-600 hover:underline">Tillbaka till inloggning</button>
+                <div id="auth-buttons">
+                    <button id="login-btn" class="bg-blue-600 hover:bg-blue-800 px-3 py-1 rounded mr-2">
+                        Logga in
+                    </button>
+                    <button id="register-btn" class="bg-green-600 hover:bg-green-700 px-3 py-1 rounded">
+                        Registrera
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Main App -->
-    <div id="app" class="hidden min-h-screen">
-        <!-- Header -->
-        <header class="bg-white shadow">
-            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-                <div class="flex items-center">
-                    <h1 class="text-xl font-bold text-blue-800">Tidbok OB</h1>
-                    <div id="connection-status" class="ml-4 text-sm px-2 py-1 rounded bg-green-100 text-green-800">
-                        <i class="fas fa-wifi"></i> Online
-                    </div>
+    </header>
+
+    <!-- Contenido principal -->
+    <main class="container mx-auto px-4 py-6">
+        <!-- Dashboard principal -->
+        <div id="dashboard" class="hidden">
+            <!-- Estadísticas rápidas -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="dashboard-card bg-white rounded-lg shadow p-6 text-center">
+                    <h2 class="text-lg font-semibold text-gray-700 mb-2">Denna vecka</h2>
+                    <p class="text-3xl font-bold text-blue-600">42.5 h</p>
                 </div>
-                <div class="flex items-center">
-                    <button id="pdf-export-btn" class="btn-secondary mr-3 px-3 py-1 rounded text-sm hidden">
-                        <i class="fas fa-file-pdf mr-1"></i> Exportera PDF
-                    </button>
-                    <div class="relative">
-                        <button id="user-menu" class="flex items-center text-gray-700">
-                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-bold">
-                                <span id="user-initials">U</span>
-                            </div>
-                        </button>
-                        <div id="menu-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1">
-                            <button id="logout-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Logga ut
-                            </button>
-                        </div>
-                    </div>
+                <div class="dashboard-card bg-white rounded-lg shadow p-6 text-center">
+                    <h2 class="text-lg font-semibold text-gray-700 mb-2">Denna månad</h2>
+                    <p class="text-3xl font-bold text-green-600">152 h</p>
+                </div>
+                <div class="dashboard-card bg-white rounded-lg shadow p-6 text-center">
+                    <h2 class="text-lg font-semibold text-gray-700 mb-2">OB-timmar</h2>
+                    <p class="text-3xl font-bold text-purple-600">24.5 h</p>
                 </div>
             </div>
-        </header>
-        
-        <!-- Main Content -->
-        <main class="container mx-auto px-4 py-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Left Column - Projects and Entry Form -->
-                <div class="lg:col-span-1">
-                    <!-- Project Management -->
-                    <div class="bg-white rounded-xl shadow p-4 mb-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-lg font-semibold">Projekt</h2>
-                            <button id="add-project-btn" class="btn-primary px-3 py-1 rounded text-sm">
-                                <i class="fas fa-plus mr-1"></i> Lägg till
-                            </button>
-                        </div>
-                        <div id="projects-list" class="space-y-2 max-h-60 overflow-y-auto">
-                            <!-- Projects will be loaded here -->
-                        </div>
-                    </div>
-                    
-                    <!-- Time Entry Form -->
-                    <div class="bg-white rounded-xl shadow p-4">
-                        <h2 class="text-lg font-semibold mb-4">Registrera tid</h2>
+
+            <!-- Secciones principales -->
+            <div class="flex flex-wrap mb-6 border-b">
+                <button id="time-entry-tab" class="px-4 py-2 font-medium border-b-2 border-blue-600 text-blue-600">Tidregistrering</button>
+                <button id="projects-tab" class="px-4 py-2 font-medium text-gray-600 hover:text-blue-600">Projekt</button>
+                <button id="history-tab" class="px-4 py-2 font-medium text-gray-600 hover:text-blue-600">Historik</button>
+                <button id="stats-tab" class="px-4 py-2 font-medium text-gray-600 hover:text-blue-600">Statistik</button>
+                <button id="export-tab" class="px-4 py-2 font-medium text-gray-600 hover:text-blue-600">Exportera PDF</button>
+            </div>
+
+            <!-- Contenido de las pestañas -->
+            <div id="tab-content">
+                <!-- Formulario de registro de tiempo -->
+                <div id="time-entry-content">
+                    <div class="bg-white rounded-lg shadow p-6 mb-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Registrera ny tid</h2>
                         <form id="time-entry-form">
-                            <div class="mb-4">
-                                <label class="block text-gray-700 mb-2">Projekt</label>
-                                <select id="project-select" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
-                                    <option value="">Välj ett projekt</option>
-                                </select>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <div>
                                     <label class="block text-gray-700 mb-2">Datum</label>
-                                    <input type="date" id="entry-date" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                                    <input type="date" id="date" class="w-full p-2 border border-gray-300 rounded" required>
                                 </div>
                                 <div>
-                                    <label class="block text-gray-700 mb-2">Rast (timmar)</label>
-                                    <input type="number" id="break-hours" min="0" step="0.25" class="w-full px-3 py-2 border border-gray-300 rounded-md" value="0.5" required>
+                                    <label class="block text-gray-700 mb-2">Projekt</label>
+                                    <select id="project" class="w-full p-2 border border-gray-300 rounded" required>
+                                        <option value="">Välj projekt</option>
+                                        <option value="project1">Webbutveckling (P001)</option>
+                                        <option value="project2">Apputveckling (P002)</option>
+                                        <option value="project3">Support (P003)</option>
+                                    </select>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-2 gap-4 mb-4">
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                                 <div>
                                     <label class="block text-gray-700 mb-2">Starttid</label>
-                                    <input type="time" id="start-time" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                                    <input type="time" id="start-time" class="w-full p-2 border border-gray-300 rounded" value="08:00" required>
                                 </div>
                                 <div>
                                     <label class="block text-gray-700 mb-2">Sluttid</label>
-                                    <input type="time" id="end-time" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                                    <input type="time" id="end-time" class="w-full p-2 border border-gray-300 rounded" value="16:30" required>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Rast (timmar)</label>
+                                    <select id="break-time" class="w-full p-2 border border-gray-300 rounded">
+                                        <option value="0">0.00</option>
+                                        <option value="0.5" selected>0.30</option>
+                                        <option value="1">1.00</option>
+                                        <option value="1.5">1.30</option>
+                                        <option value="2">2.00</option>
+                                    </select>
                                 </div>
                             </div>
-                            <div class="mb-4">
-                                <label class="block text-gray-700 mb-2">Kollegor (frivilligt)</label>
-                                <input type="text" id="colleagues" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            
+                            <div class="mb-6">
+                                <label class="block text-gray-700 mb-2">Medarbetare</label>
+                                <input type="text" id="colleagues" class="w-full p-2 border border-gray-300 rounded" placeholder="Namn på kollegor...">
                             </div>
-                            <div class="mb-4">
-                                <label class="block text-gray-700 mb-2">Anteckningar (frivilligt)</label>
-                                <textarea id="notes" class="w-full px-3 py-2 border border-gray-300 rounded-md" rows="2"></textarea>
+                            
+                            <div class="mb-6">
+                                <label class="block text-gray-700 mb-2">Anteckningar</label>
+                                <textarea id="notes" class="w-full p-2 border border-gray-300 rounded" rows="3" placeholder="Beskriv ditt arbete..."></textarea>
                             </div>
-                            <button type="submit" class="w-full btn-primary py-2 rounded-md font-medium">
-                                Spara tid
-                            </button>
+                            
+                            <div class="bg-blue-50 p-4 rounded-lg mb-6">
+                                <h3 class="font-semibold text-blue-800 mb-2">Beräknade timmar:</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+                                    <div class="ob-base p-2 rounded text-center">
+                                        <p class="text-sm">Bas</p>
+                                        <p class="font-bold">6.5 h</p>
+                                    </div>
+                                    <div class="ob-1 p-2 rounded text-center">
+                                        <p class="text-sm">OB 1</p>
+                                        <p class="font-bold">1.2 h</p>
+                                    </div>
+                                    <div class="ob-2 p-2 rounded text-center">
+                                        <p class="text-sm">OB 2</p>
+                                        <p class="font-bold">0.5 h</p>
+                                    </div>
+                                    <div class="ob-3 p-2 rounded text-center">
+                                        <p class="text-sm">OB 3</p>
+                                        <p class="font-bold">0.0 h</p>
+                                    </div>
+                                    <div class="ob-4 p-2 rounded text-center">
+                                        <p class="text-sm">OB 4</p>
+                                        <p class="font-bold">0.0 h</p>
+                                    </div>
+                                </div>
+                                <div class="mt-3 text-center">
+                                    <p class="font-bold">Totalt: <span class="text-blue-700">8.2 timmar</span></p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-end">
+                                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-medium">
+                                    <i class="fas fa-save mr-2"></i>Spara tidpost
+                                </button>
+                            </div>
                         </form>
                     </div>
                     
-                    <!-- OB Calculation Preview -->
-                    <div id="ob-preview" class="bg-white rounded-xl shadow p-4 mt-6 hidden">
-                        <h2 class="text-lg font-semibold mb-4">Beräknade timmar</h2>
-                        <div class="grid grid-cols-2 gap-2 mb-2">
-                            <div class="font-medium">Total tid:</div>
-                            <div id="preview-total" class="font-semibold">0.00 h</div>
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex justify-between px-3 py-1 rounded ob-base">
-                                <span>Base:</span>
-                                <span id="preview-base">0.00 h</span>
-                            </div>
-                            <div class="flex justify-between px-3 py-1 rounded ob-1">
-                                <span>OB 1:</span>
-                                <span id="preview-ob1">0.00 h</span>
-                            </div>
-                            <div class="flex justify-between px-3 py-1 rounded ob-2">
-                                <span>OB 2:</span>
-                                <span id="preview-ob2">0.00 h</span>
-                            </div>
-                            <div class="flex justify-between px-3 py-1 rounded ob-3">
-                                <span>OB 3:</span>
-                                <span id="preview-ob3">0.00 h</span>
-                            </div>
-                            <div class="flex justify-between px-3 py-1 rounded ob-4">
-                                <span>OB 4:</span>
-                                <span id="preview-ob4">0.00 h</span>
-                            </div>
+                    <!-- Registros recientes -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Senaste registreringar</h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Datum</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Projekt</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tid</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timmar</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">OB</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Åtgärder</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="px-4 py-3 whitespace-nowrap">2023-10-15</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">Webbutveckling (P001)</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">08:00 - 17:30</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">8.5</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">OB1: 1.5</span>
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <button class="text-blue-600 hover:text-blue-800 mr-2">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-800">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 whitespace-nowrap">2023-10-14</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">Support (P003)</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">18:00 - 23:30</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">5.0</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">OB2: 5.0</span>
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <button class="text-blue-600 hover:text-blue-800 mr-2">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-800">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 whitespace-nowrap">2023-10-13</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">Apputveckling (P002)</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">07:30 - 16:00</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">8.0</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">Base: 8.0</span>
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <button class="text-blue-600 hover:text-blue-800 mr-2">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-800">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Middle Column - Time Entries -->
-                <div class="lg:col-span-2">
-                    <div class="bg-white rounded-xl shadow p-4">
-                        <div class="flex flex-wrap justify-between items-center mb-4">
-                            <h2 class="text-lg font-semibold">Tidregistreringar</h2>
-                            <div class="flex space-x-2">
-                                <select id="year-filter" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
-                                    <option value="all">Alla år</option>
-                                </select>
-                                <select id="month-filter" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
-                                    <option value="all">Alla månader</option>
-                                </select>
-                                <select id="ob-type-filter" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
-                                    <option value="all">Alla OB-typer</option>
-                                    <option value="base">Base</option>
-                                    <option value="ob1">OB 1</option>
-                                    <option value="ob2">OB 2</option>
-                                    <option value="ob3">OB 3</option>
-                                    <option value="ob4">OB 4</option>
-                                </select>
+                <!-- Contenido de proyectos (inicialmente oculto) -->
+                <div id="projects-content" class="hidden">
+                    <div class="bg-white rounded-lg shadow p-6 mb-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-xl font-bold text-gray-800">Hantera projekt</h2>
+                            <button id="add-project-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium">
+                                <i class="fas fa-plus mr-2"></i>Nytt projekt
+                            </button>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Projektnamn</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kod</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timmar</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Åtgärder</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="px-4 py-3">Webbutveckling</td>
+                                        <td class="px-4 py-3 font-mono">P001</td>
+                                        <td class="px-4 py-3">86.5</td>
+                                        <td class="px-4 py-3">
+                                            <button class="text-blue-600 hover:text-blue-800 mr-2">
+                                                <i class="fas fa-edit"></i> Redigera
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-800">
+                                                <i class="fas fa-trash"></i> Ta bort
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3">Apputveckling</td>
+                                        <td class="px-4 py-3 font-mono">P002</td>
+                                        <td class="px-4 py-3">124.0</td>
+                                        <td class="px-4 py-3">
+                                            <button class="text-blue-600 hover:text-blue-800 mr-2">
+                                                <i class="fas fa-edit"></i> Redigera
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-800">
+                                                <i class="fas fa-trash"></i> Ta bort
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3">Support</td>
+                                        <td class="px-4 py-3 font-mono">P003</td>
+                                        <td class="px-4 py-3">45.5</td>
+                                        <td class="px-4 py-3">
+                                            <button class="text-blue-600 hover:text-blue-800 mr-2">
+                                                <i class="fas fa-edit"></i> Redigera
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-800">
+                                                <i class="fas fa-trash"></i> Ta bort
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contenido de exportación PDF (inicialmente oculto) -->
+                <div id="export-content" class="hidden">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-6">Exportera tidrapport till PDF</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-700 mb-4">Filtrera data</h3>
+                                
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-gray-700 mb-2">Datumintervall</label>
+                                        <div class="flex space-x-2">
+                                            <input type="date" class="flex-1 p-2 border border-gray-300 rounded">
+                                            <input type="date" class="flex-1 p-2 border border-gray-300 rounded">
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2">Projekt</label>
+                                        <select class="w-full p-2 border border-gray-300 rounded">
+                                            <option value="">Alla projekt</option>
+                                            <option value="project1">Webbutveckling (P001)</option>
+                                            <option value="project2">Apputveckling (P002)</option>
+                                            <option value="project3">Support (P003)</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2">OB-typ</label>
+                                        <select class="w-full p-2 border border-gray-300 rounded">
+                                            <option value="">Alla typer</option>
+                                            <option value="base">Bas</option>
+                                            <option value="ob1">OB 1</option>
+                                            <option value="ob2">OB 2</option>
+                                            <option value="ob3">OB 3</option>
+                                            <option value="ob4">OB 4</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2">Timintervall</label>
+                                        <div class="flex space-x-2">
+                                            <input type="number" placeholder="Min" class="flex-1 p-2 border border-gray-300 rounded">
+                                            <input type="number" placeholder="Max" class="flex-1 p-2 border border-gray-300 rounded">
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2">Sortering</label>
+                                        <select class="w-full p-2 border border-gray-300 rounded">
+                                            <option value="date">Datum</option>
+                                            <option value="hours">Timmar</option>
+                                            <option value="project">Projekt</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-700 mb-4">PDF-inställningar</h3>
+                                
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-gray-700 mb-2">Företagsinformation</label>
+                                        <textarea class="w-full p-2 border border-gray-300 rounded" rows="4" readonly>
+Köpmangatan 5, plan 10
+151 71 Södertälje
+Tel 079-079 00 45
+Organisationsnummer: 559096-5983
+                                        </textarea>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2">Titel</label>
+                                        <input type="text" value="Tidrapport" class="w-full p-2 border border-gray-300 rounded">
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2">Användare</label>
+                                        <input type="text" id="pdf-user-name" value="" class="w-full p-2 border border-gray-300 rounded" readonly>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" class="mr-2" checked>
+                                            Inkludera sammanfattning
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" class="mr-2" checked>
+                                            Inkludera detaljerad lista
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" class="mr-2">
+                                            Inkludera diagram
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
-                        <div id="time-entries" class="space-y-3">
-                            <!-- Time entries will be loaded here -->
-                            <div class="text-center py-8 text-gray-500">
-                                <i class="fas fa-clock text-3xl mb-2"></i>
-                                <p>Inga tidregistreringar hittades</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Statistics -->
-                    <div class="bg-white rounded-xl shadow p-4 mt-6">
-                        <h2 class="text-lg font-semibold mb-4">Statistik</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h3 class="font-medium mb-2 text-center">Fördelning per projekt</h3>
-                                <canvas id="project-chart" height="250"></canvas>
-                            </div>
-                            <div>
-                                <h3 class="font-medium mb-2 text-center">Timmar per vecka</h3>
-                                <canvas id="weekly-chart" height="250"></canvas>
-                            </div>
+                        <div class="flex justify-center">
+                            <button id="generate-pdf-btn" class="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded font-medium text-lg">
+                                <i class="fas fa-file-pdf mr-2"></i>Generera PDF-rapport
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
-    
-    <!-- PDF Export Modal -->
-    <div id="pdf-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold">Exportera till PDF</h2>
-                    <button id="close-pdf-modal" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times"></i>
-                    </button>
+        </div>
+        
+        <!-- Formularios de autenticación (inicialmente visibles) -->
+        <div id="auth-forms">
+            <div class="max-w-md mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+                <!-- Login Form -->
+                <div id="login-form" class="p-8">
+                    <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Logga in</h2>
+                    <form id="login-form-element">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2" for="login-email">E-post</label>
+                            <input type="email" id="login-email" class="w-full p-3 border border-gray-300 rounded" placeholder="din@epost.se" required>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 mb-2" for="login-password">Lösenord</label>
+                            <input type="password" id="login-password" class="w-full p-3 border border-gray-300 rounded" placeholder="••••••••" required>
+                        </div>
+                        <div id="login-error" class="firebase-error"></div>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded font-medium">
+                            Logga in
+                        </button>
+                    </form>
+                    <div class="text-center mt-6">
+                        <p class="text-gray-600">Har du inget konto?</p>
+                        <button id="show-register" class="text-blue-600 hover:text-blue-800 font-medium">
+                            Registrera dig här
+                        </button>
+                    </div>
                 </div>
                 
-                <form id="pdf-export-form">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-gray-700 mb-2">Från datum</label>
-                            <input type="date" id="pdf-from" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                <!-- Register Form (inicialmente oculto) -->
+                <div id="register-form" class="p-8 hidden">
+                    <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Skapa konto</h2>
+                    <form id="register-form-element">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2" for="register-name">Namn</label>
+                            <input type="text" id="register-name" class="w-full p-3 border border-gray-300 rounded" placeholder="För- och efternamn" required>
                         </div>
-                        <div>
-                            <label class="block text-gray-700 mb-2">Till datum</label>
-                            <input type="date" id="pdf-to" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2" for="register-email">E-post</label>
+                            <input type="email" id="register-email" class="w-full p-3 border border-gray-300 rounded" placeholder="din@epost.se" required>
                         </div>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">Projekt</label>
-                        <select id="pdf-project" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                            <option value="all">Alla projekt</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">OB-typ</label>
-                        <select id="pdf-ob-type" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                            <option value="all">Alla OB-typer</option>
-                            <option value="base">Base</option>
-                            <option value="ob1">OB 1</option>
-                            <option value="ob2">OB 2</option>
-                            <option value="ob3">OB 3</option>
-                            <option value="ob4">OB 4</option>
-                        </select>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div>
-                            <label class="block text-gray-700 mb-2">Minsta timmar</label>
-                            <input type="number" id="pdf-min-hours" min="0" step="0.5" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2" for="register-password">Lösenord</label>
+                            <input type="password" id="register-password" class="w-full p-3 border border-gray-300 rounded" placeholder="••••••••" required>
                         </div>
-                        <div>
-                            <label class="block text-gray-700 mb-2">Högsta timmar</label>
-                            <input type="number" id="pdf-max-hours" min="0" step="0.5" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <div class="mb-6">
+                            <label class="block text-gray-700 mb-2" for="register-confirm">Bekräfta lösenord</label>
+                            <input type="password" id="register-confirm" class="w-full p-3 border border-gray-300 rounded" placeholder="••••••••" required>
                         </div>
+                        <div id="register-error" class="firebase-error"></div>
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded font-medium">
+                            Skapa konto
+                        </button>
+                    </form>
+                    <div class="text-center mt-6">
+                        <p class="text-gray-600">Har du redan ett konto?</p>
+                        <button id="show-login" class="text-blue-600 hover:text-blue-800 font-medium">
+                            Logga in här
+                        </button>
                     </div>
-                    
-                    <div class="mb-6">
-                        <label class="block text-gray-700 mb-2">Sortering</label>
-                        <select id="pdf-sort" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                            <option value="date-desc">Datum (senaste först)</option>
-                            <option value="date-asc">Datum (äldsta först)</option>
-                            <option value="hours-desc">Timmar (högst först)</option>
-                            <option value="hours-asc">Timmar (lägst först)</option>
-                            <option value="project">Projekt (A-Ö)</option>
-                        </select>
-                    </div>
-                    
-                    <button type="submit" class="w-full btn-primary py-2 rounded-md font-medium">
-                        <i class="fas fa-file-pdf mr-2"></i> Generera PDF
-                    </button>
-                </form>
+                </div>
             </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-6 mt-10">
+        <div class="container mx-auto px-4 text-center">
+            <p>Tidbok OB - Effektiv tidrapportering för OB-timmar</p>
+            <p class="mt-2 text-gray-400">© 2023 Alla rättigheter förbehållna</p>
+        </div>
+    </footer>
+
+    <!-- Modales -->
+    <div id="project-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4" id="modal-title">Nytt projekt</h3>
+            <form>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Projektnamn</label>
+                    <input type="text" class="w-full p-2 border border-gray-300 rounded" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 mb-2">Projektkod</label>
+                    <input type="text" class="w-full p-2 border border-gray-300 rounded font-mono" required>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" id="cancel-project" class="mr-3 px-4 py-2 text-gray-600 hover:text-gray-800">Avbryt</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Spara</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -364,517 +556,270 @@
             appId: "1:414829360217:web:21d0839ee0ccfbea336d48"
         };
         
-        // Mock data for demonstration
-        const mockProjects = [
-            { id: "p1", name: "Byggprojekt Stockholm", code: "BP-Sthlm" },
-            { id: "p2", name: "Renovering Göteborg", code: "REN-Gbg" },
-            { id: "p3", name: "Underhåll Malmö", code: "UH-Mal" }
-        ];
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
         
-        const mockTimeEntries = [
-            {
-                id: "e1",
-                date: "2025-08-14",
-                projectId: "p1",
-                projectName: "Byggprojekt Stockholm",
-                startTime: "17:00",
-                endTime: "23:00",
-                breakHours: 1.0,
-                colleagues: "Anna, Bengt",
-                notes: "Arbetat med fundament",
-                breakdown: {
-                    base: 0.0,
-                    ob1: 4.0,
-                    ob2: 1.0,
-                    ob3: 0.0,
-                    ob4: 0.0
-                },
-                total: 5.0
-            },
-            {
-                id: "e2",
-                date: "2025-08-15",
-                projectId: "p2",
-                projectName: "Renovering Göteborg",
-                startTime: "08:00",
-                endTime: "16:00",
-                breakHours: 0.5,
-                colleagues: "Cecilia, David",
-                notes: "Målning av väggar",
-                breakdown: {
-                    base: 7.5,
-                    ob1: 0.0,
-                    ob2: 0.0,
-                    ob3: 0.0,
-                    ob4: 0.0
-                },
-                total: 7.5
-            },
-            {
-                id: "e3",
-                date: "2025-08-16",
-                projectId: "p3",
-                projectName: "Underhåll Malmö",
-                startTime: "13:00",
-                endTime: "22:00",
-                breakHours: 0.5,
-                colleagues: "Erik, Fredrika",
-                notes: "Reparation av tak",
-                breakdown: {
-                    base: 4.5,
-                    ob1: 4.0,
-                    ob2: 0.0,
-                    ob3: 0.0,
-                    ob4: 0.0
-                },
-                total: 8.5
-            }
-        ];
-        
-        // Mock statistics data
-        const mockStats = {
-            projects: {
-                labels: ["Byggprojekt Stockholm", "Renovering Göteborg", "Underhåll Malmö"],
-                data: [35, 42, 23]
-            },
-            weekly: {
-                labels: ["Vecka 32", "Vecka 33", "Vecka 34", "Vecka 35"],
-                data: [42, 38, 45, 40]
-            }
-        };
+        // Estado de la aplicación
+        let user = null;
+        let currentTab = 'time-entry';
         
         // DOM Elements
-        const authScreen = document.getElementById('auth-screen');
-        const appScreen = document.getElementById('app');
+        const authForms = document.getElementById('auth-forms');
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
         const showRegister = document.getElementById('show-register');
         const showLogin = document.getElementById('show-login');
-        const registerSection = document.getElementById('register-section');
-        const loginSection = document.getElementById('login-section');
+        const dashboard = document.getElementById('dashboard');
+        const userInfo = document.getElementById('user-info');
+        const userName = document.getElementById('user-name');
         const logoutBtn = document.getElementById('logout-btn');
-        const userMenu = document.getElementById('user-menu');
-        const menuDropdown = document.getElementById('menu-dropdown');
-        const timeEntryForm = document.getElementById('time-entry-form');
-        const obPreview = document.getElementById('ob-preview');
-        const projectsList = document.getElementById('projects-list');
-        const projectSelect = document.getElementById('project-select');
-        const timeEntries = document.getElementById('time-entries');
-        const pdfExportBtn = document.getElementById('pdf-export-btn');
-        const pdfModal = document.getElementById('pdf-modal');
-        const closePdfModal = document.getElementById('close-pdf-modal');
-        const pdfExportForm = document.getElementById('pdf-export-form');
+        const loginBtn = document.getElementById('login-btn');
+        const registerBtn = document.getElementById('register-btn');
+        const timeEntryTab = document.getElementById('time-entry-tab');
+        const projectsTab = document.getElementById('projects-tab');
+        const historyTab = document.getElementById('history-tab');
+        const statsTab = document.getElementById('stats-tab');
+        const exportTab = document.getElementById('export-tab');
+        const timeEntryContent = document.getElementById('time-entry-content');
+        const projectsContent = document.getElementById('projects-content');
+        const exportContent = document.getElementById('export-content');
+        const addProjectBtn = document.getElementById('add-project-btn');
+        const projectModal = document.getElementById('project-modal');
+        const cancelProject = document.getElementById('cancel-project');
+        const generatePdfBtn = document.getElementById('generate-pdf-btn');
+        const loginFormElement = document.getElementById('login-form-element');
+        const registerFormElement = document.getElementById('register-form-element');
+        const loginError = document.getElementById('login-error');
+        const registerError = document.getElementById('register-error');
+        const pdfUserName = document.getElementById('pdf-user-name');
         
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', () => {
-            // Set current date as default
-            const today = new Date();
-            document.getElementById('entry-date').valueAsDate = today;
-            
-            // Set start and end times to reasonable defaults
-            document.getElementById('start-time').value = '08:00';
-            document.getElementById('end-time').value = '16:30';
-            
-            // Load mock data
-            loadProjects();
-            loadTimeEntries();
-            updateCharts();
-            
-            // Set up event listeners
-            setupEventListeners();
-        });
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', initApp);
         
-        // Set up event listeners
-        function setupEventListeners() {
-            // Auth navigation
-            showRegister.addEventListener('click', () => {
-                loginSection.classList.add('hidden');
-                registerSection.classList.remove('hidden');
+        function initApp() {
+            // Escuchar cambios en la autenticación
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    // Usuario autenticado
+                    showDashboard(user);
+                    // Actualizar nombre de usuario en el PDF
+                    pdfUserName.value = user.displayName || user.email;
+                } else {
+                    // Usuario no autenticado
+                    showAuthForms();
+                }
             });
             
-            showLogin.addEventListener('click', () => {
-                registerSection.classList.add('hidden');
-                loginSection.classList.remove('hidden');
-            });
-            
-            // Mock login
-            loginForm.addEventListener('submit', (e) => {
+            // Formulario de login
+            loginFormElement.addEventListener('submit', (e) => {
                 e.preventDefault();
-                authScreen.classList.add('hidden');
-                appScreen.classList.remove('hidden');
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                
+                loginError.style.display = 'none';
+                
+                auth.signInWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        // Éxito, el cambio de estado se manejará en onAuthStateChanged
+                    })
+                    .catch((error) => {
+                        loginError.textContent = `Inloggning misslyckades: ${error.message}`;
+                        loginError.style.display = 'block';
+                    });
             });
             
-            registerForm.addEventListener('submit', (e) => {
+            // Formulario de registro
+            registerFormElement.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const email = document.getElementById('reg-email').value;
-                const password = document.getElementById('reg-password').value;
-                const confirm = document.getElementById('reg-confirm').value;
+                const name = document.getElementById('register-name').value;
+                const email = document.getElementById('register-email').value;
+                const password = document.getElementById('register-password').value;
+                const confirm = document.getElementById('register-confirm').value;
+                
+                registerError.style.display = 'none';
                 
                 if (password !== confirm) {
-                    alert('Lösenorden matchar inte!');
+                    registerError.textContent = 'Lösenorden matchar inte';
+                    registerError.style.display = 'block';
                     return;
                 }
                 
-                authScreen.classList.add('hidden');
-                appScreen.classList.remove('hidden');
+                if (password.length < 6) {
+                    registerError.textContent = 'Lösenordet måste vara minst 6 tecken långt';
+                    registerError.style.display = 'block';
+                    return;
+                }
+                
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        // Guardar nombre de usuario
+                        return userCredential.user.updateProfile({
+                            displayName: name
+                        });
+                    })
+                    .then(() => {
+                        // Éxito, el cambio de estado se manejará en onAuthStateChanged
+                    })
+                    .catch((error) => {
+                        registerError.textContent = `Registrering misslyckades: ${error.message}`;
+                        registerError.style.display = 'block';
+                    });
+            });
+            
+            // Mostrar formulario de registro
+            showRegister.addEventListener('click', () => {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+            });
+            
+            // Mostrar formulario de login
+            showLogin.addEventListener('click', () => {
+                registerForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+            });
+            
+            // Botones de login/registro en el header
+            loginBtn.addEventListener('click', () => {
+                showAuthForms();
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+            });
+            
+            registerBtn.addEventListener('click', () => {
+                showAuthForms();
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
             });
             
             // Logout
             logoutBtn.addEventListener('click', () => {
-                appScreen.classList.add('hidden');
-                authScreen.classList.remove('hidden');
+                auth.signOut();
             });
             
-            // User menu
-            userMenu.addEventListener('click', () => {
-                menuDropdown.classList.toggle('hidden');
+            // Cambiar pestañas
+            timeEntryTab.addEventListener('click', () => switchTab('time-entry'));
+            projectsTab.addEventListener('click', () => switchTab('projects'));
+            historyTab.addEventListener('click', () => switchTab('history'));
+            statsTab.addEventListener('click', () => switchTab('stats'));
+            exportTab.addEventListener('click', () => switchTab('export'));
+            
+            // Gestión de proyectos
+            addProjectBtn.addEventListener('click', () => {
+                document.getElementById('modal-title').textContent = 'Nytt projekt';
+                projectModal.classList.remove('hidden');
             });
             
-            // Time calculation
-            const timeInputs = ['start-time', 'end-time', 'break-hours'];
-            timeInputs.forEach(inputId => {
-                document.getElementById(inputId).addEventListener('change', calculateOBHours);
+            cancelProject.addEventListener('click', () => {
+                projectModal.classList.add('hidden');
             });
             
-            // Time entry form
-            timeEntryForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                saveTimeEntry();
-            });
+            // Generar PDF
+            generatePdfBtn.addEventListener('click', generatePdf);
             
-            // PDF Export
-            pdfExportBtn.addEventListener('click', () => {
-                pdfModal.classList.remove('hidden');
-            });
-            
-            closePdfModal.addEventListener('click', () => {
-                pdfModal.classList.add('hidden');
-            });
-            
-            pdfExportForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                generatePDF();
-                pdfModal.classList.add('hidden');
-            });
+            // Establecer fecha actual
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            document.getElementById('date').value = formattedDate;
         }
         
-        // Load projects
-        function loadProjects() {
-            projectsList.innerHTML = '';
-            projectSelect.innerHTML = '<option value="">Välj ett projekt</option>';
+        function showDashboard(user) {
+            authForms.classList.add('hidden');
+            dashboard.classList.remove('hidden');
+            userInfo.classList.remove('hidden');
+            userName.textContent = user.displayName || user.email;
+        }
+        
+        function showAuthForms() {
+            authForms.classList.remove('hidden');
+            dashboard.classList.add('hidden');
+            userInfo.classList.add('hidden');
+        }
+        
+        function switchTab(tab) {
+            // Actualizar clases de pestañas activas
+            document.querySelectorAll('[id$="-tab"]').forEach(t => {
+                t.classList.remove('border-blue-600', 'text-blue-600');
+                t.classList.add('text-gray-600');
+            });
+            document.getElementById(`${tab}-tab`).classList.add('border-blue-600', 'text-blue-600');
             
-            mockProjects.forEach(project => {
-                // Add to projects list
-                const projectElement = document.createElement('div');
-                projectElement.className = 'flex justify-between items-center p-2 bg-gray-50 rounded';
-                projectElement.innerHTML = `
-                    <div>
-                        <div class="font-medium">${project.name}</div>
-                        <div class="text-sm text-gray-600">${project.code}</div>
-                    </div>
-                    <button class="text-red-500 hover:text-red-700 delete-project" data-id="${project.id}">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                `;
-                projectsList.appendChild(projectElement);
-                
-                // Add to project select
-                const option = document.createElement('option');
-                option.value = project.id;
-                option.textContent = `${project.name} (${project.code})`;
-                projectSelect.appendChild(option);
+            // Ocultar todo el contenido
+            document.querySelectorAll('#tab-content > div').forEach(content => {
+                content.classList.add('hidden');
             });
             
-            // Add event listeners to delete buttons
-            document.querySelectorAll('.delete-project').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const projectId = e.target.closest('button').dataset.id;
-                    deleteProject(projectId);
-                });
-            });
+            // Mostrar el contenido de la pestaña seleccionada
+            document.getElementById(`${tab}-content`).classList.remove('hidden');
+            currentTab = tab;
         }
         
-        // Delete project
-        function deleteProject(projectId) {
-            if (confirm('Är du säker på att du vill ta bort projektet?')) {
-                // In a real app, this would delete from Firebase
-                alert(`Projekt ${projectId} har tagits bort`);
-                loadProjects();
-            }
-        }
-        
-        // Load time entries
-        function loadTimeEntries() {
-            timeEntries.innerHTML = '';
-            
-            if (mockTimeEntries.length === 0) {
-                timeEntries.innerHTML = `
-                    <div class="text-center py-8 text-gray-500">
-                        <i class="fas fa-clock text-3xl mb-2"></i>
-                        <p>Inga tidregistreringar hittades</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            mockTimeEntries.forEach(entry => {
-                const dateObj = new Date(entry.date);
-                const formattedDate = dateObj.toLocaleDateString('sv-SE', {
-                    weekday: 'short',
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                });
-                
-                const entryElement = document.createElement('div');
-                entryElement.className = 'time-entry bg-white border rounded-lg p-4 cursor-pointer hover:shadow-md';
-                entryElement.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <div class="font-medium">${entry.projectName}</div>
-                            <div class="text-sm text-gray-600">${formattedDate}</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="font-semibold">${entry.total.toFixed(2)} h</div>
-                            <div class="text-sm text-gray-600">${entry.startTime} - ${entry.endTime}</div>
-                        </div>
-                    </div>
-                    <div class="mt-3 grid grid-cols-5 gap-1 text-center text-xs">
-                        <div class="ob-base p-1 rounded">Base: ${entry.breakdown.base.toFixed(2)}</div>
-                        <div class="ob-1 p-1 rounded">OB1: ${entry.breakdown.ob1.toFixed(2)}</div>
-                        <div class="ob-2 p-1 rounded">OB2: ${entry.breakdown.ob2.toFixed(2)}</div>
-                        <div class="ob-3 p-1 rounded">OB3: ${entry.breakdown.ob3.toFixed(2)}</div>
-                        <div class="ob-4 p-1 rounded">OB4: ${entry.breakdown.ob4.toFixed(2)}</div>
-                    </div>
-                `;
-                timeEntries.appendChild(entryElement);
-            });
-            
-            // Show PDF export button
-            pdfExportBtn.classList.remove('hidden');
-        }
-        
-        // Calculate OB hours
-        function calculateOBHours() {
-            const startTime = document.getElementById('start-time').value;
-            const endTime = document.getElementById('end-time').value;
-            const breakHours = parseFloat(document.getElementById('break-hours').value) || 0;
-            
-            if (!startTime || !endTime) return;
-            
-            // Mock calculation for demo purposes
-            // In a real app, this would implement the detailed algorithm described
-            const start = new Date(`2025-01-01T${startTime}`);
-            const end = new Date(`2025-01-01T${endTime}`);
-            
-            // Handle case where end time is next day
-            if (end < start) {
-                end.setDate(end.getDate() + 1);
-            }
-            
-            const totalMinutes = (end - start) / (1000 * 60);
-            const totalHours = (totalMinutes / 60) - breakHours;
-            
-            // Mock breakdown based on time of day
-            let base = 0, ob1 = 0, ob2 = 0, ob3 = 0, ob4 = 0;
-            
-            // Simplified calculation for demo
-            if (start.getHours() >= 6 && end.getHours() < 18) {
-                base = totalHours;
-            } else if (start.getHours() >= 18 && end.getHours() < 22) {
-                ob1 = totalHours;
-            } else if (start.getHours() >= 22 || end.getHours() < 6) {
-                ob2 = totalHours;
-            }
-            
-            // Update preview
-            document.getElementById('preview-total').textContent = totalHours.toFixed(2) + ' h';
-            document.getElementById('preview-base').textContent = base.toFixed(2) + ' h';
-            document.getElementById('preview-ob1').textContent = ob1.toFixed(2) + ' h';
-            document.getElementById('preview-ob2').textContent = ob2.toFixed(2) + ' h';
-            document.getElementById('preview-ob3').textContent = ob3.toFixed(2) + ' h';
-            document.getElementById('preview-ob4').textContent = ob4.toFixed(2) + ' h';
-            
-            obPreview.classList.remove('hidden');
-        }
-        
-        // Save time entry
-        function saveTimeEntry() {
-            const projectId = document.getElementById('project-select').value;
-            const date = document.getElementById('entry-date').value;
-            const startTime = document.getElementById('start-time').value;
-            const endTime = document.getElementById('end-time').value;
-            const breakHours = parseFloat(document.getElementById('break-hours').value) || 0;
-            const colleagues = document.getElementById('colleagues').value;
-            const notes = document.getElementById('notes').value;
-            
-            if (!projectId) {
-                alert('Välj ett projekt!');
-                return;
-            }
-            
-            // Get project name
-            const project = mockProjects.find(p => p.id === projectId);
-            
-            // Create mock entry
-            const newEntry = {
-                id: 'e' + (mockTimeEntries.length + 1),
-                date,
-                projectId,
-                projectName: project.name,
-                startTime,
-                endTime,
-                breakHours,
-                colleagues,
-                notes,
-                breakdown: {
-                    base: 4.5,
-                    ob1: 2.0,
-                    ob2: 0.5,
-                    ob3: 0.0,
-                    ob4: 0.0
-                },
-                total: 7.0
-            };
-            
-            mockTimeEntries.unshift(newEntry);
-            loadTimeEntries();
-            
-            // Reset form
-            timeEntryForm.reset();
-            document.getElementById('entry-date').valueAsDate = new Date();
-            document.getElementById('start-time').value = '08:00';
-            document.getElementById('end-time').value = '16:30';
-            document.getElementById('break-hours').value = '0.5';
-            obPreview.classList.add('hidden');
-            
-            alert('Tidregistrering sparad!');
-        }
-        
-        // Update charts
-        function updateCharts() {
-            // Project distribution chart
-            const projectCtx = document.getElementById('project-chart').getContext('2d');
-            new Chart(projectCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: mockStats.projects.labels,
-                    datasets: [{
-                        data: mockStats.projects.data,
-                        backgroundColor: [
-                            'rgba(59, 130, 246, 0.7)',
-                            'rgba(16, 185, 129, 0.7)',
-                            'rgba(245, 158, 11, 0.7)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-            
-            // Weekly hours chart
-            const weeklyCtx = document.getElementById('weekly-chart').getContext('2d');
-            new Chart(weeklyCtx, {
-                type: 'bar',
-                data: {
-                    labels: mockStats.weekly.labels,
-                    datasets: [{
-                        label: 'Timmar',
-                        data: mockStats.weekly.data,
-                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Timmar'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Generate PDF
-        function generatePDF() {
+        function generatePdf() {
+            // Usando jsPDF y AutoTable
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Title
-            doc.setFontSize(20);
-            doc.text('Tidbok OB - Rapport', 105, 20, { align: 'center' });
+            // Encabezado
+            doc.setFontSize(18);
+            doc.text('Tidrapport', 105, 20, null, null, 'center');
             
-            // Subtitle
             doc.setFontSize(12);
-            const fromDate = document.getElementById('pdf-from').value || 'Inget';
-            const toDate = document.getElementById('pdf-to').value || 'Inget';
-            doc.text(`Filtrering: ${fromDate} - ${toDate}`, 105, 30, { align: 'center' });
+            doc.text('Köpmangatan 5, plan 10', 105, 30, null, null, 'center');
+            doc.text('151 71 Södertälje | Tel 079-079 00 45', 105, 35, null, null, 'center');
+            doc.text('Organisationsnummer: 559096-5983', 105, 40, null, null, 'center');
             
-            // Summary table
+            doc.setFontSize(10);
+            const userName = document.getElementById('pdf-user-name').value || 'Användare';
+            doc.text(`Användare: ${userName} | Genererad: ${new Date().toLocaleDateString('sv-SE')}`, 105, 50, null, null, 'center');
+            
+            // Resumen de horas
             doc.autoTable({
-                startY: 40,
-                head: [['Typ', 'Timmar']],
+                startY: 60,
+                head: [['Projekt', 'Bas', 'OB1', 'OB2', 'OB3', 'OB4', 'Totalt']],
                 body: [
-                    ['Base', '35.50'],
-                    ['OB 1', '28.25'],
-                    ['OB 2', '12.75'],
-                    ['OB 3', '5.50'],
-                    ['OB 4', '8.00'],
-                    ['Totalt', '90.00']
+                    ['Webbutveckling (P001)', '42.5', '12.0', '4.5', '0.0', '0.0', '59.0'],
+                    ['Apputveckling (P002)', '35.0', '8.5', '0.0', '0.0', '0.0', '43.5'],
+                    ['Support (P003)', '18.0', '0.0', '12.5', '0.0', '0.0', '30.5'],
+                    ['Totalt', '95.5', '20.5', '17.0', '0.0', '0.0', '133.0']
                 ],
                 theme: 'grid',
-                headStyles: { fillColor: [30, 64, 175] },
-                styles: { fontSize: 11 }
+                headStyles: { fillColor: [59, 130, 246] },
+                styles: { fontSize: 10 }
             });
             
-            // Detailed entries table
+            // Tabla detallada
+            doc.text('Detaljerad tidrapport', 15, doc.lastAutoTable.finalY + 15);
+            
             doc.autoTable({
-                startY: doc.lastAutoTable.finalY + 15,
-                head: [
-                    ['Datum', 'Projekt', 'Start', 'Slut', 'Rast', 'Base', 'OB1', 'OB2', 'OB3', 'OB4', 'Totalt']
+                startY: doc.lastAutoTable.finalY + 20,
+                head: [['Datum', 'Projekt', 'Start', 'Slut', 'Rast', 'Totalt', 'OB-typer']],
+                body: [
+                    ['2023-10-15', 'Webbutveckling (P001)', '08:00', '17:30', '1.0', '8.5', 'OB1: 1.5h'],
+                    ['2023-10-14', 'Support (P003)', '18:00', '23:30', '0.5', '5.0', 'OB2: 5.0h'],
+                    ['2023-10-13', 'Apputveckling (P002)', '07:30', '16:00', '0.5', '8.0', 'Base: 8.0h'],
+                    ['2023-10-12', 'Webbutveckling (P001)', '08:00', '16:30', '0.5', '8.0', 'Base: 8.0h'],
+                    ['2023-10-11', 'Apputveckling (P002)', '09:00', '18:00', '1.0', '8.0', 'OB1: 2.0h']
                 ],
-                body: mockTimeEntries.map(entry => [
-                    entry.date,
-                    entry.projectName,
-                    entry.startTime,
-                    entry.endTime,
-                    entry.breakHours.toFixed(1),
-                    entry.breakdown.base.toFixed(2),
-                    entry.breakdown.ob1.toFixed(2),
-                    entry.breakdown.ob2.toFixed(2),
-                    entry.breakdown.ob3.toFixed(2),
-                    entry.breakdown.ob4.toFixed(2),
-                    entry.total.toFixed(2)
-                ]),
                 theme: 'grid',
-                headStyles: { fillColor: [30, 64, 175] },
-                styles: { fontSize: 9 },
-                pageBreak: 'auto'
+                headStyles: { fillColor: [59, 130, 246] },
+                styles: { fontSize: 10 }
             });
             
-            // Footer
+            // Pie de página
             const pageCount = doc.internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
-                doc.setFontSize(10);
-                doc.text(`Sida ${i} av ${pageCount}`, 200, 285, null, null, 'right');
-                doc.text('Genererad: ' + new Date().toLocaleDateString('sv-SE'), 10, 285);
+                doc.setFontSize(8);
+                doc.text(`Sida ${i} av ${pageCount}`, 105, 287, null, null, 'center');
+                doc.text('Tidbok OB - Genererad ' + new Date().toLocaleDateString('sv-SE'), 105, 292, null, null, 'center');
             }
             
-            // Save PDF
-            doc.save('tidbok-ob-rapport.pdf');
+            // Descargar el PDF
+            doc.save('tidrapport-' + new Date().toISOString().slice(0, 10) + '.pdf');
+            
+            // Mensaje de éxito
+            alert('PDF-rapporten har genererats och laddats ner!');
         }
     </script>
 </body>
