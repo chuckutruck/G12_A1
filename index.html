@@ -1519,13 +1519,6 @@
                 monthSelect.appendChild(option);
             });
             
-            // Configurar fechas para exportación
-            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-            const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-            
-            document.getElementById('export-start-date').value = firstDayOfMonth.toISOString().split('T')[0];
-            document.getElementById('export-end-date').value = lastDayOfMonth.toISOString().split('T')[0];
-            
             // Inicializar Firebase Auth state observer
             auth.onAuthStateChanged((user) => {
                 if (user) {
@@ -1564,19 +1557,34 @@
             });
             
             document.getElementById('register-btn').addEventListener('click', () => {
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                const authMessage = document.getElementById('auth-message');
-                
-                auth.createUserWithEmailAndPassword(email, password)
-                    .then(() => {
-                        authMessage.style.color = "green";
-                        authMessage.textContent = "Cuenta creada correctamente";
-                    })
-                    .catch((error) => {
-                        authMessage.textContent = error.message;
-                    });
-            });
+			    const nombre = document.getElementById('nombre').value;
+			    const apellido = document.getElementById('apellido').value;
+			    const telefono = document.getElementById('telefono').value;
+			    const email = document.getElementById('email').value;
+			    const password = document.getElementById('password').value;
+			    const authMessage = document.getElementById('auth-message');
+			
+			    auth.createUserWithEmailAndPassword(email, password)
+			        .then((cred) => {
+			            // Guardar datos adicionales en Firestore
+			            return firebase.firestore().collection('usuarios').doc(cred.user.uid).set({
+			                nombre,
+			                apellido,
+			                telefono,
+			                email,
+			                creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+			            });
+			        })
+			        .then(() => {
+			            authMessage.style.color = "green";
+			            authMessage.textContent = "Cuenta creada correctamente";
+			        })
+			        .catch((error) => {
+			            authMessage.style.color = "red";
+			            authMessage.textContent = error.message;
+			        });
+			});
+
             
             document.getElementById('logout-btn').addEventListener('click', () => {
                 auth.signOut();
@@ -1602,30 +1610,9 @@
                 document.getElementById('detail-modal').classList.add('hidden');
             });
             
-            document.getElementById('export-btn').addEventListener('click', () => {
-                const exportOptions = document.getElementById('export-options');
-                exportOptions.classList.toggle('show');
-            });
+            document.getElementById('export-pdf').addEventListener('click', exportToPDF);
             
-            document.getElementById('export-pdf-btn').addEventListener('click', () => {
-                const filteredEntries = filterEntriesForExport();
-                if (filteredEntries.length === 0) {
-                    alert('No hay datos para exportar con los filtros seleccionados');
-                    return;
-                }
-                exportToPDF(filteredEntries);
-                document.getElementById('export-options').classList.remove('show');
-            });
-            
-            document.getElementById('export-json-btn').addEventListener('click', () => {
-                const filteredEntries = filterEntriesForExport();
-                if (filteredEntries.length === 0) {
-                    alert('No hay datos para exportar con los filtros seleccionados');
-                    return;
-                }
-                exportToJSON(filteredEntries);
-                document.getElementById('export-options').classList.remove('show');
-            });
+            document.getElementById('export-json').addEventListener('click', exportToJSON);
             
             document.getElementById('language-select').addEventListener('change', (e) => {
                 language = e.target.value;
@@ -1668,16 +1655,6 @@
                 status.classList.remove('connection-online');
                 status.classList.add('connection-offline');
                 status.innerHTML = '<span class="w-3 h-3 rounded-full bg-white mr-1"></span> Offline';
-            });
-            
-            // Cerrar menú de exportación al hacer clic fuera
-            document.addEventListener('click', (e) => {
-                const exportBtn = document.getElementById('export-btn');
-                const exportOptions = document.getElementById('export-options');
-                
-                if (!exportBtn.contains(e.target) {
-                    exportOptions.classList.remove('show');
-                }
             });
             
             // Extensión para obtener número de semana
