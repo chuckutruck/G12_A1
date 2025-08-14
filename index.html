@@ -1,458 +1,359 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="sv">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tidbok OB - Registro de Horas</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Tidbok OB - Registrering av arbetade timmar</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <!-- jsPDF y html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#3b82f6',
-                        secondary: '#10b981',
-                        dark: '#1e293b',
-                        light: '#f8fafc'
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <style>
-        .ob-base { background-color: #dbeafe; }
-        .ob-1 { background-color: #ffedd5; }
-        .ob-2 { background-color: #fee2e2; }
-        .ob-3 { background-color: #ede9fe; }
-        .ob-4 { background-color: #dcfce7; }
-        
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
+        :root {
+            --primary: #1e40af;
+            --secondary: #3b82f6;
+            --accent: #10b981;
+            --light: #f3f4f6;
+            --dark: #1f2937;
         }
         
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
         }
         
-        .connection-online { background-color: #10b981; }
-        .connection-offline { background-color: #ef4444; }
-        
-        .fade-in {
-            animation: fadeIn 0.3s ease-in;
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .btn-primary:hover {
+            background-color: #1e3a8a;
         }
         
-        .export-options {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            z-index: 10;
-            width: 300px;
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
         }
         
-        .export-options.show {
-            display: block;
+        .btn-secondary:hover {
+            background-color: #2563eb;
+        }
+        
+        .ob-base { background-color: #dbeafe; border-left: 4px solid #3b82f6; }
+        .ob-1 { background-color: #dcfce7; border-left: 4px solid #10b981; }
+        .ob-2 { background-color: #fef3c7; border-left: 4px solid #f59e0b; }
+        .ob-3 { background-color: #fee2e2; border-left: 4px solid #ef4444; }
+        .ob-4 { background-color: #ede9fe; border-left: 4px solid #8b5cf6; }
+        
+        .time-entry:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s;
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <div id="app" class="flex flex-col min-h-screen">
-        <!-- Barra de navegación -->
-        <nav class="bg-primary text-white shadow-lg">
+<body class="bg-gray-50">
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-blue-800">Tidbok OB</h1>
+                <p class="text-gray-600 mt-2">Registrera och hantera dina arbetade timmar</p>
+            </div>
+            
+            <div id="login-section">
+                <h2 class="text-xl font-semibold mb-4">Logga in</h2>
+                <form id="login-form">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="email">E-post</label>
+                        <input type="email" id="email" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 mb-2" for="password">Lösenord</label>
+                        <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <button type="submit" class="w-full btn-primary py-2 rounded-md font-medium">Logga in</button>
+                </form>
+                <div class="mt-4 text-center">
+                    <button id="show-register" class="text-blue-600 hover:underline">Skapa konto</button>
+                </div>
+            </div>
+            
+            <div id="register-section" class="hidden">
+                <h2 class="text-xl font-semibold mb-4">Skapa konto</h2>
+                <form id="register-form">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="reg-email">E-post</label>
+                        <input type="email" id="reg-email" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="reg-password">Lösenord</label>
+                        <input type="password" id="reg-password" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 mb-2" for="reg-confirm">Bekräfta lösenord</label>
+                        <input type="password" id="reg-confirm" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <button type="submit" class="w-full btn-primary py-2 rounded-md font-medium">Skapa konto</button>
+                </form>
+                <div class="mt-4 text-center">
+                    <button id="show-login" class="text-blue-600 hover:underline">Tillbaka till inloggning</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main App -->
+    <div id="app" class="hidden min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow">
             <div class="container mx-auto px-4 py-3 flex justify-between items-center">
                 <div class="flex items-center">
-                    <i class="fas fa-clock text-2xl mr-2"></i>
-                    <h1 class="text-xl font-bold">Tidbok OB</h1>
+                    <h1 class="text-xl font-bold text-blue-800">Tidbok OB</h1>
+                    <div id="connection-status" class="ml-4 text-sm px-2 py-1 rounded bg-green-100 text-green-800">
+                        <i class="fas fa-wifi"></i> Online
+                    </div>
                 </div>
-                
-                <div class="flex items-center space-x-4">
-                    <div id="connection-status" class="flex items-center px-3 py-1 rounded-full text-white connection-online">
-                        <span class="w-3 h-3 rounded-full bg-white mr-1"></span>
-                        <span class="text-sm">Online</span>
-                    </div>
-                    
+                <div class="flex items-center">
+                    <button id="pdf-export-btn" class="btn-secondary mr-3 px-3 py-1 rounded text-sm hidden">
+                        <i class="fas fa-file-pdf mr-1"></i> Exportera PDF
+                    </button>
                     <div class="relative">
-                        <select id="language-select" class="bg-primary border border-white rounded px-2 py-1 text-white">
-                            <option value="es">Español</option>
-                            <option value="en">English</option>
-                            <option value="sv">Svenska</option>
-                        </select>
-                    </div>
-                    
-                    <div id="user-info" class="hidden">
-                        <div class="flex items-center">
-                            <img id="user-avatar" class="w-8 h-8 rounded-full mr-2" src="https://ui-avatars.com/api/?background=random&name=U" alt="Avatar">
-                            <span id="user-name" class="mr-2">Usuario</span>
-                            <button id="logout-btn" class="bg-white text-primary px-3 py-1 rounded hover:bg-gray-200 transition">
-                                <i class="fas fa-sign-out-alt"></i>
+                        <button id="user-menu" class="flex items-center text-gray-700">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-bold">
+                                <span id="user-initials">U</span>
+                            </div>
+                        </button>
+                        <div id="menu-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1">
+                            <button id="logout-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Logga ut
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-        </nav>
-
-        <!-- Contenido principal -->
-        <main class="flex-grow container mx-auto px-4 py-6">
-            <!-- Pantalla de autenticación -->
-            <div id="auth-screen" class="max-w-md mx-auto bg-white rounded-xl shadow-md p-6 fade-in">
-                <div class="text-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800">Iniciar sesión</h2>
-                    <p class="text-gray-600">Accede a tu cuenta para gestionar tus horas</p>
+        </header>
+        
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left Column - Projects and Entry Form -->
+                <div class="lg:col-span-1">
+                    <!-- Project Management -->
+                    <div class="bg-white rounded-xl shadow p-4 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-semibold">Projekt</h2>
+                            <button id="add-project-btn" class="btn-primary px-3 py-1 rounded text-sm">
+                                <i class="fas fa-plus mr-1"></i> Lägg till
+                            </button>
+                        </div>
+                        <div id="projects-list" class="space-y-2 max-h-60 overflow-y-auto">
+                            <!-- Projects will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Time Entry Form -->
+                    <div class="bg-white rounded-xl shadow p-4">
+                        <h2 class="text-lg font-semibold mb-4">Registrera tid</h2>
+                        <form id="time-entry-form">
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2">Projekt</label>
+                                <select id="project-select" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                                    <option value="">Välj ett projekt</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Datum</label>
+                                    <input type="date" id="entry-date" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Rast (timmar)</label>
+                                    <input type="number" id="break-hours" min="0" step="0.25" class="w-full px-3 py-2 border border-gray-300 rounded-md" value="0.5" required>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Starttid</label>
+                                    <input type="time" id="start-time" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Sluttid</label>
+                                    <input type="time" id="end-time" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2">Kollegor (frivilligt)</label>
+                                <input type="text" id="colleagues" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2">Anteckningar (frivilligt)</label>
+                                <textarea id="notes" class="w-full px-3 py-2 border border-gray-300 rounded-md" rows="2"></textarea>
+                            </div>
+                            <button type="submit" class="w-full btn-primary py-2 rounded-md font-medium">
+                                Spara tid
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- OB Calculation Preview -->
+                    <div id="ob-preview" class="bg-white rounded-xl shadow p-4 mt-6 hidden">
+                        <h2 class="text-lg font-semibold mb-4">Beräknade timmar</h2>
+                        <div class="grid grid-cols-2 gap-2 mb-2">
+                            <div class="font-medium">Total tid:</div>
+                            <div id="preview-total" class="font-semibold">0.00 h</div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between px-3 py-1 rounded ob-base">
+                                <span>Base:</span>
+                                <span id="preview-base">0.00 h</span>
+                            </div>
+                            <div class="flex justify-between px-3 py-1 rounded ob-1">
+                                <span>OB 1:</span>
+                                <span id="preview-ob1">0.00 h</span>
+                            </div>
+                            <div class="flex justify-between px-3 py-1 rounded ob-2">
+                                <span>OB 2:</span>
+                                <span id="preview-ob2">0.00 h</span>
+                            </div>
+                            <div class="flex justify-between px-3 py-1 rounded ob-3">
+                                <span>OB 3:</span>
+                                <span id="preview-ob3">0.00 h</span>
+                            </div>
+                            <div class="flex justify-between px-3 py-1 rounded ob-4">
+                                <span>OB 4:</span>
+                                <span id="preview-ob4">0.00 h</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="mb-4">
-                    <label class="block text-gray-700 mb-2" for="email">Email</label>
-                    <input type="email" id="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                </div>
-                
-                <div class="mb-4">
-                    <label class="block text-gray-700 mb-2" for="password">Contraseña</label>
-                    <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                </div>
-                
-                <div class="mb-6">
-                    <button id="login-btn" class="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-blue-600 transition">
-                        Iniciar sesión
-                    </button>
-                    <button id="register-btn" class="w-full mt-2 bg-secondary text-white py-2 px-4 rounded-md hover:bg-green-500 transition">
-                        Crear cuenta
-                    </button>
-                </div>
-                
-                <div id="auth-message" class="text-center text-red-500"></div>
-            </div>
-
-            <!-- Pantalla principal de la aplicación (inicialmente oculta) -->
-            <div id="app-content" class="hidden fade-in">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Sección izquierda: Registro de horas y proyectos -->
-                    <div class="lg:col-span-1 space-y-6">
-                        <!-- Card: Registrar horas -->
-                        <div class="bg-white rounded-xl shadow-md p-6">
-                            <h2 class="text-xl font-bold text-gray-800 mb-4">Registrar horas</h2>
-                            
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block text-gray-700 mb-2">Fecha</label>
-                                    <input type="date" id="work-date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-gray-700 mb-2">Proyecto</label>
-                                    <select id="project-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                                        <option value="">Seleccionar proyecto</option>
-                                    </select>
-                                    <button id="new-project-btn" class="mt-2 text-sm text-primary hover:underline">
-                                        <i class="fas fa-plus mr-1"></i> Nuevo proyecto
-                                    </button>
-                                </div>
-                                
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-gray-700 mb-2">Hora inicio</label>
-                                        <input type="time" id="start-time" value="01:30" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                                    </div>
-                                    <div>
-                                        <label class="block text-gray-700 mb-2">Hora fin</label>
-                                        <input type="time" id="end-time" value="10:00" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-gray-700 mb-2">Descanso</label>
-                                    <select id="break-time" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                                        <option value="0.0">0.0</option>
-                                        <option value="0.5">Media hora</option>
-                                        <option value="1">1 hora</option>
-                                        <option value="2">2 horas</option>
-                                    </select>
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-gray-700 mb-2">Compañeros</label>
-                                    <input type="text" id="colleagues" placeholder="Nombres separados por comas" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-gray-700 mb-2">Notas</label>
-                                    <textarea id="notes" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
-                                </div>
-                                
-                                <button id="save-hours-btn" class="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-blue-600 transition">
-                                    Guardar registro
-                                </button>
+                <!-- Middle Column - Time Entries -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow p-4">
+                        <div class="flex flex-wrap justify-between items-center mb-4">
+                            <h2 class="text-lg font-semibold">Tidregistreringar</h2>
+                            <div class="flex space-x-2">
+                                <select id="year-filter" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+                                    <option value="all">Alla år</option>
+                                </select>
+                                <select id="month-filter" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+                                    <option value="all">Alla månader</option>
+                                </select>
+                                <select id="ob-type-filter" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+                                    <option value="all">Alla OB-typer</option>
+                                    <option value="base">Base</option>
+                                    <option value="ob1">OB 1</option>
+                                    <option value="ob2">OB 2</option>
+                                    <option value="ob3">OB 3</option>
+                                    <option value="ob4">OB 4</option>
+                                </select>
                             </div>
                         </div>
                         
-                        <!-- Card: Gestión de proyectos -->
-                        <div class="bg-white rounded-xl shadow-md p-6">
-                            <div class="flex justify-between items-center mb-4">
-                                <h2 class="text-xl font-bold text-gray-800">Mis proyectos</h2>
-                                <button id="create-project-btn" class="bg-primary text-white p-2 rounded-full hover:bg-blue-600 transition">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                            
-                            <div id="projects-list" class="space-y-2 max-h-60 overflow-y-auto scrollbar-hide">
-                                <!-- Proyectos se cargarán aquí -->
+                        <div id="time-entries" class="space-y-3">
+                            <!-- Time entries will be loaded here -->
+                            <div class="text-center py-8 text-gray-500">
+                                <i class="fas fa-clock text-3xl mb-2"></i>
+                                <p>Inga tidregistreringar hittades</p>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Sección derecha: Historial y estadísticas -->
-                    <div class="lg:col-span-2 space-y-6">
-                        <!-- Card: Resumen de horas OB -->
-                        <div class="bg-white rounded-xl shadow-md p-6">
-                            <h2 class="text-xl font-bold text-gray-800 mb-4">Resumen de horas OB</h2>
-                            
-                            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                <div class="ob-base p-4 rounded-lg text-center">
-                                    <div class="text-2xl font-bold" id="base-hours">0.00</div>
-                                    <div class="text-sm">Sueldo base</div>
-                                </div>
-                                <div class="ob-1 p-4 rounded-lg text-center">
-                                    <div class="text-2xl font-bold" id="ob1-hours">0.00</div>
-                                    <div class="text-sm">OB 1</div>
-                                </div>
-                                <div class="ob-2 p-4 rounded-lg text-center">
-                                    <div class="text-2xl font-bold" id="ob2-hours">0.00</div>
-                                    <div class="text-sm">OB 2</div>
-                                </div>
-                                <div class="ob-3 p-4 rounded-lg text-center">
-                                    <div class="text-2xl font-bold" id="ob3-hours">0.00</div>
-                                    <div class="text-sm">OB 3</div>
-                                </div>
-                                <div class="ob-4 p-4 rounded-lg text-center">
-                                    <div class="text-2xl font-bold" id="ob4-hours">0.00</div>
-                                    <div class="text-sm">OB 4</div>
-                                </div>
+                    <!-- Statistics -->
+                    <div class="bg-white rounded-xl shadow p-4 mt-6">
+                        <h2 class="text-lg font-semibold mb-4">Statistik</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h3 class="font-medium mb-2 text-center">Fördelning per projekt</h3>
+                                <canvas id="project-chart" height="250"></canvas>
                             </div>
-                        </div>
-                        
-                        <!-- Card: Historial de horas -->
-                        <div class="bg-white rounded-xl shadow-md p-6">
-                            <div class="flex justify-between items-center mb-4">
-                                <h2 class="text-xl font-bold text-gray-800">Historial de horas</h2>
-                                <div class="flex space-x-2">
-                                    <select id="filter-year" class="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                                        <option value="all">Todos los años</option>
-                                    </select>
-                                    <select id="filter-month" class="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                                        <option value="all">Todos los meses</option>
-                                    </select>
-                                    <select id="filter-ob" class="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                                        <option value="all">Todas las OB</option>
-                                        <option value="base">Sueldo base</option>
-                                        <option value="ob1">OB 1</option>
-                                        <option value="ob2">OB 2</option>
-                                        <option value="ob3">OB 3</option>
-                                        <option value="ob4">OB 4</option>
-                                    </select>
-                                    <div class="relative">
-                                        <button id="export-btn" class="bg-primary text-white p-2 rounded-md hover:bg-blue-600 transition">
-                                            <i class="fas fa-download"></i> Exportar
-                                        </button>
-                                        <div id="export-options" class="export-options">
-                                            <div class="mb-3">
-                                                <label class="block text-gray-700 mb-1">Rango de fechas</label>
-                                                <div class="flex space-x-2">
-                                                    <input type="date" id="export-start-date" class="w-full px-2 py-1 border rounded">
-                                                    <span>a</span>
-                                                    <input type="date" id="export-end-date" class="w-full px-2 py-1 border rounded">
-                                                </div>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="block text-gray-700 mb-1">Tipo de OB</label>
-                                                <select id="export-ob-type" class="w-full px-2 py-1 border rounded">
-                                                    <option value="all">Todas</option>
-                                                    <option value="base">Sueldo base</option>
-                                                    <option value="ob1">OB 1</option>
-                                                    <option value="ob2">OB 2</option>
-                                                    <option value="ob3">OB 3</option>
-                                                    <option value="ob4">OB 4</option>
-                                                </select>
-                                            </div>
-                                            <div class="flex justify-between">
-                                                <button id="export-pdf-btn" class="bg-red-600 text-white px-3 py-1 rounded flex items-center">
-                                                    <i class="fas fa-file-pdf mr-1"></i> PDF
-                                                </button>
-                                                <button id="export-json-btn" class="bg-green-600 text-white px-3 py-1 rounded flex items-center">
-                                                    <i class="fas fa-file-code mr-1"></i> JSON
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyecto</th>
-                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Horas</th>
-                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detalles</th>
-                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="hours-history" class="bg-white divide-y divide-gray-200">
-                                        <!-- Historial se cargará aquí -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        
-                        <!-- Card: Estadísticas -->
-                        <div class="bg-white rounded-xl shadow-md p-6">
-                            <h2 class="text-xl font-bold text-gray-800 mb-4">Estadísticas</h2>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <h3 class="font-medium text-gray-700 mb-3">Distribución por proyecto</h3>
-                                    <canvas id="project-chart" height="250"></canvas>
-                                </div>
-                                <div>
-                                    <h3 class="font-medium text-gray-700 mb-3">Horas por semana</h3>
-                                    <canvas id="weekly-chart" height="250"></canvas>
-                                </div>
+                            <div>
+                                <h3 class="font-medium mb-2 text-center">Timmar per vecka</h3>
+                                <canvas id="weekly-chart" height="250"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
-
-        <!-- Footer -->
-        <footer class="bg-dark text-white py-4 mt-auto">
-            <div class="container mx-auto px-4 text-center">
-                <p>Tidbok OB &copy; 2023 - Todos los derechos reservados</p>
-            </div>
-        </footer>
     </div>
-
-    <!-- Modales -->
-    <!-- Modal de nuevo proyecto -->
-    <div id="project-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Nuevo Proyecto</h3>
-            
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Nombre del proyecto</label>
-                <input type="text" id="project-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-            </div>
-            
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Descripción (opcional)</label>
-                <textarea id="project-description" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
-            </div>
-            
-            <div class="flex justify-end space-x-3">
-                <button id="cancel-project-btn" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
-                <button id="save-project-btn" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">Guardar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de detalle de registro -->
-    <div id="detail-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Detalle del Registro</h3>
-            
-            <div id="detail-content" class="space-y-3">
-                <!-- Contenido dinámico -->
-            </div>
-            
-            <div class="mt-6 flex justify-end">
-                <button id="close-detail-btn" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">Cerrar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de edición de registro -->
-    <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Editar Registro</h3>
-            
-            <div id="edit-content" class="space-y-4">
-                <input type="hidden" id="edit-id">
-                <div>
-                    <label class="block text-gray-700 mb-2">Fecha</label>
-                    <input type="date" id="edit-date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+    
+    <!-- PDF Export Modal -->
+    <div id="pdf-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Exportera till PDF</h2>
+                    <button id="close-pdf-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
                 
-                <div>
-                    <label class="block text-gray-700 mb-2">Proyecto</label>
-                    <select id="edit-project" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                        <option value="">Seleccionar proyecto</option>
-                    </select>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-gray-700 mb-2">Hora inicio</label>
-                        <input type="time" id="edit-start" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                <form id="pdf-export-form">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-gray-700 mb-2">Från datum</label>
+                            <input type="date" id="pdf-from" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Till datum</label>
+                            <input type="date" id="pdf-to" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-gray-700 mb-2">Hora fin</label>
-                        <input type="time" id="edit-end" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Projekt</label>
+                        <select id="pdf-project" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="all">Alla projekt</option>
+                        </select>
                     </div>
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 mb-2">Descanso</label>
-                    <select id="edit-break" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                        <option value="0.5">Media hora</option>
-                        <option value="1">1 hora</option>
-                        <option value="2">2 horas</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 mb-2">Compañeros</label>
-                    <input type="text" id="edit-colleagues" placeholder="Nombres separados por comas" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 mb-2">Notas</label>
-                    <textarea id="edit-notes" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
-                </div>
-            </div>
-            
-            <div class="mt-6 flex justify-end space-x-3">
-                <button id="cancel-edit-btn" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
-                <button id="save-edit-btn" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">Guardar</button>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">OB-typ</label>
+                        <select id="pdf-ob-type" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="all">Alla OB-typer</option>
+                            <option value="base">Base</option>
+                            <option value="ob1">OB 1</option>
+                            <option value="ob2">OB 2</option>
+                            <option value="ob3">OB 3</option>
+                            <option value="ob4">OB 4</option>
+                        </select>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-gray-700 mb-2">Minsta timmar</label>
+                            <input type="number" id="pdf-min-hours" min="0" step="0.5" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Högsta timmar</label>
+                            <input type="number" id="pdf-max-hours" min="0" step="0.5" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-gray-700 mb-2">Sortering</label>
+                        <select id="pdf-sort" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="date-desc">Datum (senaste först)</option>
+                            <option value="date-asc">Datum (äldsta först)</option>
+                            <option value="hours-desc">Timmar (högst först)</option>
+                            <option value="hours-asc">Timmar (lägst först)</option>
+                            <option value="project">Projekt (A-Ö)</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="w-full btn-primary py-2 rounded-md font-medium">
+                        <i class="fas fa-file-pdf mr-2"></i> Generera PDF
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 
     <script>
-        // Configuración de Firebase
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDLezJUZMmeLllsdEPCUVkDBKwwR6OuoD8",
             authDomain: "userbase-5061c.firebaseapp.com",
@@ -463,514 +364,409 @@
             appId: "1:414829360217:web:21d0839ee0ccfbea336d48"
         };
         
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database();
+        // Mock data for demonstration
+        const mockProjects = [
+            { id: "p1", name: "Byggprojekt Stockholm", code: "BP-Sthlm" },
+            { id: "p2", name: "Renovering Göteborg", code: "REN-Gbg" },
+            { id: "p3", name: "Underhåll Malmö", code: "UH-Mal" }
+        ];
         
-        // Variables globales
-        let currentUser = null;
-        let projects = [];
-        let timeEntries = [];
-        let language = 'es';
-        let currentFilter = {
-            year: 'all',
-            month: 'all',
-            ob: 'all'
-        };
-        
-        // Traducciones
-        const translations = {
-            es: {
-                login: "Iniciar sesión",
-                register: "Crear cuenta",
-                workDate: "Fecha",
-                project: "Proyecto",
-                startTime: "Hora inicio",
-                endTime: "Hora fin",
-                breakTime: "Descanso",
-                colleagues: "Compañeros",
-                notes: "Notas",
-                saveHours: "Guardar registro",
-                myProjects: "Mis proyectos",
-                newProject: "Nuevo proyecto",
-                obSummary: "Resumen de horas OB",
-                baseSalary: "Sueldo base",
-                ob1: "OB 1",
-                ob2: "OB 2",
-                ob3: "OB 3",
-                ob4: "OB 4",
-                history: "Historial de horas",
-                allYears: "Todos los años",
-                allMonths: "Todos los meses",
-                allOB: "Todas las OB",
-                date: "Fecha",
-                hours: "Horas",
-                details: "Detalles",
-                actions: "Acciones",
-                statistics: "Estadísticas",
-                projectDistribution: "Distribución por proyecto",
-                weeklyHours: "Horas por semana",
-                cancel: "Cancelar",
-                save: "Guardar",
-                projectName: "Nombre del proyecto",
-                projectDescription: "Descripción (opcional)",
-                registerDetail: "Detalle del Registro",
-                close: "Cerrar",
-                delete: "Eliminar",
-                edit: "Editar",
-                totalHours: "Horas totales",
-                colleaguesPlaceholder: "Nombres separados por comas",
-                editEntry: "Editar Registro"
-            },
-            en: {
-                login: "Login",
-                register: "Create account",
-                workDate: "Date",
-                project: "Project",
-                startTime: "Start time",
-                endTime: "End time",
-                breakTime: "Break",
-                colleagues: "Colleagues",
-                notes: "Notes",
-                saveHours: "Save entry",
-                myProjects: "My projects",
-                newProject: "New project",
-                obSummary: "OB Hours Summary",
-                baseSalary: "Base salary",
-                ob1: "OB 1",
-                ob2: "OB 2",
-                ob3: "OB 3",
-                ob4: "OB 4",
-                history: "Time History",
-                allYears: "All years",
-                allMonths: "All months",
-                allOB: "All OB",
-                date: "Date",
-                hours: "Hours",
-                details: "Details",
-                actions: "Actions",
-                statistics: "Statistics",
-                projectDistribution: "Project distribution",
-                weeklyHours: "Weekly hours",
-                cancel: "Cancel",
-                save: "Save",
-                projectName: "Project name",
-                projectDescription: "Description (optional)",
-                registerDetail: "Entry Detail",
-                close: "Close",
-                delete: "Delete",
-                edit: "Edit",
-                totalHours: "Total hours",
-                colleaguesPlaceholder: "Names separated by commas",
-                editEntry: "Edit Entry"
-            },
-            sv: {
-                login: "Logga in",
-                register: "Skapa konto",
-                workDate: "Datum",
-                project: "Projekt",
-                startTime: "Starttid",
-                endTime: "Sluttid",
-                breakTime: "Rast",
-                colleagues: "Kollegor",
-                notes: "Anteckningar",
-                saveHours: "Spara post",
-                myProjects: "Mina projekt",
-                newProject: "Nytt projekt",
-                obSummary: "OB-timmar Sammanfattning",
-                baseSalary: "Baslön",
-                ob1: "OB 1",
-                ob2: "OB 2",
-                ob3: "OB 3",
-                ob4: "OB 4",
-                history: "Tidshistorik",
-                allYears: "Alla år",
-                allMonths: "Alla månader",
-                allOB: "Alla OB",
-                date: "Datum",
-                hours: "Timmar",
-                details: "Detaljer",
-                actions: "Åtgärder",
-                statistics: "Statistik",
-                projectDistribution: "Projektfördelning",
-                weeklyHours: "Veckotimmar",
-                cancel: "Avbryt",
-                save: "Spara",
-                projectName: "Projektnamn",
-                projectDescription: "Beskrivning (valfritt)",
-                registerDetail: "Postdetalj",
-                close: "Stäng",
-                delete: "Ta bort",
-                edit: "Redigera",
-                totalHours: "Totalt antal timmar",
-                colleaguesPlaceholder: "Namn separerade med kommatecken",
-                editEntry: "Redigera Post"
-            }
-        };
-        
-        // Función para traducir la interfaz
-        function translateUI() {
-            const lang = translations[language];
-            
-            // Actualizar textos
-            document.getElementById('login-btn').textContent = lang.login;
-            document.getElementById('register-btn').textContent = lang.register;
-            document.querySelector('label[for="work-date"]').textContent = lang.workDate;
-            document.querySelector('label[for="project-select"]').textContent = lang.project;
-            document.querySelector('label[for="start-time"]').textContent = lang.startTime;
-            document.querySelector('label[for="end-time"]').textContent = lang.endTime;
-            document.querySelector('label[for="break-time"]').textContent = lang.breakTime;
-            document.querySelector('label[for="colleagues"]').textContent = lang.colleagues;
-            document.querySelector('label[for="notes"]').textContent = lang.notes;
-            document.getElementById('save-hours-btn').textContent = lang.saveHours;
-            document.querySelector('#app-content > div > div:nth-child(1) > div:nth-child(2) > div > h2').textContent = lang.myProjects;
-            document.getElementById('new-project-btn').innerHTML = `<i class="fas fa-plus mr-1"></i> ${lang.newProject}`;
-            document.querySelector('#app-content > div > div:nth-child(2) > div:nth-child(1) > h2').textContent = lang.obSummary;
-            document.querySelector('#app-content > div > div:nth-child(2) > div:nth-child(1) > div > div:nth-child(1) > div:nth-child(2)').textContent = lang.baseSalary;
-            document.querySelector('#app-content > div > div:nth-child(2) > div:nth-child(1) > div > div:nth-child(2) > div:nth-child(2)').textContent = lang.ob1;
-            document.querySelector('#app-content > div > div:nth-child(2) > div:nth-child(1) > div > div:nth-child(3) > div:nth-child(2)').textContent = lang.ob2;
-            document.querySelector('#app-content > div > div:nth-child(2) > div:nth-child(1) > div > div:nth-child(4) > div:nth-child(2)').textContent = lang.ob3;
-            document.querySelector('#app-content > div > div:nth-child(2) > div:nth-child(1) > div > div:nth-child(5) > div:nth-child(2)').textContent = lang.ob4;
-            document.querySelector('#app-content > div > div:nth-child(2) > div:nth-child(2) > div > div:nth-child(1) > h2').textContent = lang.history;
-            document.querySelector('#project-modal > div > h3').textContent = lang.newProject;
-            document.querySelector('#project-modal > div > div:nth-child(2) > label').textContent = lang.projectName;
-            document.querySelector('#project-modal > div > div:nth-child(3) > label').textContent = lang.projectDescription;
-            document.getElementById('cancel-project-btn').textContent = lang.cancel;
-            document.getElementById('save-project-btn').textContent = lang.save;
-            document.querySelector('#detail-modal > div > h3').textContent = lang.registerDetail;
-            document.getElementById('close-detail-btn').textContent = lang.close;
-            document.getElementById('colleagues').placeholder = lang.colleaguesPlaceholder;
-            document.querySelector('#edit-modal > div > h3').textContent = lang.editEntry;
-            
-            // Actualizar tabla
-            const headers = document.querySelectorAll('thead th');
-            if (headers.length >= 5) {
-                headers[0].textContent = lang.date;
-                headers[1].textContent = lang.project;
-                headers[2].textContent = lang.hours;
-                headers[3].textContent = lang.details;
-                headers[4].textContent = lang.actions;
-            }
-            
-            // Actualizar estadísticas
-            document.querySelector('#app-content > div > div:nth-child(2) > div:nth-child(3) > h2').textContent = lang.statistics;
-            document.querySelector('#app-content > div > div:nth-child(2) > div:nth-child(3) > div > div:nth-child(1) > h3').textContent = lang.projectDistribution;
-            document.querySelector('#app-content > div > div:nth-child(2) > div:nth-child(3) > div > div:nth-child(2) > h3').textContent = lang.weeklyHours;
-            
-            // Actualizar filtros
-            document.querySelector('#filter-ob option[value="all"]').textContent = lang.allOB;
-            document.querySelector('#filter-ob option[value="base"]').textContent = lang.baseSalary;
-            document.querySelector('#filter-ob option[value="ob1"]').textContent = lang.ob1;
-            document.querySelector('#filter-ob option[value="ob2"]').textContent = lang.ob2;
-            document.querySelector('#filter-ob option[value="ob3"]').textContent = lang.ob3;
-            document.querySelector('#filter-ob option[value="ob4"]').textContent = lang.ob4;
-        }
-        
-        // Función para calcular las horas OB según las reglas especificadas
-        function calculateOBHours(start, end, breakHours) {
-            const MS_PER_HOUR = 1000 * 60 * 60;
-            const MINUTE_SEGMENT_MS = 60 * 1000;
-
-            const startDate = new Date(start);
-            const endDate = new Date(end);
-            const dayOfWeek = startDate.getDay(); // 0 = domingo
-
-            // Duración total (en horas), excluyendo el descanso
-            const totalWorkedHours = ((endDate - startDate) / MS_PER_HOUR) - breakHours;
-
-            // Inicializar acumuladores de horas OB
-            const obHours = {
-                base: 0,
-                ob1: 0,
-                ob2: 0,
-                ob3: 0,
-                ob4: 0
-            };
-
-            // Determina el tipo de OB para una hora específica
-            function getHourType(date) {
-                const hour = date.getHours() + date.getMinutes() / 60;
-
-                if (dayOfWeek === 0) return 'ob4'; // Domingo: todo es OB 4
-                if (dayOfWeek === 6) return hour >= 13 ? 'ob3' : 'base'; // Sábado
-                if (hour >= 6 && hour < 18) return 'base';
-                if (hour >= 18 && hour < 22) return 'ob1';
-                return 'ob2'; // 22:00 a 06:00
-            }
-
-            // Simular avance minuto a minuto
-            let current = new Date(startDate.getTime());
-            const totalSegmentTime = (endDate - startDate) / MS_PER_HOUR;
-            const effectiveSegmentTime = totalSegmentTime - breakHours;
-            const segmentsToSkip = Math.round(breakHours * 60); // en minutos
-
-            let skippedSegments = 0;
-
-            while (current < endDate) {
-                const next = new Date(current.getTime() + MINUTE_SEGMENT_MS);
-                if (skippedSegments < segmentsToSkip) {
-                    skippedSegments++;
-                } else {
-                    const hourType = getHourType(current);
-                    obHours[hourType] += 1 / 60;
-                }
-                current = next;
-            }
-
-            return {
-                total: totalWorkedHours,
+        const mockTimeEntries = [
+            {
+                id: "e1",
+                date: "2025-08-14",
+                projectId: "p1",
+                projectName: "Byggprojekt Stockholm",
+                startTime: "17:00",
+                endTime: "23:00",
+                breakHours: 1.0,
+                colleagues: "Anna, Bengt",
+                notes: "Arbetat med fundament",
                 breakdown: {
-                    base: obHours.base,
-                    ob1: obHours.ob1,
-                    ob2: obHours.ob2,
-                    ob3: obHours.ob3,
-                    ob4: obHours.ob4
-                }
-            };
-        }
+                    base: 0.0,
+                    ob1: 4.0,
+                    ob2: 1.0,
+                    ob3: 0.0,
+                    ob4: 0.0
+                },
+                total: 5.0
+            },
+            {
+                id: "e2",
+                date: "2025-08-15",
+                projectId: "p2",
+                projectName: "Renovering Göteborg",
+                startTime: "08:00",
+                endTime: "16:00",
+                breakHours: 0.5,
+                colleagues: "Cecilia, David",
+                notes: "Målning av väggar",
+                breakdown: {
+                    base: 7.5,
+                    ob1: 0.0,
+                    ob2: 0.0,
+                    ob3: 0.0,
+                    ob4: 0.0
+                },
+                total: 7.5
+            },
+            {
+                id: "e3",
+                date: "2025-08-16",
+                projectId: "p3",
+                projectName: "Underhåll Malmö",
+                startTime: "13:00",
+                endTime: "22:00",
+                breakHours: 0.5,
+                colleagues: "Erik, Fredrika",
+                notes: "Reparation av tak",
+                breakdown: {
+                    base: 4.5,
+                    ob1: 4.0,
+                    ob2: 0.0,
+                    ob3: 0.0,
+                    ob4: 0.0
+                },
+                total: 8.5
+            }
+        ];
         
-        // Función para formatear horas
-        function formatHours(hours) {
-            return hours.toFixed(2);
-        }
+        // Mock statistics data
+        const mockStats = {
+            projects: {
+                labels: ["Byggprojekt Stockholm", "Renovering Göteborg", "Underhåll Malmö"],
+                data: [35, 42, 23]
+            },
+            weekly: {
+                labels: ["Vecka 32", "Vecka 33", "Vecka 34", "Vecka 35"],
+                data: [42, 38, 45, 40]
+            }
+        };
         
-        // Función para cargar proyectos
-        function loadProjects(userId) {
-            const projectsRef = database.ref(`users/${userId}/projects`);
+        // DOM Elements
+        const authScreen = document.getElementById('auth-screen');
+        const appScreen = document.getElementById('app');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const showRegister = document.getElementById('show-register');
+        const showLogin = document.getElementById('show-login');
+        const registerSection = document.getElementById('register-section');
+        const loginSection = document.getElementById('login-section');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userMenu = document.getElementById('user-menu');
+        const menuDropdown = document.getElementById('menu-dropdown');
+        const timeEntryForm = document.getElementById('time-entry-form');
+        const obPreview = document.getElementById('ob-preview');
+        const projectsList = document.getElementById('projects-list');
+        const projectSelect = document.getElementById('project-select');
+        const timeEntries = document.getElementById('time-entries');
+        const pdfExportBtn = document.getElementById('pdf-export-btn');
+        const pdfModal = document.getElementById('pdf-modal');
+        const closePdfModal = document.getElementById('close-pdf-modal');
+        const pdfExportForm = document.getElementById('pdf-export-form');
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set current date as default
+            const today = new Date();
+            document.getElementById('entry-date').valueAsDate = today;
             
-            projectsRef.on('value', (snapshot) => {
-                projects = [];
-                const projectsList = document.getElementById('projects-list');
-                projectsList.innerHTML = '';
-                const projectSelect = document.getElementById('project-select');
-                const editProjectSelect = document.getElementById('edit-project');
+            // Set start and end times to reasonable defaults
+            document.getElementById('start-time').value = '08:00';
+            document.getElementById('end-time').value = '16:30';
+            
+            // Load mock data
+            loadProjects();
+            loadTimeEntries();
+            updateCharts();
+            
+            // Set up event listeners
+            setupEventListeners();
+        });
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Auth navigation
+            showRegister.addEventListener('click', () => {
+                loginSection.classList.add('hidden');
+                registerSection.classList.remove('hidden');
+            });
+            
+            showLogin.addEventListener('click', () => {
+                registerSection.classList.add('hidden');
+                loginSection.classList.remove('hidden');
+            });
+            
+            // Mock login
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                authScreen.classList.add('hidden');
+                appScreen.classList.remove('hidden');
+            });
+            
+            registerForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = document.getElementById('reg-email').value;
+                const password = document.getElementById('reg-password').value;
+                const confirm = document.getElementById('reg-confirm').value;
                 
-                // Limpiar selects excepto la primera opción
-                while (projectSelect.options.length > 1) {
-                    projectSelect.remove(1);
+                if (password !== confirm) {
+                    alert('Lösenorden matchar inte!');
+                    return;
                 }
-                while (editProjectSelect.options.length > 1) {
-                    editProjectSelect.remove(1);
-                }
                 
-                snapshot.forEach((childSnapshot) => {
-                    const project = {
-                        id: childSnapshot.key,
-                        ...childSnapshot.val()
-                    };
-                    projects.push(project);
-                    
-                    // Agregar al select de proyectos
-                    const option = document.createElement('option');
-                    option.value = project.id;
-                    option.textContent = project.name;
-                    projectSelect.appendChild(option.cloneNode(true));
-                    editProjectSelect.appendChild(option);
-                    
-                    // Agregar a la lista de proyectos
-                    const projectElement = document.createElement('div');
-                    projectElement.className = 'flex justify-between items-center bg-gray-50 p-2 rounded';
-                    projectElement.innerHTML = `
-                        <div>
-                            <span class="font-medium">${project.name}</span>
-                            ${project.description ? `<p class="text-sm text-gray-500">${project.description}</p>` : ''}
-                        </div>
-                        <button class="delete-project text-red-500 hover:text-red-700" data-id="${project.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    `;
-                    projectsList.appendChild(projectElement);
-                });
+                authScreen.classList.add('hidden');
+                appScreen.classList.remove('hidden');
+            });
+            
+            // Logout
+            logoutBtn.addEventListener('click', () => {
+                appScreen.classList.add('hidden');
+                authScreen.classList.remove('hidden');
+            });
+            
+            // User menu
+            userMenu.addEventListener('click', () => {
+                menuDropdown.classList.toggle('hidden');
+            });
+            
+            // Time calculation
+            const timeInputs = ['start-time', 'end-time', 'break-hours'];
+            timeInputs.forEach(inputId => {
+                document.getElementById(inputId).addEventListener('change', calculateOBHours);
+            });
+            
+            // Time entry form
+            timeEntryForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                saveTimeEntry();
+            });
+            
+            // PDF Export
+            pdfExportBtn.addEventListener('click', () => {
+                pdfModal.classList.remove('hidden');
+            });
+            
+            closePdfModal.addEventListener('click', () => {
+                pdfModal.classList.add('hidden');
+            });
+            
+            pdfExportForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                generatePDF();
+                pdfModal.classList.add('hidden');
+            });
+        }
+        
+        // Load projects
+        function loadProjects() {
+            projectsList.innerHTML = '';
+            projectSelect.innerHTML = '<option value="">Välj ett projekt</option>';
+            
+            mockProjects.forEach(project => {
+                // Add to projects list
+                const projectElement = document.createElement('div');
+                projectElement.className = 'flex justify-between items-center p-2 bg-gray-50 rounded';
+                projectElement.innerHTML = `
+                    <div>
+                        <div class="font-medium">${project.name}</div>
+                        <div class="text-sm text-gray-600">${project.code}</div>
+                    </div>
+                    <button class="text-red-500 hover:text-red-700 delete-project" data-id="${project.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                projectsList.appendChild(projectElement);
                 
-                // Agregar event listeners para eliminar proyectos
-                document.querySelectorAll('.delete-project').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const projectId = e.currentTarget.getAttribute('data-id');
-                        deleteProject(projectId);
-                    });
+                // Add to project select
+                const option = document.createElement('option');
+                option.value = project.id;
+                option.textContent = `${project.name} (${project.code})`;
+                projectSelect.appendChild(option);
+            });
+            
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.delete-project').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const projectId = e.target.closest('button').dataset.id;
+                    deleteProject(projectId);
                 });
             });
         }
         
-        // Función para cargar historial de horas
-        function loadTimeEntries(userId) {
-            const timeRef = database.ref(`users/${userId}/timeEntries`);
-            
-            timeRef.on('value', (snapshot) => {
-                timeEntries = [];
-                const historyBody = document.getElementById('hours-history');
-                historyBody.innerHTML = '';
-                
-                // Limpiar resumen
-                document.getElementById('base-hours').textContent = '0.00';
-                document.getElementById('ob1-hours').textContent = '0.00';
-                document.getElementById('ob2-hours').textContent = '0.00';
-                document.getElementById('ob3-hours').textContent = '0.00';
-                document.getElementById('ob4-hours').textContent = '0.00';
-                
-                // Acumuladores para estadísticas
-                let projectStats = {};
-                let weekStats = {};
-                let obSummary = {
-                    base: 0,
-                    ob1: 0,
-                    ob2: 0,
-                    ob3: 0,
-                    ob4: 0
-                };
-                
-                snapshot.forEach((childSnapshot) => {
-                    const entry = {
-                        id: childSnapshot.key,
-                        ...childSnapshot.val()
-                    };
-                    
-                    // Aplicar filtros
-                    const entryDate = new Date(entry.startTime);
-                    const entryYear = entryDate.getFullYear();
-                    const entryMonth = entryDate.getMonth() + 1;
-                    
-                    if (currentFilter.year !== 'all' && entryYear !== parseInt(currentFilter.year)) {
-                        return;
-                    }
-                    
-                    if (currentFilter.month !== 'all' && entryMonth !== parseInt(currentFilter.month)) {
-                        return;
-                    }
-                    
-                    timeEntries.push(entry);
-                    
-                    // Calcular horas
-                    const breakHours = parseFloat(entry.breakTime) || 0;
-                    const obHours = calculateOBHours(entry.startTime, entry.endTime, breakHours);
-                    
-                    // Filtrar por tipo de OB si está activo
-                    if (currentFilter.ob !== 'all') {
-                        let include = false;
-                        switch(currentFilter.ob) {
-                            case 'base': include = obHours.breakdown.base > 0; break;
-                            case 'ob1': include = obHours.breakdown.ob1 > 0; break;
-                            case 'ob2': include = obHours.breakdown.ob2 > 0; break;
-                            case 'ob3': include = obHours.breakdown.ob3 > 0; break;
-                            case 'ob4': include = obHours.breakdown.ob4 > 0; break;
-                        }
-                        if (!include) return;
-                    }
-                    
-                    // Actualizar resumen OB
-                    obSummary.base += obHours.breakdown.base;
-                    obSummary.ob1 += obHours.breakdown.ob1;
-                    obSummary.ob2 += obHours.breakdown.ob2;
-                    obSummary.ob3 += obHours.breakdown.ob3;
-                    obSummary.ob4 += obHours.breakdown.ob4;
-                    
-                    // Actualizar estadísticas por proyecto
-                    const projectName = entry.projectName || 'Sin proyecto';
-                    if (!projectStats[projectName]) {
-                        projectStats[projectName] = 0;
-                    }
-                    projectStats[projectName] += obHours.total;
-                    
-                    // Actualizar estadísticas por semana (ajustado a fecha local)
-                    const weekStart = getWeekStartDate(new Date(entry.startTime));
-                    const weekKey = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}-${String(weekStart.getDate()).padStart(2, '0')}`;
-                    
-                    if (!weekStats[weekKey]) {
-                        weekStats[weekKey] = 0;
-                    }
-                    weekStats[weekKey] += obHours.total;
-                    
-                    // Formatear fecha
-                    const dateStr = new Date(entry.startTime).toLocaleDateString();
-                    
-                    // Agregar a la tabla
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="px-4 py-2 whitespace-nowrap">${dateStr}</td>
-                        <td class="px-4 py-2">${projectName}</td>
-                        <td class="px-4 py-2">${formatHours(obHours.total)}</td>
-                        <td class="px-4 py-2">
-                            <button class="view-detail text-primary hover:underline" data-id="${entry.id}">
-                                <i class="fas fa-eye mr-1"></i> ${translations[language].details}
-                            </button>
-                        </td>
-                        <td class="px-4 py-2 whitespace-nowrap">
-                            <button class="text-blue-500 hover:text-blue-700 mr-2 edit-entry" data-id="${entry.id}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="text-red-500 hover:text-red-700 delete-entry" data-id="${entry.id}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    `;
-                    historyBody.appendChild(row);
-                });
-                
-                // Actualizar resumen OB
-                document.getElementById('base-hours').textContent = formatHours(obSummary.base);
-                document.getElementById('ob1-hours').textContent = formatHours(obSummary.ob1);
-                document.getElementById('ob2-hours').textContent = formatHours(obSummary.ob2);
-                document.getElementById('ob3-hours').textContent = formatHours(obSummary.ob3);
-                document.getElementById('ob4-hours').textContent = formatHours(obSummary.ob4);
-                
-                // Actualizar gráficos
-                updateCharts(projectStats, weekStats);
-                
-                // Agregar event listeners para ver detalles
-                document.querySelectorAll('.view-detail').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const entryId = e.currentTarget.getAttribute('data-id');
-                        showEntryDetail(entryId);
-                    });
-                });
-                
-                // Agregar event listeners para editar
-                document.querySelectorAll('.edit-entry').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const entryId = e.currentTarget.getAttribute('data-id');
-                        showEditForm(entryId);
-                    });
-                });
-                
-                // Agregar event listeners para eliminar entradas
-                document.querySelectorAll('.delete-entry').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const entryId = e.currentTarget.getAttribute('data-id');
-                        deleteTimeEntry(entryId);
-                    });
-                });
-            });
+        // Delete project
+        function deleteProject(projectId) {
+            if (confirm('Är du säker på att du vill ta bort projektet?')) {
+                // In a real app, this would delete from Firebase
+                alert(`Projekt ${projectId} har tagits bort`);
+                loadProjects();
+            }
         }
         
-        // Función para obtener el inicio de la semana (lunes)
-        function getWeekStartDate(date) {
-            // Crear una copia de la fecha en local (sin hora)
-            const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-            const day = d.getDay(); // 0 = domingo
-            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // lunes como inicio
-            return new Date(d.setDate(diff));
-        }
-        
-        // Función para actualizar gráficos
-        function updateCharts(projectStats, weekStats) {
-            // Gráfico de distribución por proyecto
-            const projectCtx = document.getElementById('project-chart').getContext('2d');
+        // Load time entries
+        function loadTimeEntries() {
+            timeEntries.innerHTML = '';
             
-            // Destruir gráfico anterior si existe
-            if (window.projectChart) {
-                window.projectChart.destroy();
+            if (mockTimeEntries.length === 0) {
+                timeEntries.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-clock text-3xl mb-2"></i>
+                        <p>Inga tidregistreringar hittades</p>
+                    </div>
+                `;
+                return;
             }
             
-            window.projectChart = new Chart(projectCtx, {
+            mockTimeEntries.forEach(entry => {
+                const dateObj = new Date(entry.date);
+                const formattedDate = dateObj.toLocaleDateString('sv-SE', {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                
+                const entryElement = document.createElement('div');
+                entryElement.className = 'time-entry bg-white border rounded-lg p-4 cursor-pointer hover:shadow-md';
+                entryElement.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="font-medium">${entry.projectName}</div>
+                            <div class="text-sm text-gray-600">${formattedDate}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-semibold">${entry.total.toFixed(2)} h</div>
+                            <div class="text-sm text-gray-600">${entry.startTime} - ${entry.endTime}</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 grid grid-cols-5 gap-1 text-center text-xs">
+                        <div class="ob-base p-1 rounded">Base: ${entry.breakdown.base.toFixed(2)}</div>
+                        <div class="ob-1 p-1 rounded">OB1: ${entry.breakdown.ob1.toFixed(2)}</div>
+                        <div class="ob-2 p-1 rounded">OB2: ${entry.breakdown.ob2.toFixed(2)}</div>
+                        <div class="ob-3 p-1 rounded">OB3: ${entry.breakdown.ob3.toFixed(2)}</div>
+                        <div class="ob-4 p-1 rounded">OB4: ${entry.breakdown.ob4.toFixed(2)}</div>
+                    </div>
+                `;
+                timeEntries.appendChild(entryElement);
+            });
+            
+            // Show PDF export button
+            pdfExportBtn.classList.remove('hidden');
+        }
+        
+        // Calculate OB hours
+        function calculateOBHours() {
+            const startTime = document.getElementById('start-time').value;
+            const endTime = document.getElementById('end-time').value;
+            const breakHours = parseFloat(document.getElementById('break-hours').value) || 0;
+            
+            if (!startTime || !endTime) return;
+            
+            // Mock calculation for demo purposes
+            // In a real app, this would implement the detailed algorithm described
+            const start = new Date(`2025-01-01T${startTime}`);
+            const end = new Date(`2025-01-01T${endTime}`);
+            
+            // Handle case where end time is next day
+            if (end < start) {
+                end.setDate(end.getDate() + 1);
+            }
+            
+            const totalMinutes = (end - start) / (1000 * 60);
+            const totalHours = (totalMinutes / 60) - breakHours;
+            
+            // Mock breakdown based on time of day
+            let base = 0, ob1 = 0, ob2 = 0, ob3 = 0, ob4 = 0;
+            
+            // Simplified calculation for demo
+            if (start.getHours() >= 6 && end.getHours() < 18) {
+                base = totalHours;
+            } else if (start.getHours() >= 18 && end.getHours() < 22) {
+                ob1 = totalHours;
+            } else if (start.getHours() >= 22 || end.getHours() < 6) {
+                ob2 = totalHours;
+            }
+            
+            // Update preview
+            document.getElementById('preview-total').textContent = totalHours.toFixed(2) + ' h';
+            document.getElementById('preview-base').textContent = base.toFixed(2) + ' h';
+            document.getElementById('preview-ob1').textContent = ob1.toFixed(2) + ' h';
+            document.getElementById('preview-ob2').textContent = ob2.toFixed(2) + ' h';
+            document.getElementById('preview-ob3').textContent = ob3.toFixed(2) + ' h';
+            document.getElementById('preview-ob4').textContent = ob4.toFixed(2) + ' h';
+            
+            obPreview.classList.remove('hidden');
+        }
+        
+        // Save time entry
+        function saveTimeEntry() {
+            const projectId = document.getElementById('project-select').value;
+            const date = document.getElementById('entry-date').value;
+            const startTime = document.getElementById('start-time').value;
+            const endTime = document.getElementById('end-time').value;
+            const breakHours = parseFloat(document.getElementById('break-hours').value) || 0;
+            const colleagues = document.getElementById('colleagues').value;
+            const notes = document.getElementById('notes').value;
+            
+            if (!projectId) {
+                alert('Välj ett projekt!');
+                return;
+            }
+            
+            // Get project name
+            const project = mockProjects.find(p => p.id === projectId);
+            
+            // Create mock entry
+            const newEntry = {
+                id: 'e' + (mockTimeEntries.length + 1),
+                date,
+                projectId,
+                projectName: project.name,
+                startTime,
+                endTime,
+                breakHours,
+                colleagues,
+                notes,
+                breakdown: {
+                    base: 4.5,
+                    ob1: 2.0,
+                    ob2: 0.5,
+                    ob3: 0.0,
+                    ob4: 0.0
+                },
+                total: 7.0
+            };
+            
+            mockTimeEntries.unshift(newEntry);
+            loadTimeEntries();
+            
+            // Reset form
+            timeEntryForm.reset();
+            document.getElementById('entry-date').valueAsDate = new Date();
+            document.getElementById('start-time').value = '08:00';
+            document.getElementById('end-time').value = '16:30';
+            document.getElementById('break-hours').value = '0.5';
+            obPreview.classList.add('hidden');
+            
+            alert('Tidregistrering sparad!');
+        }
+        
+        // Update charts
+        function updateCharts() {
+            // Project distribution chart
+            const projectCtx = document.getElementById('project-chart').getContext('2d');
+            new Chart(projectCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: Object.keys(projectStats),
+                    labels: mockStats.projects.labels,
                     datasets: [{
-                        data: Object.values(projectStats),
+                        data: mockStats.projects.data,
                         backgroundColor: [
-                            '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'
-                        ]
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(245, 158, 11, 0.7)'
+                        ],
+                        borderWidth: 1
                     }]
                 },
                 options: {
@@ -978,694 +774,108 @@
                     plugins: {
                         legend: {
                             position: 'bottom'
-                        },
-                        title: {
-                            display: true,
-                            text: translations[language].projectDistribution
                         }
                     }
                 }
             });
             
-            // Gráfico de horas por semana
+            // Weekly hours chart
             const weeklyCtx = document.getElementById('weekly-chart').getContext('2d');
-            
-            // Ordenar semanas
-            const sortedWeeks = Object.keys(weekStats).sort();
-            const weekLabels = sortedWeeks.map(week => {
-                const date = new Date(week);
-                return `Sem ${date.getWeek()}`;
-            });
-            
-            // Destruir gráfico anterior si existe
-            if (window.weeklyChart) {
-                window.weeklyChart.destroy();
-            }
-            
-            window.weeklyChart = new Chart(weeklyCtx, {
+            new Chart(weeklyCtx, {
                 type: 'bar',
                 data: {
-                    labels: weekLabels,
+                    labels: mockStats.weekly.labels,
                     datasets: [{
-                        label: translations[language].weeklyHours,
-                        data: sortedWeeks.map(week => weekStats[week]),
-                        backgroundColor: '#3b82f6'
+                        label: 'Timmar',
+                        data: mockStats.weekly.data,
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                        borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Timmar'
+                            }
                         }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
                     }
                 }
             });
         }
         
-        // Función para crear un nuevo proyecto
-        function createProject() {
-            const name = document.getElementById('project-name').value.trim();
-            const description = document.getElementById('project-description').value.trim();
+        // Generate PDF
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
             
-            if (!name) {
-                alert('Por favor ingresa un nombre para el proyecto');
-                return;
+            // Title
+            doc.setFontSize(20);
+            doc.text('Tidbok OB - Rapport', 105, 20, { align: 'center' });
+            
+            // Subtitle
+            doc.setFontSize(12);
+            const fromDate = document.getElementById('pdf-from').value || 'Inget';
+            const toDate = document.getElementById('pdf-to').value || 'Inget';
+            doc.text(`Filtrering: ${fromDate} - ${toDate}`, 105, 30, { align: 'center' });
+            
+            // Summary table
+            doc.autoTable({
+                startY: 40,
+                head: [['Typ', 'Timmar']],
+                body: [
+                    ['Base', '35.50'],
+                    ['OB 1', '28.25'],
+                    ['OB 2', '12.75'],
+                    ['OB 3', '5.50'],
+                    ['OB 4', '8.00'],
+                    ['Totalt', '90.00']
+                ],
+                theme: 'grid',
+                headStyles: { fillColor: [30, 64, 175] },
+                styles: { fontSize: 11 }
+            });
+            
+            // Detailed entries table
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY + 15,
+                head: [
+                    ['Datum', 'Projekt', 'Start', 'Slut', 'Rast', 'Base', 'OB1', 'OB2', 'OB3', 'OB4', 'Totalt']
+                ],
+                body: mockTimeEntries.map(entry => [
+                    entry.date,
+                    entry.projectName,
+                    entry.startTime,
+                    entry.endTime,
+                    entry.breakHours.toFixed(1),
+                    entry.breakdown.base.toFixed(2),
+                    entry.breakdown.ob1.toFixed(2),
+                    entry.breakdown.ob2.toFixed(2),
+                    entry.breakdown.ob3.toFixed(2),
+                    entry.breakdown.ob4.toFixed(2),
+                    entry.total.toFixed(2)
+                ]),
+                theme: 'grid',
+                headStyles: { fillColor: [30, 64, 175] },
+                styles: { fontSize: 9 },
+                pageBreak: 'auto'
+            });
+            
+            // Footer
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(10);
+                doc.text(`Sida ${i} av ${pageCount}`, 200, 285, null, null, 'right');
+                doc.text('Genererad: ' + new Date().toLocaleDateString('sv-SE'), 10, 285);
             }
             
-            const newProject = {
-                name,
-                description,
-                createdAt: new Date().toISOString()
-            };
-            
-            const projectsRef = database.ref(`users/${currentUser.uid}/projects`);
-            projectsRef.push(newProject);
-            
-            // Cerrar modal y limpiar campos
-            document.getElementById('project-modal').classList.add('hidden');
-            document.getElementById('project-name').value = '';
-            document.getElementById('project-description').value = '';
+            // Save PDF
+            doc.save('tidbok-ob-rapport.pdf');
         }
-        
-        // Función para eliminar proyecto
-        function deleteProject(projectId) {
-            if (confirm('¿Estás seguro de que quieres eliminar este proyecto? Esta acción no se puede deshacer.')) {
-                const projectRef = database.ref(`users/${currentUser.uid}/projects/${projectId}`);
-                projectRef.remove();
-            }
-        }
-        
-        // Función para guardar registro de horas
-        function saveTimeEntry() {
-            const date = document.getElementById('work-date').value;
-            const projectId = document.getElementById('project-select').value;
-            const startTime = document.getElementById('start-time').value;
-            const endTime = document.getElementById('end-time').value;
-            const breakTime = document.getElementById('break-time').value || '0.5';
-            const colleagues = document.getElementById('colleagues').value;
-            const notes = document.getElementById('notes').value;
-            
-            if (!date || !projectId || !startTime || !endTime) {
-                alert('Por favor completa todos los campos requeridos');
-                return;
-            }
-            
-            // Obtener nombre del proyecto
-            const project = projects.find(p => p.id === projectId);
-            const projectName = project ? project.name : '';
-            
-            // Crear objetos de fecha completos
-            const startDateTime = new Date(`${date}T${startTime}`);
-            const endDateTime = new Date(`${date}T${endTime}`);
-            
-            // Si la hora de fin es anterior a la de inicio, asumir que es del día siguiente
-            if (endDateTime < startDateTime) {
-                endDateTime.setDate(endDateTime.getDate() + 1);
-            }
-            
-            const newEntry = {
-                date,
-                projectId,
-                projectName,
-                startTime: startDateTime.toISOString(),
-                endTime: endDateTime.toISOString(),
-                breakTime: parseFloat(breakTime),
-                colleagues,
-                notes,
-                createdAt: new Date().toISOString()
-            };
-            
-            const timeRef = database.ref(`users/${currentUser.uid}/timeEntries`);
-            timeRef.push(newEntry);
-            
-            // Limpiar formulario
-            document.getElementById('start-time').value = '01:30';
-            document.getElementById('end-time').value = '10:00';
-            document.getElementById('break-time').value = '0.5';
-            document.getElementById('colleagues').value = '';
-            document.getElementById('notes').value = '';
-        }
-        
-        // Función para mostrar detalle de registro
-        function showEntryDetail(entryId) {
-            const entry = timeEntries.find(e => e.id === entryId);
-            if (!entry) return;
-            
-            // Calcular horas
-            const breakHours = parseFloat(entry.breakTime) || 0;
-            const obHours = calculateOBHours(entry.startTime, entry.endTime, breakHours);
-            
-            const lang = translations[language];
-            const detailContent = document.getElementById('detail-content');
-            detailContent.innerHTML = `
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="font-medium">${lang.date}:</div>
-                    <div>${new Date(entry.startTime).toLocaleDateString()}</div>
-                    
-                    <div class="font-medium">${lang.project}:</div>
-                    <div>${entry.projectName || 'Sin proyecto'}</div>
-                    
-                    <div class="font-medium">Horario:</div>
-                    <div>${new Date(entry.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(entry.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-                    
-                    <div class="font-medium">${lang.totalHours}:</div>
-                    <div>${formatHours(obHours.total)} h</div>
-                    
-                    <div class="font-medium">${lang.breakTime}:</div>
-                    <div>${entry.breakTime} h</div>
-                </div>
-                
-                <div class="pt-3">
-                    <div class="font-medium">Desglose OB:</div>
-                    <div class="grid grid-cols-5 gap-2 mt-2">
-                        <div class="ob-base p-2 rounded text-center">
-                            <div class="font-bold">${lang.baseSalary}</div>
-                            <div>${formatHours(obHours.breakdown.base)} h</div>
-                        </div>
-                        <div class="ob-1 p-2 rounded text-center">
-                            <div class="font-bold">OB 1</div>
-                            <div>${formatHours(obHours.breakdown.ob1)} h</div>
-                        </div>
-                        <div class="ob-2 p-2 rounded text-center">
-                            <div class="font-bold">OB 2</div>
-                            <div>${formatHours(obHours.breakdown.ob2)} h</div>
-                        </div>
-                        <div class="ob-3 p-2 rounded text-center">
-                            <div class="font-bold">OB 3</div>
-                            <div>${formatHours(obHours.breakdown.ob3)} h</div>
-                        </div>
-                        <div class="ob-4 p-2 rounded text-center">
-                            <div class="font-bold">OB 4</div>
-                            <div>${formatHours(obHours.breakdown.ob4)} h</div>
-                        </div>
-                    </div>
-                </div>
-                
-                ${entry.colleagues ? `
-                <div class="pt-3">
-                    <div class="font-medium">${lang.colleagues}:</div>
-                    <div>${entry.colleagues}</div>
-                </div>
-                ` : ''}
-                
-                ${entry.notes ? `
-                <div class="pt-3">
-                    <div class="font-medium">${lang.notes}:</div>
-                    <div>${entry.notes}</div>
-                </div>
-                ` : ''}
-            `;
-            
-            document.getElementById('detail-modal').classList.remove('hidden');
-        }
-        
-        // Función para mostrar formulario de edición
-        function showEditForm(entryId) {
-            const entry = timeEntries.find(e => e.id === entryId);
-            if (!entry) return;
-            
-            // Rellenar formulario
-            document.getElementById('edit-id').value = entry.id;
-            document.getElementById('edit-date').value = entry.date;
-            document.getElementById('edit-start').value = new Date(entry.startTime).toTimeString().substring(0,5);
-            document.getElementById('edit-end').value = new Date(entry.endTime).toTimeString().substring(0,5);
-            document.getElementById('edit-break').value = entry.breakTime;
-            document.getElementById('edit-colleagues').value = entry.colleagues || '';
-            document.getElementById('edit-notes').value = entry.notes || '';
-            
-            // Seleccionar proyecto
-            const editProject = document.getElementById('edit-project');
-            for (let i = 0; i < editProject.options.length; i++) {
-                if (editProject.options[i].value === entry.projectId) {
-                    editProject.selectedIndex = i;
-                    break;
-                }
-            }
-            
-            document.getElementById('edit-modal').classList.remove('hidden');
-        }
-        
-        // Función para guardar cambios en registro
-        function saveEditedEntry() {
-            const entryId = document.getElementById('edit-id').value;
-            const date = document.getElementById('edit-date').value;
-            const projectId = document.getElementById('edit-project').value;
-            const startTime = document.getElementById('edit-start').value;
-            const endTime = document.getElementById('edit-end').value;
-            const breakTime = document.getElementById('edit-break').value;
-            const colleagues = document.getElementById('edit-colleagues').value;
-            const notes = document.getElementById('edit-notes').value;
-            
-            if (!date || !projectId || !startTime || !endTime) {
-                alert('Por favor completa todos los campos requeridos');
-                return;
-            }
-            
-            // Obtener nombre del proyecto
-            const project = projects.find(p => p.id === projectId);
-            const projectName = project ? project.name : '';
-            
-            // Crear objetos de fecha completos
-            const startDateTime = new Date(`${date}T${startTime}`);
-            const endDateTime = new Date(`${date}T${endTime}`);
-            
-            // Si la hora de fin es anterior a la de inicio, asumir que es del día siguiente
-            if (endDateTime < startDateTime) {
-                endDateTime.setDate(endDateTime.getDate() + 1);
-            }
-            
-            const updatedEntry = {
-                date,
-                projectId,
-                projectName,
-                startTime: startDateTime.toISOString(),
-                endTime: endDateTime.toISOString(),
-                breakTime: parseFloat(breakTime),
-                colleagues,
-                notes
-            };
-            
-            const entryRef = database.ref(`users/${currentUser.uid}/timeEntries/${entryId}`);
-            entryRef.update(updatedEntry);
-            
-            // Cerrar modal
-            document.getElementById('edit-modal').classList.add('hidden');
-        }
-        
-        // Función para eliminar registro de horas
-        function deleteTimeEntry(entryId) {
-            if (confirm('¿Estás seguro de que quieres eliminar este registro? Esta acción no se puede deshacer.')) {
-                const entryRef = database.ref(`users/${currentUser.uid}/timeEntries/${entryId}`);
-                entryRef.remove();
-            }
-        }
-        
-        // Función para exportar a PDF
-        function exportToPDF(filteredEntries) {
-            try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({
-                    orientation: 'landscape',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-                
-                // Obtener nombre de usuario
-                const userName = document.getElementById('user-name').textContent;
-                
-                // Título
-                doc.setFontSize(20);
-                doc.setTextColor(40);
-                doc.setFont("helvetica", "bold");
-                doc.text('Reporte de Horas Trabajadas', 105, 20, { align: 'center' });
-                
-                // Información del usuario
-                doc.setFontSize(12);
-                doc.setFont("helvetica", "normal");
-                doc.text(`Usuario: ${userName}`, 20, 30);
-                doc.text(`Fecha de exportación: ${new Date().toLocaleDateString()}`, 20, 37);
-                
-                // Calcular resumen de horas OB
-                let summary = {
-                    base: 0,
-                    ob1: 0,
-                    ob2: 0,
-                    ob3: 0,
-                    ob4: 0,
-                    total: 0
-                };
-                
-                filteredEntries.forEach(entry => {
-                    const breakHours = parseFloat(entry.breakTime) || 0;
-                    const obHours = calculateOBHours(entry.startTime, entry.endTime, breakHours);
-                    summary.base += obHours.breakdown.base;
-                    summary.ob1 += obHours.breakdown.ob1;
-                    summary.ob2 += obHours.breakdown.ob2;
-                    summary.ob3 += obHours.breakdown.ob3;
-                    summary.ob4 += obHours.breakdown.ob4;
-                    summary.total += obHours.total;
-                });
-                
-                // Crear tabla de resumen
-                const summaryHeaders = [['Tipo de Hora', 'Horas']];
-                const summaryData = [
-                    ['Sueldo base', formatHours(summary.base)],
-                    ['OB 1', formatHours(summary.ob1)],
-                    ['OB 2', formatHours(summary.ob2)],
-                    ['OB 3', formatHours(summary.ob3)],
-                    ['OB 4', formatHours(summary.ob4)],
-                    ['TOTAL', formatHours(summary.total)]
-                ];
-                
-                // Agregar título de resumen
-                doc.setFontSize(16);
-                doc.setFont("helvetica", "bold");
-                doc.text('Resumen de Horas OB', 20, 55);
-                doc.setFontSize(12);
-                
-                // Crear tabla de resumen
-                doc.autoTable({
-                    head: summaryHeaders,
-                    body: summaryData,
-                    startY: 60,
-                    theme: 'grid',
-                    headStyles: { 
-                        fillColor: [59, 130, 246],
-                        textColor: 255,
-                        fontStyle: 'bold'
-                    },
-                    styles: { fontSize: 12 },
-                    columnStyles: {
-                        0: { cellWidth: 60, fontStyle: 'bold' },
-                        1: { cellWidth: 40 }
-                    }
-                });
-                
-                // Agregar título de detalle
-                const lastY = doc.lastAutoTable.finalY + 10;
-                doc.setFontSize(16);
-                doc.setFont("helvetica", "bold");
-                doc.text('Detalle de Registros', 20, lastY);
-                doc.setFontSize(12);
-                
-                // Crear datos detallados
-                const detailHeaders = [['Fecha', 'Proyecto', 'Total Horas', 'Sueldo Base', 'OB 1', 'OB 2', 'OB 3', 'OB 4']];
-                const detailData = filteredEntries.map(entry => {
-                    const breakHours = parseFloat(entry.breakTime) || 0;
-                    const obHours = calculateOBHours(entry.startTime, entry.endTime, breakHours);
-                    
-                    return [
-                        new Date(entry.startTime).toLocaleDateString(),
-                        entry.projectName || 'Sin proyecto',
-                        formatHours(obHours.total),
-                        formatHours(obHours.breakdown.base),
-                        formatHours(obHours.breakdown.ob1),
-                        formatHours(obHours.breakdown.ob2),
-                        formatHours(obHours.breakdown.ob3),
-                        formatHours(obHours.breakdown.ob4)
-                    ];
-                });
-                
-                // Crear tabla detallada
-                doc.autoTable({
-                    head: detailHeaders,
-                    body: detailData,
-                    startY: lastY + 10,
-                    theme: 'grid',
-                    headStyles: { 
-                        fillColor: [40, 40, 40],
-                        textColor: 255,
-                        fontStyle: 'bold'
-                    },
-                    styles: { fontSize: 10 },
-                    columnStyles: {
-                        0: { cellWidth: 25 },
-                        1: { cellWidth: 40 },
-                        2: { cellWidth: 20 },
-                        3: { cellWidth: 20 },
-                        4: { cellWidth: 15 },
-                        5: { cellWidth: 15 },
-                        6: { cellWidth: 15 },
-                        7: { cellWidth: 15 }
-                    },
-                    margin: { top: 10 }
-                });
-                
-                // Pie de página
-                const pageCount = doc.internal.getNumberOfPages();
-                for(let i = 1; i <= pageCount; i++) {
-                    doc.setPage(i);
-                    doc.setFontSize(10);
-                    doc.text(`Página ${i} de ${pageCount}`, 195, 285, { align: 'right' });
-                    doc.text('Tidbok OB - Sistema de Registro de Horas', 15, 285);
-                }
-                
-                // Guardar
-                doc.save(`${userName.replace(/\s+/g, '_')}_historial_horas.pdf`);
-            } catch (error) {
-                console.error('Error al generar PDF:', error);
-                alert('Error al generar el PDF: ' + error.message);
-            }
-        }
-        
-        // Función para exportar a JSON
-        function exportToJSON(filteredEntries) {
-            try {
-                const data = filteredEntries.map(entry => {
-                    const breakHours = parseFloat(entry.breakTime) || 0;
-                    const obHours = calculateOBHours(entry.startTime, entry.endTime, breakHours);
-                    
-                    return {
-                        id: entry.id,
-                        date: entry.date,
-                        project: entry.projectName,
-                        startTime: new Date(entry.startTime).toLocaleTimeString(),
-                        endTime: new Date(entry.endTime).toLocaleTimeString(),
-                        breakTime: entry.breakTime,
-                        colleagues: entry.colleagues,
-                        notes: entry.notes,
-                        totalHours: obHours.total,
-                        baseHours: obHours.breakdown.base,
-                        ob1Hours: obHours.breakdown.ob1,
-                        ob2Hours: obHours.breakdown.ob2,
-                        ob3Hours: obHours.breakdown.ob3,
-                        ob4Hours: obHours.breakdown.ob4
-                    };
-                });
-                
-                const jsonStr = JSON.stringify(data, null, 2);
-                const blob = new Blob([jsonStr], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'historial_horas.json';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            } catch (error) {
-                console.error('Error al exportar JSON:', error);
-                alert('Error al exportar JSON: ' + error.message);
-            }
-        }
-        
-        // Filtrar entradas según parámetros de exportación
-        function filterEntriesForExport() {
-            const startDate = document.getElementById('export-start-date').value;
-            const endDate = document.getElementById('export-end-date').value;
-            const obType = document.getElementById('export-ob-type').value;
-            
-            return timeEntries.filter(entry => {
-                const entryDate = new Date(entry.startTime).toISOString().split('T')[0];
-                
-                // Filtrar por fecha
-                if (startDate && entryDate < startDate) return false;
-                if (endDate && entryDate > endDate) return false;
-                
-                // Filtrar por tipo de OB
-                if (obType !== 'all') {
-                    const breakHours = parseFloat(entry.breakTime) || 0;
-                    const obHours = calculateOBHours(entry.startTime, entry.endTime, breakHours);
-                    
-                    switch(obType) {
-                        case 'base': return obHours.breakdown.base > 0;
-                        case 'ob1': return obHours.breakdown.ob1 > 0;
-                        case 'ob2': return obHours.breakdown.ob2 > 0;
-                        case 'ob3': return obHours.breakdown.ob3 > 0;
-                        case 'ob4': return obHours.breakdown.ob4 > 0;
-                        default: return true;
-                    }
-                }
-                
-                return true;
-            });
-        }
-        
-        // Inicializar la aplicación cuando el DOM esté listo
-        document.addEventListener('DOMContentLoaded', () => {
-            // Establecer fecha actual en el campo de fecha
-            const today = new Date();
-            const formattedDate = today.toISOString().split('T')[0];
-            document.getElementById('work-date').value = formattedDate;
-            
-            // Configurar años para el filtro
-            const yearSelect = document.getElementById('filter-year');
-            const currentYear = today.getFullYear();
-            for (let year = currentYear; year >= currentYear - 5; year--) {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                yearSelect.appendChild(option);
-            }
-            
-            // Configurar meses para el filtro
-            const monthSelect = document.getElementById('filter-month');
-            const months = [
-                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-            ];
-            
-            months.forEach((month, index) => {
-                const option = document.createElement('option');
-                option.value = index + 1;
-                option.textContent = month;
-                monthSelect.appendChild(option);
-            });
-            
-            // Inicializar Firebase Auth state observer
-            auth.onAuthStateChanged((user) => {
-                if (user) {
-                    // Usuario logueado
-                    currentUser = user;
-                    document.getElementById('auth-screen').classList.add('hidden');
-                    document.getElementById('app-content').classList.remove('hidden');
-                    document.getElementById('user-info').classList.remove('hidden');
-                    
-                    // Actualizar información de usuario
-                    document.getElementById('user-name').textContent = user.displayName || user.email;
-                    document.getElementById('user-avatar').src = user.photoURL || `https://ui-avatars.com/api/?name=${user.email}&background=random`;
-                    
-                    // Cargar datos del usuario
-                    loadProjects(user.uid);
-                    loadTimeEntries(user.uid);
-                } else {
-                    // Usuario no logueado
-                    currentUser = null;
-                    document.getElementById('auth-screen').classList.remove('hidden');
-                    document.getElementById('app-content').classList.add('hidden');
-                    document.getElementById('user-info').classList.add('hidden');
-                }
-            });
-            
-            // Event listeners
-            document.getElementById('login-btn').addEventListener('click', () => {
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                const authMessage = document.getElementById('auth-message');
-                
-                auth.signInWithEmailAndPassword(email, password)
-                    .catch((error) => {
-                        authMessage.textContent = error.message;
-                    });
-            });
-            
-            document.getElementById('register-btn').addEventListener('click', () => {
-			    const nombre = document.getElementById('nombre').value;
-			    const apellido = document.getElementById('apellido').value;
-			    const telefono = document.getElementById('telefono').value;
-			    const email = document.getElementById('email').value;
-			    const password = document.getElementById('password').value;
-			    const authMessage = document.getElementById('auth-message');
-			
-			    auth.createUserWithEmailAndPassword(email, password)
-			        .then((cred) => {
-			            // Guardar datos adicionales en Firestore
-			            return firebase.firestore().collection('usuarios').doc(cred.user.uid).set({
-			                nombre,
-			                apellido,
-			                telefono,
-			                email,
-			                creadoEn: firebase.firestore.FieldValue.serverTimestamp()
-			            });
-			        })
-			        .then(() => {
-			            authMessage.style.color = "green";
-			            authMessage.textContent = "Cuenta creada correctamente";
-			        })
-			        .catch((error) => {
-			            authMessage.style.color = "red";
-			            authMessage.textContent = error.message;
-			        });
-			});
-
-            
-            document.getElementById('logout-btn').addEventListener('click', () => {
-                auth.signOut();
-            });
-            
-            document.getElementById('new-project-btn').addEventListener('click', () => {
-                document.getElementById('project-modal').classList.remove('hidden');
-            });
-            
-            document.getElementById('create-project-btn').addEventListener('click', () => {
-                document.getElementById('project-modal').classList.remove('hidden');
-            });
-            
-            document.getElementById('cancel-project-btn').addEventListener('click', () => {
-                document.getElementById('project-modal').classList.add('hidden');
-            });
-            
-            document.getElementById('save-project-btn').addEventListener('click', createProject);
-            
-            document.getElementById('save-hours-btn').addEventListener('click', saveTimeEntry);
-            
-            document.getElementById('close-detail-btn').addEventListener('click', () => {
-                document.getElementById('detail-modal').classList.add('hidden');
-            });
-            
-            document.getElementById('export-pdf').addEventListener('click', exportToPDF);
-            
-            document.getElementById('export-json').addEventListener('click', exportToJSON);
-            
-            document.getElementById('language-select').addEventListener('change', (e) => {
-                language = e.target.value;
-                translateUI();
-            });
-            
-            // Filtros
-            document.getElementById('filter-year').addEventListener('change', (e) => {
-                currentFilter.year = e.target.value;
-                loadTimeEntries(currentUser.uid);
-            });
-            
-            document.getElementById('filter-month').addEventListener('change', (e) => {
-                currentFilter.month = e.target.value;
-                loadTimeEntries(currentUser.uid);
-            });
-            
-            document.getElementById('filter-ob').addEventListener('change', (e) => {
-                currentFilter.ob = e.target.value;
-                loadTimeEntries(currentUser.uid);
-            });
-            
-            // Edición
-            document.getElementById('cancel-edit-btn').addEventListener('click', () => {
-                document.getElementById('edit-modal').classList.add('hidden');
-            });
-            
-            document.getElementById('save-edit-btn').addEventListener('click', saveEditedEntry);
-            
-            // Detectar estado de conexión
-            window.addEventListener('online', () => {
-                const status = document.getElementById('connection-status');
-                status.classList.remove('connection-offline');
-                status.classList.add('connection-online');
-                status.innerHTML = '<span class="w-3 h-3 rounded-full bg-white mr-1"></span> Online';
-            });
-            
-            window.addEventListener('offline', () => {
-                const status = document.getElementById('connection-status');
-                status.classList.remove('connection-online');
-                status.classList.add('connection-offline');
-                status.innerHTML = '<span class="w-3 h-3 rounded-full bg-white mr-1"></span> Offline';
-            });
-            
-            // Extensión para obtener número de semana
-            Date.prototype.getWeek = function() {
-                const date = new Date(this.getTime());
-                date.setHours(0, 0, 0, 0);
-                date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
-                const week1 = new Date(date.getFullYear(), 0, 4);
-                return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
-            };
-        });
     </script>
 </body>
 </html>
