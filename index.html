@@ -3108,18 +3108,25 @@ async function exportPDF(startDate, endDate, projectFilter, sortBy, sortOrder) {
 }
 
 // ===== Exportar a Word =====
+// ===== Exportar a Word =====
 async function exportWord(startDate, endDate, projectFilter, sortBy, sortOrder) {
+  if (!window.htmlDocx || !window.htmlDocx.asBlob) {
+    showAlert('No se puede exportar a Word: falta la librería html-docx-js', 'error');
+    return;
+  }
+
   showLoading(true);
   try {
     const records = getFilteredSortedRecords(startDate, endDate, projectFilter, sortBy, sortOrder);
     const container = document.getElementById('pdf-export');
-    if (!container) throw new Error('Contenedor #pdf-export no encontrado');
+    if (!container) throw new Error('No existe el contenedor #pdf-export');
 
+    // Llenar tabla
     const tbody = container.querySelector('tbody');
     if (tbody) tbody.innerHTML = '';
     let totalHours = 0;
 
-    records.forEach(([_, record]) => {
+    records.forEach(([id, record]) => {
       const project = state.projects[record.projectId] || { name: translations[state.currentLanguage]['unknown'], code: '?' };
       const workedHours = calculateWorkedHours(record);
       totalHours += workedHours;
@@ -3133,12 +3140,13 @@ async function exportWord(startDate, endDate, projectFilter, sortBy, sortOrder) 
         <td class="text-right">${workedHours.toFixed(2)}</td>
         <td class="text-right">${record.breakTime} min</td>
       `;
-      tbody?.appendChild(row);
+      tbody.appendChild(row);
     });
 
-    container.querySelector('#pdf-total-hours')?.textContent = totalHours.toFixed(2);
+    const totalEl = container.querySelector('#pdf-total-hours');
+    if (totalEl) totalEl.textContent = totalHours.toFixed(2);
 
-    await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, 300)); // esperar DOM
 
     const styles = `
       <style>
@@ -3146,9 +3154,11 @@ async function exportWord(startDate, endDate, projectFilter, sortBy, sortOrder) 
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #d1d5db; padding: 6px; font-size: 12px; text-align: left; }
         th { background: #f3f4f6; }
+        h1, h2, h3 { margin: 0 0 8px 0; }
       </style>
     `;
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styles}</head><body>${container.innerHTML}</body></html>`;
+
     const blob = window.htmlDocx.asBlob(html);
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -3200,5 +3210,6 @@ function toggleSummaryVisibility() {
 </script>
 </body>
 </html>
+
 
 
