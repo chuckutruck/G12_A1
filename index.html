@@ -3189,11 +3189,13 @@ function toggleRecordsVisibility() {
   btnIcon?.classList.replace(isHidden ? 'fa-chevron-down' : 'fa-chevron-up', isHidden ? 'fa-chevron-up' : 'fa-chevron-down');
 }
 
-// ===== Toggle visibilidad resumen =====
+<!-- ===== Toggle visibilidad resumen ===== -->
+<script>
 function toggleSummaryVisibility() {
   const content = document.getElementById('summary-content');
   const icon = document.querySelector('#summary-header .toggle-icon');
   if (!content) return;
+
   const expanded = content.style.maxHeight && content.style.maxHeight !== '0px';
   content.style.maxHeight = expanded ? '0' : content.scrollHeight + 'px';
   icon?.classList.toggle('rotated', !expanded);
@@ -3201,4 +3203,6 @@ function toggleSummaryVisibility() {
 </script>
 </body>
 </html>
+
+
 
