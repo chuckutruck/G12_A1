@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>i
 <html lang="sv">
 <head>
   <meta charset="utf-8">
@@ -3179,15 +3179,7 @@ function exportToJSON() {
   showAlert(translations[state.currentLanguage]['export_success'], 'success');
 }
 
-// ===== Toggle visibilidad registros =====
-function toggleRecordsVisibility() {
-  const content = document.getElementById('records-content');
-  const btnIcon = document.getElementById('toggle-records')?.querySelector('i');
-  if (!content) return;
-  const isHidden = content.classList.contains('hidden');
-  content.classList.toggle('hidden', !isHidden);
-  btnIcon?.classList.replace(isHidden ? 'fa-chevron-down' : 'fa-chevron-up', isHidden ? 'fa-chevron-up' : 'fa-chevron-down');
-}
+<!-- ===== Toggle visibilidad resumen ===== -->
 <script>
 function toggleSummaryVisibility() {
   const content = document.getElementById('summary-content');
@@ -3201,3 +3193,4 @@ function toggleSummaryVisibility() {
 </script>
 </body>
 </html>
+
