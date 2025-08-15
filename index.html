@@ -2941,64 +2941,24 @@
         });
     }
 
-// ===== Abrir modal de filtros de exportación =====
-  function openExportFilterModal() {
-    const projectFilter = document.getElementById('export-project-filter');
-    const startDate = document.getElementById('export-start-date');
-    const endDate = document.getElementById('export-end-date');
-
-    // Fechas por defecto (mes actual)
-    const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-    if (startDate) startDate.value = firstDay.toISOString().split('T')[0];
-    if (endDate) endDate.value = lastDay.toISOString().split('T')[0];
-
-    // Limpiar y añadir opciones de proyectos
-    if (projectFilter) {
-      projectFilter.innerHTML = '';
-      const allProjectsOption = document.createElement('option');
-      allProjectsOption.value = 'all';
-      allProjectsOption.textContent = translations[state.currentLanguage]['all_projects'];
-      projectFilter.appendChild(allProjectsOption);
-
-      Object.entries(state.projects).forEach(([id, project]) => {
-        const option = document.createElement('option');
-        option.value = id;
-        option.textContent = `${project.code} - ${project.name}`;
-        projectFilter.appendChild(option);
-      });
-    }
-
-    // Cambiar título del modal según tipo de exportación
-    const title = document.getElementById('export-modal-title');
-    if (title) {
-      if (state.exportType === 'pdf') {
-        title.textContent = translations[state.currentLanguage]['export_pdf'];
-      } else if (state.exportType === 'word') {
-        title.textContent = translations[state.currentLanguage]['export_word'];
-      }
-    }
-
-    // Mostrar modal
-    const modal = document.getElementById('export-filter-modal');
-    if (modal) {
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-// ===== Abrir modal de filtros de exportación =====
+// ===== Modal de filtros de exportación =====
 function openExportFilterModal() {
   const projectFilter = document.getElementById('export-project-filter');
-  const startDate = document.getElementById('export-start-date');
-  const endDate = document.getElementById('export-end-date');
+  const startDateInput = document.getElementById('export-start-date');
+  const endDateInput = document.getElementById('export-end-date');
+  const modal = document.getElementById('export-filter-modal');
+  const title = document.getElementById('export-modal-title');
+
+  if (!modal) return;
+
+  // Fechas por defecto (mes actual)
   const today = new Date();
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
   const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  if (startDateInput) startDateInput.value = firstDay.toISOString().split('T')[0];
+  if (endDateInput) endDateInput.value = lastDay.toISOString().split('T')[0];
 
-  if (startDate) startDate.value = firstDay.toISOString().split('T')[0];
-  if (endDate) endDate.value = lastDay.toISOString().split('T')[0];
-
+  // Cargar opciones de proyectos
   if (projectFilter) {
     projectFilter.innerHTML = '';
     const allOption = document.createElement('option');
@@ -3014,115 +2974,31 @@ function openExportFilterModal() {
     });
   }
 
-  // ===== Cerrar modal de filtros =====
-  function closeExportFilterModal() {
-    const modal = document.getElementById('export-filter-modal');
-    if (modal) {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-  const title = document.getElementById('export-modal-title');
+  // Título del modal
   if (title) {
     title.textContent = translations[state.currentLanguage][`export_${state.exportType}`] || '';
   }
 
-  // ===== Procesar filtros de exportación =====
-  function handleExportFilterSubmit() {
-    const startDate = document.getElementById('export-start-date')?.value;
-    const endDate = document.getElementById('export-end-date')?.value;
-    const projectFilter = document.getElementById('export-project-filter')?.value;
-    const sortBy = document.getElementById('export-sort-by')?.value;
-    const sortOrder = document.getElementById('export-sort-order')?.value;
-
-    closeExportFilterModal();
-
-    if (state.exportType === 'pdf') {
-      exportPDF(startDate, endDate, projectFilter, sortBy, sortOrder);
-    } else if (state.exportType === 'word') {
-      exportWord(startDate, endDate, projectFilter, sortBy, sortOrder);
-    }
-  const modal = document.getElementById('export-filter-modal');
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-  }
-
-  // ===== Filtrar y ordenar registros =====
-  function getFilteredSortedRecords(startDate, endDate, projectFilter, sortBy, sortOrder) {
-    const filteredRecords = Object.entries(state.records).filter(([id, record]) => {
-      if (record.date < startDate || record.date > endDate) return false;
-      if (projectFilter !== 'all' && record.projectId !== projectFilter) return false;
-      return true;
-    });
-
-    filteredRecords.sort((a, b) => {
-      const recordA = a[1];
-      const recordB = b[1];
-      let compareValue = 0;
-
-      switch (sortBy) {
-        case 'date':
-          compareValue = new Date(recordA.date) - new Date(recordB.date);
-          break;
-        case 'project':
-          const projectA = state.projects[recordA.projectId]?.name || '';
-          const projectB = state.projects[recordB.projectId]?.name || '';
-          compareValue = projectA.localeCompare(projectB);
-          break;
-        case 'hours':
-          compareValue = calculateWorkedHours(recordA) - calculateWorkedHours(recordB);
-          break;
-      }
-      return sortOrder === 'asc' ? compareValue : -compareValue;
-    });
-
-    return filteredRecords;
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
 }
 
-// ===== Cerrar modal de filtros =====
 function closeExportFilterModal() {
   const modal = document.getElementById('export-filter-modal');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  }
-
-  // ===== Calcular horas trabajadas =====
-  function calculateWorkedHours(record) {
-    const startTime = record.startTime.split(':');
-    const endTime = record.endTime.split(':');
-    const startMinutes = parseInt(startTime[0]) * 60 + parseInt(startTime[1]);
-    const endMinutes = parseInt(endTime[0]) * 60 + parseInt(endTime[1]);
-    const workedMinutes = endMinutes - startMinutes - record.breakTime;
-    return workedMinutes / 60;
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
 }
 
-// ===== Procesar filtros de exportación =====
-function handleExportFilterSubmit() {
-  const startDate = document.getElementById('export-start-date')?.value;
-  const endDate = document.getElementById('export-end-date')?.value;
-  const projectFilter = document.getElementById('export-project-filter')?.value;
-  const sortBy = document.getElementById('export-sort-by')?.value;
-  const sortOrder = document.getElementById('export-sort-order')?.value;
-
-  closeExportFilterModal();
-
-  if (state.exportType === 'pdf') {
-    exportPDF(startDate, endDate, projectFilter, sortBy, sortOrder);
-  } else if (state.exportType === 'word') {
-    exportWord(startDate, endDate, projectFilter, sortBy, sortOrder);
-  }
-}
-
-// ===== Filtrar y ordenar registros =====
-function getFilteredSortedRecords(startDate, endDate, projectFilter, sortBy, sortOrder) {
-  const filteredRecords = Object.entries(state.records).filter(([_, record]) => {
+// ===== Filtrado y ordenamiento de registros =====
+function getFilteredSortedRecords({ startDate, endDate, projectFilter, sortBy, sortOrder }) {
+  const filtered = Object.values(state.records).filter(record => {
     if (record.date < startDate || record.date > endDate) return false;
     if (projectFilter !== 'all' && record.projectId !== projectFilter) return false;
     return true;
   });
 
-  filteredRecords.sort(([_, a], [_, b]) => {
+  filtered.sort((a, b) => {
     let cmp = 0;
     switch (sortBy) {
       case 'date':
@@ -3140,218 +3016,80 @@ function getFilteredSortedRecords(startDate, endDate, projectFilter, sortBy, sor
     return sortOrder === 'asc' ? cmp : -cmp;
   });
 
-  return filteredRecords;
+  return filtered;
 }
 
-// ===== Calcular horas trabajadas =====
+// ===== Cálculo de horas trabajadas =====
 function calculateWorkedHours(record) {
   const [startH, startM] = record.startTime.split(':').map(Number);
   const [endH, endM] = record.endTime.split(':').map(Number);
-  const workedMinutes = (endH * 60 + endM) - (startH * 60 + startM) - (record.breakTime || 0);
-  return workedMinutes / 60;
+  const totalMinutes = (endH * 60 + endM) - (startH * 60 + startM) - (record.breakTime || 0);
+  return totalMinutes / 60;
+}
+
+// ===== Procesar filtros y exportar =====
+function handleExportFilterSubmit() {
+  const startDate = document.getElementById('export-start-date')?.value;
+  const endDate = document.getElementById('export-end-date')?.value;
+  const projectFilter = document.getElementById('export-project-filter')?.value;
+  const sortBy = document.getElementById('export-sort-by')?.value;
+  const sortOrder = document.getElementById('export-sort-order')?.value;
+
+  closeExportFilterModal();
+
+  const params = { startDate, endDate, projectFilter, sortBy, sortOrder };
+
+  if (state.exportType === 'pdf') exportPDF(params);
+  else if (state.exportType === 'word') exportWord(params);
 }
 
 // ===== Exportar a PDF =====
-async function exportPDF(startDate, endDate, projectFilter, sortBy, sortOrder) {
+async function exportPDF({ startDate, endDate, projectFilter, sortBy, sortOrder }) {
   showLoading(true);
   try {
-    const records = getFilteredSortedRecords(startDate, endDate, projectFilter, sortBy, sortOrder);
+    const records = getFilteredSortedRecords({ startDate, endDate, projectFilter, sortBy, sortOrder });
     const container = document.getElementById('pdf-export');
     if (!container) throw new Error('Contenedor #pdf-export no encontrado');
 
     const tbody = container.querySelector('tbody');
     if (tbody) tbody.innerHTML = '';
-    let totalHours = 0;
 
-    records.forEach(([_, record]) => {
+    let totalHours = 0;
+    records.forEach(record => {
       const project = state.projects[record.projectId] || { name: translations[state.currentLanguage]['unknown'], code: '?' };
       const workedHours = calculateWorkedHours(record);
       totalHours += workedHours;
       const week = getWeekNumber(new Date(record.date));
-
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${record.date}</td>
         <td>${week}</td>
         <td>${project.code} - ${project.name}</td>
         <td class="text-right">${workedHours.toFixed(2)}</td>
-        <td class="text-right">${record.breakTime} min</td>
+        <td class="text-right">${record.breakTime || 0} min</td>
       `;
       tbody?.appendChild(row);
     });
 
-  // ===== Exportar a PDF =====
-  async function exportPDF(startDate, endDate, projectFilter, sortBy, sortOrder) {
-    showLoading(true);
-    try {
-      const records = getFilteredSortedRecords(startDate, endDate, projectFilter, sortBy, sortOrder);
-      const container = document.getElementById('pdf-export');
-      if (!container) throw new Error('No existe el contenedor #pdf-export');
-
-      // Llenar tabla
-      const tbody = container.querySelector('tbody');
-      if (tbody) tbody.innerHTML = '';
-      let totalHours = 0;
-
-      records.forEach(([id, record]) => {
-        const project = state.projects[record.projectId] || { name: translations[state.currentLanguage]['unknown'], code: '?' };
-        const workedHours = calculateWorkedHours(record);
-        totalHours += workedHours;
-        const week = getWeekNumber(new Date(record.date));
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${record.date}</td>
-          <td>${week}</td>
-          <td>${project.code} - ${project.name}</td>
-          <td class="text-right">${workedHours.toFixed(2)}</td>
-          <td class="text-right">${record.breakTime} min</td>
-        `;
-        if (tbody) tbody.appendChild(row);
-      });
-
-      const totalEl = container.querySelector('#pdf-total-hours');
-      if (totalEl) totalEl.textContent = totalHours.toFixed(2);
-
-      await new Promise(r => setTimeout(r, 300)); // esperar DOM
-
-      const { jsPDF } = window.jspdf;
-      const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: '#FFFFFF' });
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
     container.querySelector('#pdf-total-hours')?.textContent = totalHours.toFixed(2);
 
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgW = 210;
-      const pageH = 297;
-      const imgH = canvas.height * imgW / canvas.width;
-      let heightLeft = imgH;
-      let y = 0;
-    await new Promise(r => setTimeout(r, 300));
-
-    const { jsPDF } = window.jspdf;
     const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: '#FFFFFF' });
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
     const pdf = new jsPDF('p', 'mm', 'a4');
-
     const imgW = 210;
     const pageH = 297;
-    const imgH = canvas.height * imgW / canvas.width;
+    const imgH = (canvas.height * imgW) / canvas.width;
     let heightLeft = imgH;
     let y = 0;
 
     pdf.addImage(imgData, 'JPEG', 0, y, imgW, imgH);
-    heightLeft -= pageH;
-
-    while (heightLeft > 0) {
+    while (heightLeft > pageH) {
       y = heightLeft - imgH;
       pdf.addPage();
       pdf.addImage(imgData, 'JPEG', 0, y, imgW, imgH);
       heightLeft -= pageH;
-      while (heightLeft > 0) {
-        y = heightLeft - imgH;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, y, imgW, imgH);
-        heightLeft -= pageH;
-      }
-
-      pdf.save(`timebook_report_${state.user.lastName || "User"}_${new Date().toISOString().slice(0,10)}.pdf`);
-      showAlert(translations[state.currentLanguage]['pdf_export_success'], 'success');
-    } catch (err) {
-      console.error(err);
-      showAlert(translations[state.currentLanguage]['pdf_export_error'] + err.message, 'error');
-    } finally {
-      showLoading(false);
     }
-  }
 
-  // ===== Exportar a Word =====
-  async function exportWord(startDate, endDate, projectFilter, sortBy, sortOrder) {
-    showLoading(true);
-    try {
-      const records = getFilteredSortedRecords(startDate, endDate, projectFilter, sortBy, sortOrder);
-      const container = document.getElementById('pdf-export');
-      if (!container) throw new Error('No existe el contenedor #pdf-export');
-
-      // Llenar tabla
-      const tbody = container.querySelector('tbody');
-      if (tbody) tbody.innerHTML = '';
-      let totalHours = 0;
-
-      records.forEach(([id, record]) => {
-        const project = state.projects[record.projectId] || { name: translations[state.currentLanguage]['unknown'], code: '?' };
-        const workedHours = calculateWorkedHours(record);
-        totalHours += workedHours;
-        const week = getWeekNumber(new Date(record.date));
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${record.date}</td>
-          <td>${week}</td>
-          <td>${project.code} - ${project.name}</td>
-          <td class="text-right">${workedHours.toFixed(2)}</td>
-          <td class="text-right">${record.breakTime} min</td>
-        `;
-        if (tbody) tbody.appendChild(row);
-      });
-
-      const totalEl = container.querySelector('#pdf-total-hours');
-      if (totalEl) totalEl.textContent = totalHours.toFixed(2);
-
-      await new Promise(r => setTimeout(r, 300));
-
-      const styles = `
-        <style>
-          body { font-family: Arial, Helvetica, sans-serif; color: #111; }
-          table { border-collapse: collapse; width: 100%; }
-          th, td { border: 1px solid #d1d5db; padding: 6px; font-size: 12px; text-align: left; }
-          th { background: #f3f4f6; }
-          h1, h2, h3 { margin: 0 0 8px 0; }
-        </style>
-      `;
-      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styles}</head><body>${container.innerHTML}</body></html>`;
-      const blob = window.htmlDocx.asBlob(html);
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `timebook_report_${state.user.lastName || "User"}_${new Date().toISOString().slice(0,10)}.docx`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-
-      showAlert(translations[state.currentLanguage]['word_export_success'], 'success');
-    } catch (err) {
-      console.error(err);
-      showAlert(translations[state.currentLanguage]['word_export_error'] + err.message, 'error');
-    } finally {
-      showLoading(false);
-    }
-  }
-
-  // ===== Exportar a JSON =====
-  function exportToJSON() {
-    const data = { user: state.user, projects: state.projects, records: state.records };
-    const dataStr = JSON.stringify(data);
-    const uri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
-    const link = document.createElement('a');
-    link.href = uri;
-    link.download = `timebook_export_${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showAlert(translations[state.currentLanguage]['export_success'], 'success');
-  }
-
-  // ===== Mostrar/Ocultar registros =====
-  function toggleRecordsVisibility() {
-    const content = document.getElementById('records-content');
-    const btnIcon = document.getElementById('toggle-records')?.querySelector('i');
-    if (content) {
-      if (content.classList.contains('hidden')) {
-        content.classList.remove('hidden');
-        if (btnIcon) btnIcon.classList.replace('fa-chevron-down', 'fa-chevron-up');
-      } else {
-        content.classList.add('hidden');
-        if (btnIcon) btnIcon.classList.replace('fa-chevron-up', 'fa-chevron-down');
-      }
-    }
     pdf.save(`timebook_report_${state.user.lastName || "User"}_${new Date().toISOString().slice(0,10)}.pdf`);
     showAlert(translations[state.currentLanguage]['pdf_export_success'], 'success');
   } catch (err) {
@@ -3363,10 +3101,10 @@ async function exportPDF(startDate, endDate, projectFilter, sortBy, sortOrder) {
 }
 
 // ===== Exportar a Word =====
-async function exportWord(startDate, endDate, projectFilter, sortBy, sortOrder) {
+async function exportWord({ startDate, endDate, projectFilter, sortBy, sortOrder }) {
   showLoading(true);
   try {
-    const records = getFilteredSortedRecords(startDate, endDate, projectFilter, sortBy, sortOrder);
+    const records = getFilteredSortedRecords({ startDate, endDate, projectFilter, sortBy, sortOrder });
     const container = document.getElementById('pdf-export');
     if (!container) throw new Error('Contenedor #pdf-export no encontrado');
 
@@ -3374,43 +3112,27 @@ async function exportWord(startDate, endDate, projectFilter, sortBy, sortOrder) 
     if (tbody) tbody.innerHTML = '';
     let totalHours = 0;
 
-    records.forEach(([_, record]) => {
+    records.forEach(record => {
       const project = state.projects[record.projectId] || { name: translations[state.currentLanguage]['unknown'], code: '?' };
       const workedHours = calculateWorkedHours(record);
       totalHours += workedHours;
       const week = getWeekNumber(new Date(record.date));
-
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${record.date}</td>
         <td>${week}</td>
         <td>${project.code} - ${project.name}</td>
         <td class="text-right">${workedHours.toFixed(2)}</td>
-        <td class="text-right">${record.breakTime} min</td>
+        <td class="text-right">${record.breakTime || 0} min</td>
       `;
       tbody?.appendChild(row);
     });
 
-  // ===== Mostrar/Ocultar resumen =====
-  function toggleSummaryVisibility() {
-    const content = document.getElementById('summary-content');
-    const icon = document.querySelector('#summary-header .toggle-icon');
-    if (content) {
-      if (content.style.maxHeight === '0px' || !content.style.maxHeight) {
-        content.style.maxHeight = content.scrollHeight + 'px';
-        if (icon) icon.classList.add('rotated');
-      } else {
-        content.style.maxHeight = '0';
-        if (icon) icon.classList.remove('rotated');
-      }
-    }
     container.querySelector('#pdf-total-hours')?.textContent = totalHours.toFixed(2);
-
-    await new Promise(r => setTimeout(r, 300));
 
     const styles = `
       <style>
-        body { font-family: Arial, Helvetica, sans-serif; color: #111; }
+        body { font-family: Arial, Helvetica, sans-serif; }
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #d1d5db; padding: 6px; font-size: 12px; text-align: left; }
         th { background: #f3f4f6; }
@@ -3435,25 +3157,32 @@ async function exportWord(startDate, endDate, projectFilter, sortBy, sortOrder) 
 
 // ===== Exportar a JSON =====
 function exportToJSON() {
-  const dataStr = JSON.stringify({ user: state.user, projects: state.projects, records: state.records });
-  const uri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
-  const link = document.createElement('a');
-  link.href = uri;
-  link.download = `timebook_export_${new Date().toISOString().slice(0,10)}.json`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  showAlert(translations[state.currentLanguage]['export_success'], 'success');
+  const dataStr = JSON.stringify(state.records, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `timebook_records_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
-// ===== Toggle visibilidad registros =====
-function toggleRecordsVisibility() {
-  const content = document.getElementById('records-content');
-  const btnIcon = document.getElementById('toggle-records')?.querySelector('i');
-  if (!content) return;
-  const isHidden = content.classList.contains('hidden');
-  content.classList.toggle('hidden', !isHidden);
-  btnIcon?.classList.replace(isHidden ? 'fa-chevron-down' : 'fa-chevron-up', isHidden ? 'fa-chevron-up' : 'fa-chevron-down');
+// ===== Funciones auxiliares =====
+function getWeekNumber(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+}
+
+function showLoading(show) {
+  const loader = document.getElementById('loader');
+  if (!loader) return;
+  loader.style.display = show ? 'block' : 'none';
+}
+
+function showAlert(message, type = 'info') {
+  alert(`${type.toUpperCase()}: ${message}`);
 }
 
 // ===== Toggle visibilidad resumen =====
@@ -3468,3 +3197,4 @@ function toggleSummaryVisibility() {
 </script>
 </body>
 </html>
+
