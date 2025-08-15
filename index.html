@@ -314,10 +314,10 @@
       display: inline-block;
     }
     
+    .flag-sv { background: linear-gradient(to bottom, #006aa7 0% 40%, #fecc00 40% 60%, #006aa7 60% 100%); }
     .flag-es { background: linear-gradient(to bottom, #c60b1e 25%, #ffc400 25% 75%, #c60b1e 75%); }
     .flag-en { background: linear-gradient(to bottom, #012169 0% 40%, white 40% 60%, #c8102e 60% 100%); }
-    .flag-sv { background: linear-gradient(to bottom, #006aa7 0% 40%, #fecc00 40% 60%, #006aa7 60% 100%); }
-    
+        
     .language-dropdown {
       position: absolute;
       top: 100%;
@@ -964,25 +964,44 @@
             <i class="fas fa-times"></i>
           </button>
         </div>
-        
+    
         <div class="p-4">
           <form id="pdf-filter-form">
             <div class="form-group mb-4">
-              <label for="pdf-month-filter" class="form-label" data-i18n="month">Månad</label>
-              <select id="pdf-month-filter" class="form-control">
-                <option value="all" data-i18n="all_months">Alla månader</option>
-                <!-- Months will be populated dynamically -->
-              </select>
+              <label for="pdf-start-date" class="form-label" data-i18n="start_date">Startdatum</label>
+              <input type="date" id="pdf-start-date" class="form-control">
             </div>
-            
-            <div class="form-group mb-6">
+    
+            <div class="form-group mb-4">
+              <label for="pdf-end-date" class="form-label" data-i18n="end_date">Slutdatum</label>
+              <input type="date" id="pdf-end-date" class="form-control">
+            </div>
+    
+            <div class="form-group mb-4">
               <label for="pdf-project-filter" class="form-label" data-i18n="project">Projekt</label>
               <select id="pdf-project-filter" class="form-control">
                 <option value="all" data-i18n="all_projects">Alla projekt</option>
                 <!-- Projects will be populated dynamically -->
               </select>
             </div>
-            
+    
+            <div class="form-group mb-4">
+              <label for="pdf-sort-by" class="form-label" data-i18n="sort_by">Sortera efter</label>
+              <select id="pdf-sort-by" class="form-control">
+                <option value="date" data-i18n="date">Datum</option>
+                <option value="project" data-i18n="project">Projekt</option>
+                <option value="hours" data-i18n="hours">Timmar</option>
+              </select>
+            </div>
+    
+            <div class="form-group mb-6">
+              <label for="pdf-sort-order" class="form-label" data-i18n="sort_order">Sorteringsordning</label>
+              <select id="pdf-sort-order" class="form-control">
+                <option value="asc" data-i18n="ascending">Stigande</option>
+                <option value="desc" selected data-i18n="descending">Fallande</option>
+              </select>
+            </div>
+    
             <div class="flex justify-end">
               <button type="button" id="cancel-pdf-filter" class="btn-outline mr-2" data-i18n="cancel">Avbryt</button>
               <button type="submit" class="btn-primary" data-i18n="generate_report">Generera rapport</button>
@@ -1001,25 +1020,44 @@
             <i class="fas fa-times"></i>
           </button>
         </div>
-        
+    
         <div class="p-4">
           <form id="word-filter-form">
             <div class="form-group mb-4">
-              <label for="word-month-filter" class="form-label" data-i18n="month">Månad</label>
-              <select id="word-month-filter" class="form-control">
-                <option value="all" data-i18n="all_months">Alla månader</option>
-                <!-- Months will be populated dynamically -->
-              </select>
+              <label for="word-start-date" class="form-label" data-i18n="start_date">Startdatum</label>
+              <input type="date" id="word-start-date" class="form-control">
             </div>
-            
-            <div class="form-group mb-6">
+    
+            <div class="form-group mb-4">
+              <label for="word-end-date" class="form-label" data-i18n="end_date">Slutdatum</label>
+              <input type="date" id="word-end-date" class="form-control">
+            </div>
+    
+            <div class="form-group mb-4">
               <label for="word-project-filter" class="form-label" data-i18n="project">Projekt</label>
               <select id="word-project-filter" class="form-control">
                 <option value="all" data-i18n="all_projects">Alla projekt</option>
                 <!-- Projects will be populated dynamically -->
               </select>
             </div>
-            
+    
+            <div class="form-group mb-4">
+              <label for="word-sort-by" class="form-label" data-i18n="sort_by">Sortera efter</label>
+              <select id="word-sort-by" class="form-control">
+                <option value="date" data-i18n="date">Datum</option>
+                <option value="project" data-i18n="project">Projekt</option>
+                <option value="hours" data-i18n="hours">Timmar</option>
+              </select>
+            </div>
+    
+            <div class="form-group mb-6">
+              <label for="word-sort-order" class="form-label" data-i18n="sort_order">Sorteringsordning</label>
+              <select id="word-sort-order" class="form-control">
+                <option value="asc" data-i18n="ascending">Stigande</option>
+                <option value="desc" selected data-i18n="descending">Fallande</option>
+              </select>
+            </div>
+    
             <div class="flex justify-end">
               <button type="button" id="cancel-word-filter" class="btn-outline mr-2" data-i18n="cancel">Avbryt</button>
               <button type="submit" class="btn-primary" data-i18n="generate_report">Generera rapport</button>
@@ -1028,7 +1066,7 @@
         </div>
       </div>
     </div>
-  </div>
+
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
@@ -2886,3 +2924,4 @@
   </script>
 </body>
 </html>
+
