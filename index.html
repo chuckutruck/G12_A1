@@ -2611,98 +2611,97 @@
       state.exportType = type;
       const modalId = `${type}-filter-modal`;
       const titleId = `${type}-filter-title`;
-      
+    
       // Set modal title
-      document.getElementById(titleId).textContent = translations[state.currentLanguage][`${type}_filter_title`];
-      
+      document.getElementById(titleId).textContent =
+        translations[state.currentLanguage][`${type}_filter_title`];
+    
       // Populate month filter
       const monthFilter = document.getElementById(`${type}-month-filter`);
       monthFilter.innerHTML = `<option value="all">${translations[state.currentLanguage]['all_months']}</option>`;
-      
-      // Add months (1-12)
       for (let i = 1; i <= 12; i++) {
         const option = document.createElement('option');
         option.value = i;
-        option.textContent = new Date(2023, i - 1, 1).toLocaleString(state.currentLanguage, { month: 'long' });
+        option.textContent = new Date(2023, i - 1, 1).toLocaleString(
+          state.currentLanguage,
+          { month: 'long' }
+        );
         monthFilter.appendChild(option);
       }
-      
+    
       // Populate project filter
       const projectFilter = document.getElementById(`${type}-project-filter`);
       projectFilter.innerHTML = `<option value="all">${translations[state.currentLanguage]['all_projects']}</option>`;
-      
-      // Add projects
       Object.entries(state.projects).forEach(([id, project]) => {
         const option = document.createElement('option');
         option.value = id;
         option.textContent = `${project.code} - ${project.name}`;
         projectFilter.appendChild(option);
       });
-      
+    
       // Show modal
-      document.getElementById(modalId).classList.remove('hidden');
-      document.getElementById(modalId).classList.add('flex');
+      const modal = document.getElementById(modalId);
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
     }
-
+    
     // Close export modal
     function closeExportModal(type) {
-      const modalId = `${type}-filter-modal`;
-      document.getElementById(modalId).classList.add('hidden');
-      document.getElementById(modalId).classList.remove('flex');
+      const modal = document.getElementById(`${type}-filter-modal`);
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
     }
-
+    
     // Handle filter submit for export
     function handleFilterSubmit(e, type) {
       e.preventDefault();
+    
+      // Read filter values
       const monthFilter = document.getElementById(`${type}-month-filter`).value;
       const projectFilter = document.getElementById(`${type}-project-filter`).value;
-      
+    
+      // Close modal
       closeExportModal(type);
-      
+    
+      // Generate report
       if (type === 'pdf') {
         generatePDF(monthFilter, projectFilter);
       } else if (type === 'word') {
         generateWord(monthFilter, projectFilter);
       }
     }
-
+    
     // Generate PDF report
     async function generatePDF(monthFilter, projectFilter) {
       showLoading(true);
-      
       try {
-        // Get filtered records
         const filteredRecords = getFilteredRecords(monthFilter, projectFilter);
-        
-        // Update PDF content
+    
         document.getElementById('pdf-user-name').textContent = state.user.displayName || '';
         document.getElementById('pdf-user-email').textContent = state.user.email || '';
         document.getElementById('pdf-gen-date').textContent = new Date().toLocaleDateString(state.currentLanguage);
         document.getElementById('pdf-period').textContent = getFilterDescription(monthFilter, projectFilter);
-        
+    
         const tableBody = document.querySelector('#pdf-summary-table tbody');
         tableBody.innerHTML = '';
-        
+    
         let totalHours = 0;
-        
-        // Add records to table
+    
         filteredRecords.forEach(([_, record]) => {
           const project = state.projects[record.projectId] || { 
             name: translations[state.currentLanguage]['unknown'], 
             code: '?' 
           };
-          
-          const date = new Date(record.date);
+    
           const dateStr = formatDateShort(record.date);
-          const dayName = getSwedishDayName(date);
-          
+          const dayName = getSwedishDayName(new Date(record.date));
+    
           const [sh, sm] = record.startTime.split(':').map(Number);
           const [eh, em] = record.endTime.split(':').map(Number);
           const workedMinutes = (eh * 60 + em) - (sh * 60 + sm) - record.breakTime;
           const workedHours = workedMinutes / 60;
-          
           totalHours += workedHours;
-          
+    
           const row = document.createElement('tr');
           row.innerHTML = `
             <td class="border py-2 px-3">${dateStr}</td>
@@ -2716,33 +2715,26 @@
           `;
           tableBody.appendChild(row);
         });
-        
-        // Update total
+    
         document.getElementById('pdf-total-hours').textContent = totalHours.toFixed(2);
-        
-        // Generate PDF
+    
         await new Promise(resolve => setTimeout(resolve, 500));
-        
+    
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfExport = document.getElementById('pdf-export');
-        
-        await html2canvas(pdfExport, {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#FFFFFF'
-        }).then(canvas => {
-          const imgData = canvas.toDataURL('image/jpeg', 0.95);
-          const imgWidth = 210;
-          const imgHeight = (canvas.height * imgWidth) / canvas.width;
-          
-          pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
-          
-          const lastName = state.user.lastName || "User";
-          const today = new Date().toISOString().slice(0, 10);
-          pdf.save(`tidrapport_${lastName}_${today}.pdf`);
-        });
-        
+    
+        await html2canvas(pdfExport, { scale: 2, useCORS: true, logging: false, backgroundColor: '#FFFFFF' })
+          .then(canvas => {
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const imgWidth = 210;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+    
+            const lastName = state.user.lastName || "User";
+            const today = new Date().toISOString().slice(0, 10);
+            pdf.save(`tidrapport_${lastName}_${today}.pdf`);
+          });
+    
       } catch (error) {
         console.error('Error generating PDF:', error);
         showAlert('Error generating PDF: ' + error.message, 'error');
@@ -2750,16 +2742,13 @@
         showLoading(false);
       }
     }
-
+    
     // Generate Word report
     function generateWord(monthFilter, projectFilter) {
       showLoading(true);
-      
       try {
-        // Get filtered records
         const filteredRecords = getFilteredRecords(monthFilter, projectFilter);
-        
-        // Create HTML content for Word
+    
         let htmlContent = `
           <!DOCTYPE html>
           <html>
@@ -2782,7 +2771,7 @@
             <p><strong>E-post:</strong> ${state.user.email}</p>
             <p><strong>Period:</strong> ${getFilterDescription(monthFilter, projectFilter)}</p>
             <p><strong>Genereringsdatum:</strong> ${new Date().toLocaleDateString(state.currentLanguage)}</p>
-            
+    
             <table>
               <thead>
                 <tr>
@@ -2798,27 +2787,24 @@
               </thead>
               <tbody>
         `;
-        
+    
         let totalHours = 0;
-        
-        // Add records to table
+    
         filteredRecords.forEach(([_, record]) => {
           const project = state.projects[record.projectId] || { 
             name: translations[state.currentLanguage]['unknown'], 
             code: '?' 
           };
-          
-          const date = new Date(record.date);
+    
           const dateStr = formatDateShort(record.date);
-          const dayName = getSwedishDayName(date);
-          
+          const dayName = getSwedishDayName(new Date(record.date));
+    
           const [sh, sm] = record.startTime.split(':').map(Number);
           const [eh, em] = record.endTime.split(':').map(Number);
           const workedMinutes = (eh * 60 + em) - (sh * 60 + sm) - record.breakTime;
           const workedHours = workedMinutes / 60;
-          
           totalHours += workedHours;
-          
+    
           htmlContent += `
             <tr>
               <td>${dateStr}</td>
@@ -2832,8 +2818,7 @@
             </tr>
           `;
         });
-        
-        // Add total row
+    
         htmlContent += `
               </tbody>
               <tfoot>
@@ -2844,15 +2829,14 @@
                 </tr>
               </tfoot>
             </table>
-            
+    
             <p>Denna rapport genererades automatiskt av TimeBook Pro</p>
             <p>© 2023 TimeBook Pro - Alla rättigheter förbehålls</p>
           </body>
           </html>
         `;
-        
-        // Create and download Word document
-        const blob = new Blob([htmlContent], {type: 'application/msword'});
+    
+        const blob = new Blob([htmlContent], { type: 'application/msword' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -2861,7 +2845,7 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
+    
       } catch (error) {
         console.error('Error generating Word document:', error);
         showAlert('Error generating Word document: ' + error.message, 'error');
@@ -2869,53 +2853,48 @@
         showLoading(false);
       }
     }
-
+    
     // Get filtered records
     function getFilteredRecords(monthFilter, projectFilter) {
       return Object.entries(state.records).filter(([_, record]) => {
-        const date = new Date(record.date);
-        const month = date.getMonth() + 1;
-        
+        const month = new Date(record.date).getMonth() + 1;
         const monthMatch = monthFilter === 'all' || parseInt(monthFilter) === month;
         const projectMatch = projectFilter === 'all' || record.projectId === projectFilter;
-        
         return monthMatch && projectMatch;
       });
     }
-
+    
     // Get filter description
     function getFilterDescription(monthFilter, projectFilter) {
       const months = [
         'Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 
         'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'
       ];
-      
+    
       const monthText = monthFilter === 'all' 
         ? translations[state.currentLanguage]['all_months']
         : months[parseInt(monthFilter) - 1];
-      
+    
       let projectText = translations[state.currentLanguage]['all_projects'];
-      
       if (projectFilter !== 'all') {
         const project = state.projects[projectFilter];
-        projectText = project 
-          ? `${project.code} - ${project.name}` 
-          : translations[state.currentLanguage]['unknown'];
+        projectText = project ? `${project.code} - ${project.name}` : translations[state.currentLanguage]['unknown'];
       }
-      
+    
       return `${monthText} - ${projectText}`;
     }
-
+    
     // Format date short (yy-mm-dd)
     function formatDateShort(dateStr) {
       const d = new Date(dateStr);
-      return `${d.getFullYear().toString().slice(2)}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+      return `${d.getFullYear().toString().slice(2)}-${(d.getMonth() + 1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
     }
-
+    
     // Get Swedish day name
     function getSwedishDayName(date) {
       return ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'][date.getDay()];
     }
+
 
     // Export to JSON
     function exportToJSON() {
@@ -2940,5 +2919,6 @@
   </script>
 </body>
 </html>
+
 
 
