@@ -1346,18 +1346,34 @@
       document.getElementById('delete-record').addEventListener('click', handleDeleteRecord);
       
       // Export buttons
-      document.getElementById('export-pdf').addEventListener('click', () => openExportModal('pdf'));
-      document.getElementById('export-word').addEventListener('click', () => openExportModal('word'));
+      document.getElementById('export-pdf').addEventListener('click', () => {
+        document.getElementById('pdf-filter-modal').classList.remove('hidden');
+      });
+      
+      document.getElementById('export-word').addEventListener('click', () => {
+        document.getElementById('word-filter-modal').classList.remove('hidden');
+      });
+      
       document.getElementById('export-json').addEventListener('click', exportToJSON);
       
-      // PDF/Word filter modals
-      document.getElementById('close-pdf-filter-modal').addEventListener('click', () => closeExportModal('pdf'));
-      document.getElementById('cancel-pdf-filter').addEventListener('click', () => closeExportModal('pdf'));
+      // PDF filter modal
+      document.getElementById('close-pdf-filter-modal').addEventListener('click', () => {
+        document.getElementById('pdf-filter-modal').classList.add('hidden');
+      });
+      document.getElementById('cancel-pdf-filter').addEventListener('click', () => {
+        document.getElementById('pdf-filter-modal').classList.add('hidden');
+      });
       document.getElementById('pdf-filter-form').addEventListener('submit', (e) => handleFilterSubmit(e, 'pdf'));
       
-      document.getElementById('close-word-filter-modal').addEventListener('click', () => closeExportModal('word'));
-      document.getElementById('cancel-word-filter').addEventListener('click', () => closeExportModal('word'));
+      // Word filter modal
+      document.getElementById('close-word-filter-modal').addEventListener('click', () => {
+        document.getElementById('word-filter-modal').classList.add('hidden');
+      });
+      document.getElementById('cancel-word-filter').addEventListener('click', () => {
+        document.getElementById('word-filter-modal').classList.add('hidden');
+      });
       document.getElementById('word-filter-form').addEventListener('submit', (e) => handleFilterSubmit(e, 'word'));
+
       
       // Collapsible sections
       document.getElementById('toggle-records-header').addEventListener('click', toggleRecordsVisibility);
@@ -2924,4 +2940,5 @@
   </script>
 </body>
 </html>
+
 
