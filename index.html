@@ -3108,7 +3108,6 @@ async function exportPDF(startDate, endDate, projectFilter, sortBy, sortOrder) {
 }
 
 // ===== Exportar a Word =====
-// ===== Exportar a Word =====
 async function exportWord(startDate, endDate, projectFilter, sortBy, sortOrder) {
   if (!window.htmlDocx || !window.htmlDocx.asBlob) {
     showAlert('No se puede exportar a Word: falta la librería html-docx-js', 'error');
@@ -3210,6 +3209,3 @@ function toggleSummaryVisibility() {
 </script>
 </body>
 </html>
-
-
-
