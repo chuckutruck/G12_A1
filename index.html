@@ -3107,72 +3107,64 @@ async function exportPDF(startDate, endDate, projectFilter, sortBy, sortOrder) {
   }
 }
 
-// ===== Exportar a Word =====
-async function exportWord(startDate, endDate, projectFilter, sortBy, sortOrder) {
-  if (!window.htmlDocx || !window.htmlDocx.asBlob) {
-    showAlert('No se puede exportar a Word: falta la librería html-docx-js', 'error');
-    return;
-  }
+ // ===== Exportar a Word =====
+  async function exportWord(startDate, endDate, projectFilter, sortBy, sortOrder) {
+    showLoading(true);
+    try {
+      const records = getFilteredSortedRecords(startDate, endDate, projectFilter, sortBy, sortOrder);
+      const container = document.getElementById('pdf-export');
+      if (!container) throw new Error('No existe el contenedor #pdf-export');
 
-  showLoading(true);
-  try {
-    const records = getFilteredSortedRecords(startDate, endDate, projectFilter, sortBy, sortOrder);
-    const container = document.getElementById('pdf-export');
-    if (!container) throw new Error('No existe el contenedor #pdf-export');
+      const tbody = container.querySelector('tbody');
+      if (tbody) tbody.innerHTML = '';
+      let totalHours = 0;
 
-    // Llenar tabla
-    const tbody = container.querySelector('tbody');
-    if (tbody) tbody.innerHTML = '';
-    let totalHours = 0;
+      records.forEach(([ , record]) => {
+        const project = state.projects[record.projectId] || { name: translations[state.currentLanguage]['unknown'], code: '?' };
+        const hours = calculateWorkedHours(record);
+        totalHours += hours;
+        const week = getWeekNumber(new Date(record.date));
 
-    records.forEach(([id, record]) => {
-      const project = state.projects[record.projectId] || { name: translations[state.currentLanguage]['unknown'], code: '?' };
-      const workedHours = calculateWorkedHours(record);
-      totalHours += workedHours;
-      const week = getWeekNumber(new Date(record.date));
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${record.date}</td>
+          <td>${week}</td>
+          <td>${project.code} - ${project.name}</td>
+          <td class="text-right">${hours.toFixed(2)}</td>
+          <td class="text-right">${record.breakTime} min</td>
+        `;
+        tbody?.appendChild(row);
+      });
 
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${record.date}</td>
-        <td>${week}</td>
-        <td>${project.code} - ${project.name}</td>
-        <td class="text-right">${workedHours.toFixed(2)}</td>
-        <td class="text-right">${record.breakTime} min</td>
+      container.querySelector('#pdf-total-hours')?.textContent = totalHours.toFixed(2);
+
+      await new Promise(r => setTimeout(r, 300));
+
+      const styles = `
+        <style>
+          body { font-family: Arial, Helvetica, sans-serif; color: #111; }
+          table { border-collapse: collapse; width: 100%; }
+          th, td { border: 1px solid #d1d5db; padding: 6px; font-size: 12px; text-align: left; }
+          th { background: #f3f4f6; }
+          h1, h2, h3 { margin: 0 0 8px 0; }
+        </style>
       `;
-      tbody.appendChild(row);
-    });
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styles}</head><body>${container.innerHTML}</body></html>`;
+      const blob = window.htmlDocx.asBlob(html);
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `timebook_report_${state.user.lastName || "User"}_${new Date().toISOString().slice(0,10)}.docx`;
+      link.click();
+      URL.revokeObjectURL(link.href);
 
-    const totalEl = container.querySelector('#pdf-total-hours');
-    if (totalEl) totalEl.textContent = totalHours.toFixed(2);
-
-    await new Promise(r => setTimeout(r, 300)); // esperar DOM
-
-    const styles = `
-      <style>
-        body { font-family: Arial, Helvetica, sans-serif; color: #111; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #d1d5db; padding: 6px; font-size: 12px; text-align: left; }
-        th { background: #f3f4f6; }
-        h1, h2, h3 { margin: 0 0 8px 0; }
-      </style>
-    `;
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styles}</head><body>${container.innerHTML}</body></html>`;
-
-    const blob = window.htmlDocx.asBlob(html);
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `timebook_report_${state.user.lastName || "User"}_${new Date().toISOString().slice(0,10)}.docx`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-
-    showAlert(translations[state.currentLanguage]['word_export_success'], 'success');
-  } catch (err) {
-    console.error(err);
-    showAlert(translations[state.currentLanguage]['word_export_error'] + err.message, 'error');
-  } finally {
-    showLoading(false);
+      showAlert(translations[state.currentLanguage]['word_export_success'], 'success');
+    } catch (err) {
+      console.error(err);
+      showAlert(translations[state.currentLanguage]['word_export_error'] + err.message, 'error');
+    } finally {
+      showLoading(false);
+    }
   }
-}
 
 // ===== Exportar a JSON =====
 function exportToJSON() {
@@ -3209,3 +3201,4 @@ function toggleSummaryVisibility() {
 </script>
 </body>
 </html>
+
