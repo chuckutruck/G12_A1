@@ -2629,15 +2629,23 @@
         monthFilter.appendChild(option);
       }
     
-      // Populate project filter
+      // Populate project filter (allow multiple selection)
       const projectFilter = document.getElementById(`${type}-project-filter`);
-      projectFilter.innerHTML = `<option value="all">${translations[state.currentLanguage]['all_projects']}</option>`;
+      projectFilter.innerHTML = '';
+      
+      const allOption = document.createElement('option');
+      allOption.value = 'all';
+      allOption.textContent = translations[state.currentLanguage]['all_projects'];
+      projectFilter.appendChild(allOption);
+    
       Object.entries(state.projects).forEach(([id, project]) => {
         const option = document.createElement('option');
         option.value = id;
         option.textContent = `${project.code} - ${project.name}`;
         projectFilter.appendChild(option);
       });
+    
+      projectFilter.multiple = true; // enable multi-selection
     
       // Show modal
       const modal = document.getElementById(modalId);
@@ -2658,7 +2666,8 @@
     
       // Read filter values
       const monthFilter = document.getElementById(`${type}-month-filter`).value;
-      const projectFilter = document.getElementById(`${type}-project-filter`).value;
+      const projectFilterElement = document.getElementById(`${type}-project-filter`);
+      const projectFilter = Array.from(projectFilterElement.selectedOptions).map(opt => opt.value);
     
       // Close modal
       closeExportModal(type);
@@ -2854,17 +2863,19 @@
       }
     }
     
-    // Get filtered records
+    // Get filtered records (support multiple project selection)
     function getFilteredRecords(monthFilter, projectFilter) {
       return Object.entries(state.records).filter(([_, record]) => {
         const month = new Date(record.date).getMonth() + 1;
         const monthMatch = monthFilter === 'all' || parseInt(monthFilter) === month;
-        const projectMatch = projectFilter === 'all' || record.projectId === projectFilter;
+    
+        const projectMatch = projectFilter.includes('all') || projectFilter.includes(record.projectId);
+    
         return monthMatch && projectMatch;
       });
     }
     
-    // Get filter description
+    // Get filter description (support multiple projects)
     function getFilterDescription(monthFilter, projectFilter) {
       const months = [
         'Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 
@@ -2876,9 +2887,10 @@
         : months[parseInt(monthFilter) - 1];
     
       let projectText = translations[state.currentLanguage]['all_projects'];
-      if (projectFilter !== 'all') {
-        const project = state.projects[projectFilter];
-        projectText = project ? `${project.code} - ${project.name}` : translations[state.currentLanguage]['unknown'];
+      if (!projectFilter.includes('all')) {
+        const selectedProjects = projectFilter
+          .map(id => state.projects[id] ? `${state.projects[id].code} - ${state.projects[id].name}` : translations[state.currentLanguage]['unknown']);
+        projectText = selectedProjects.join(', ');
       }
     
       return `${monthText} - ${projectText}`;
@@ -2894,7 +2906,6 @@
     function getSwedishDayName(date) {
       return ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'][date.getDay()];
     }
-
 
     // Export to JSON
     function exportToJSON() {
@@ -2919,6 +2930,7 @@
   </script>
 </body>
 </html>
+
 
 
 
