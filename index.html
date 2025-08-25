@@ -6,19 +6,15 @@
   <title>TimeBook Pro - Tidrapporteringssystem</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">    
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-database-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html-docx-js/dist/html-docx.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-docx-js/0.4.1/html-docx.min.js"></script>
   <style>
-    /* Estilos optimizados y mejorados */
     :root {
       --primary: #3b82f6;
       --primary-dark: #2563eb;
@@ -42,20 +38,13 @@
       overflow: hidden;
     }
     
-    .btn {
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
       padding: 0.5rem 1rem;
       border-radius: 0.375rem;
       font-weight: 500;
       transition: all 0.2s ease-in-out;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .btn-primary {
-      background-color: var(--primary);
-      color: white;
     }
     
     .btn-primary:hover {
@@ -65,6 +54,10 @@
     .btn-secondary {
       background-color: var(--secondary);
       color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      font-weight: 500;
+      transition: all 0.2s ease-in-out;
     }
     
     .btn-secondary:hover {
@@ -74,6 +67,10 @@
     .btn-outline {
       border: 1px solid var(--primary);
       color: var(--primary);
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      font-weight: 500;
+      transition: all 0.2s ease-in-out;
     }
     
     .btn-outline:hover {
@@ -278,6 +275,12 @@
       background-color: #ef4444;
     }
     
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+    
     #pdf-export, #word-export {
       position: absolute;
       left: -9999px;
@@ -341,126 +344,38 @@
     .language-selector:hover .language-dropdown {
       display: block;
     }
-    
-    .export-filter-container {
-      max-width: 500px;
-      width: 100%;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      overflow: hidden;
-    }
-    
-    .export-filter-header {
-      background-color: var(--primary);
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
-    
-    .export-filter-body {
-      padding: 25px;
-    }
-    
-    .filter-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-bottom: 25px;
-    }
-    
-    .filter-section {
-      margin-bottom: 25px;
-    }
-    
-    .filter-section h3 {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 15px;
-      color: #1f2937;
-      border-bottom: 1px solid #e5e7eb;
-      padding-bottom: 8px;
-    }
-    
-    .date-range-inputs {
-      display: flex;
-      gap: 10px;
-    }
-    
-    .date-range-inputs input {
-      flex: 1;
-    }
-    
-    .export-filter-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      padding: 15px 25px;
-      background-color: #f9fafb;
-      border-top: 1px solid #e5e7eb;
-    }
-    
-    .collapsible-header {
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background-color: #f3f4f6;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    
-    .collapsible-header h3 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-    }
-    
-    .collapsible-content {
-      overflow: hidden;
-      transition: max-height 0.3s ease-out;
-    }
-    
-    .month-header {
+
+    .month-separator {
       background-color: #e5e7eb;
-      padding: 8px 12px;
+      padding: 0.75rem 1rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    
+
     .month-content {
+      padding: 0.5rem 1rem;
+      background-color: #f9fafb;
+    }
+
+    .collapsible-content {
+      transition: all 0.3s ease;
+    }
+
+    .collapsed {
+      display: none;
+    }
+
+    .settings-panel {
       max-height: 0;
       overflow: hidden;
-      transition: max-height 0.3s ease-out;
+      transition: max-height 0.3s ease;
     }
-    
-    .month-content.expanded {
-      max-height: 5000px;
-    }
-    
-    .toggle-icon {
-      transition: transform 0.3s ease;
-    }
-    
-    .toggle-icon.rotated {
-      transform: rotate(180deg);
-    }
-    
-    /* Nuevos estilos para el membrete */
-    .company-info {
-      border-bottom: 1px solid #e5e7eb;
-      padding-bottom: 15px;
-      margin-bottom: 20px;
-      font-size: 14px;
-    }
-    
-    .company-info h2 {
-      font-size: 24px;
-      margin-top: 10px;
-      margin-bottom: 5px;
+
+    .settings-panel.open {
+      max-height: 500px;
     }
   </style>
 </head>
@@ -477,154 +392,10 @@
   </div>
 
   <!-- PDF Export Container (hidden) -->
-  <div id="pdf-export">
-    <div class="text-center mb-8">
-      <h1 class="text-3xl font-bold" data-i18n="hours_report">Arbetstidsrapport</h1>
-      <div class="flex justify-center items-center mt-4">
-        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzNiODJmNiIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIj48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptLTIgMTVIOHYtMmgydjJ6bTAtNGgtMlY3aDJ2NnoiLz48L3N2Zz4=" alt="Logo" class="w-12 h-12 mr-3">
-        <div>
-          <h2 class="text-xl font-semibold">TimeBook Pro</h2>
-          <p class="text-gray-600" data-i18n="hours_management_system">Timrapporteringssystem</p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Membrete de la empresa -->
-    <div class="company-info">
-      <p>Köpmangatan 5, plan 10</p>
-      <p>151 71 Södertälje</p>
-      <p>Tel 079-079 00 45</p>
-      <p>Organisationsnummer: 559096-5983</p>
-      <p>Mätningsingenjör: <span id="pdf-user-name"></span></p>
-      <h2>Tidrapport</h2>
-    </div>
-    
-    <div class="mb-6">
-      <div class="flex justify-between items-end border-b pb-2 mb-4">
-        <div>
-          <p class="font-semibold" id="pdf-user-name"></p>
-          <p class="text-sm text-gray-600" id="pdf-user-email"></p>
-        </div>
-        <div class="text-right">
-          <p class="text-sm" data-i18n="generation_date">Genereringsdatum: <span id="pdf-gen-date"></span></p>
-          <p class="text-sm" data-i18n="period">Period: <span id="pdf-period"></span></p>
-        </div>
-      </div>
-    </div>
-    
-    <h3 class="text-lg font-semibold mb-4" data-i18n="hours_summary">Timsummering</h3>
-    <table class="w-full border-collapse mb-8" id="pdf-summary-table">
-      <thead>
-        <tr class="bg-gray-100">
-          <th class="border py-2 px-3 text-left" data-i18n="date">Datum</th>
-          <th class="border py-2 px-3 text-left" data-i18n="week">Vecka</th>
-          <th class="border py-2 px-3 text-left" data-i18n="project">Projekt</th>
-          <th class="border py-2 px-3 text-right" data-i18n="worked_hours">Arbetade timmar</th>
-          <th class="border py-2 px-3 text-right" data-i18n="break">Rast</th>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-      <tfoot>
-        <tr class="font-semibold">
-          <td colspan="3" class="border py-2 px-3 text-right" data-i18n="total">Totalt:</td>
-          <td class="border py-2 px-3 text-right" id="pdf-total-hours"></td>
-          <td class="border py-2 px-3"></td>
-        </tr>
-      </tfoot>
-    </table>
-    
-    <div class="grid grid-cols-2 gap-8 mb-8">
-      <div>
-        <h3 class="text-lg font-semibold mb-4" data-i18n="project_distribution">Projektfördelnings</h3>
-        <canvas id="pdf-project-chart" height="300"></canvas>
-      </div>
-      <div>
-        <h3 class="text-lg font-semibold mb-4" data-i18n="hours_per_week">Timmar per vecka</h3>
-        <canvas id="pdf-weekly-chart" height="300"></canvas>
-      </div>
-    </div>
-    
-    <div class="text-center text-sm text-gray-500 mt-12">
-      <p data-i18n="report_generated">Denna rapport genererades automatiskt av TimeBook Pro</p>
-      <p>© 2023 TimeBook Pro - <span data-i18n="all_rights_reserved">Alla rättigheter förbehålls</span></p>
-    </div>
-  </div>
+  <div id="pdf-export"></div>
 
   <!-- Word Export Container (hidden) -->
-  <div id="word-export">
-    <div class="text-center mb-8">
-      <h1 class="text-3xl font-bold" data-i18n="hours_report">Arbetstidsrapport</h1>
-      <div class="flex justify-center items-center mt-4">
-        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzNiODJmNiIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIj48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptLTIgMTVIOHYtMmgydjJ6bTAtNGgtMlY3aDJ2NnoiLz48L3N2Zz4=" alt="Logo" class="w-12 h-12 mr-3">
-        <div>
-          <h2 class="text-xl font-semibold">TimeBook Pro</h2>
-          <p class="text-gray-600" data-i18n="hours_management_system">Timrapporteringssystem</p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Membrete de la empresa -->
-    <div class="company-info">
-      <p>Köpmangatan 5, plan 10</p>
-      <p>151 71 Södertälje</p>
-      <p>Tel 079-079 00 45</p>
-      <p>Organisationsnummer: 559096-5983</p>
-      <p>Mätningsingenjör: <span id="word-user-name"></span></p>
-      <h2>Tidrapport</h2>
-    </div>
-    
-    <div class="mb-6">
-      <div class="flex justify-between items-end border-b pb-2 mb-4">
-        <div>
-          <p class="font-semibold" id="word-user-name"></p>
-          <p class="text-sm text-gray-600" id="word-user-email"></p>
-        </div>
-        <div class="text-right">
-          <p class="text-sm" data-i18n="generation_date">Genereringsdatum: <span id="word-gen-date"></span></p>
-          <p class="text-sm" data-i18n="period">Period: <span id="word-period"></span></p>
-        </div>
-      </div>
-    </div>
-    
-    <h3 class="text-lg font-semibold mb-4" data-i18n="hours_summary">Timsummering</h3>
-    <table class="w-full border-collapse mb-8" id="word-summary-table">
-      <thead>
-        <tr class="bg-gray-100">
-          <th class="border py-2 px-3 text-left" data-i18n="date">Datum</th>
-          <th class="border py-2 px-3 text-left" data-i18n="week">Vecka</th>
-          <th class="border py-2 px-3 text-left" data-i18n="project">Projekt</th>
-          <th class="border py-2 px-3 text-right" data-i18n="worked_hours">Arbetade timmar</th>
-          <th class="border py-2 px-3 text-right" data-i18n="break">Rast</th>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-      <tfoot>
-        <tr class="font-semibold">
-          <td colspan="3" class="border py-2 px-3 text-right" data-i18n="total">Totalt:</td>
-          <td class="border py-2 px-3 text-right" id="word-total-hours"></td>
-          <td class="border py-2 px-3"></td>
-        </tr>
-      </tfoot>
-    </table>
-    
-    <div class="grid grid-cols-2 gap-8 mb-8">
-      <div>
-        <h3 class="text-lg font-semibold mb-4" data-i18n="project_distribution">Projektfördelnings</h3>
-        <canvas id="word-project-chart" height="300"></canvas>
-      </div>
-      <div>
-        <h3 class="text-lg font-semibold mb-4" data-i18n="hours_per_week">Timmar per vecka</h3>
-        <canvas id="word-weekly-chart" height="300"></canvas>
-      </div>
-    </div>
-    
-    <div class="text-center text-sm text-gray-500 mt-12">
-      <p data-i18n="report_generated">Denna rapport genererades automatiskt av TimeBook Pro</p>
-      <p>© 2023 TimeBook Pro - <span data-i18n="all_rights_reserved">Alla rättigheter förbehålls</span></p>
-    </div>
-  </div>
+  <div id="word-export"></div>
 
   <!-- Authentication Container -->
   <div id="auth-container" class="auth-container">
@@ -719,13 +490,13 @@
                 <span class="language-flag flag-sv"></span>
                 <span>Svenska</span>
               </a>
-              <a href="#" data-lang="en">
-                <span class="language-flag flag-en"></span>
-                <span>English</span>
-              </a>
               <a href="#" data-lang="es">
                 <span class="language-flag flag-es"></span>
                 <span>Español</span>
+              </a>
+              <a href="#" data-lang="en">
+                <span class="language-flag flag-en"></span>
+                <span>English</span>
               </a>
             </div>
           </div>
@@ -753,6 +524,9 @@
               <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" id="edit-profile-btn">
                 <i class="fas fa-user-edit mr-2"></i> <span data-i18n="edit_profile">Redigera profil</span>
               </a>
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" id="settings-btn">
+                <i class="fas fa-cog mr-2"></i> <span data-i18n="settings">Inställningar</span>
+              </a>
               <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" id="logout-btn">
                 <i class="fas fa-sign-out-alt mr-2"></i> <span data-i18n="logout">Logga ut</span>
               </a>
@@ -761,6 +535,34 @@
         </div>
       </div>
     </header>
+    
+    <!-- Settings Panel -->
+    <div id="settings-panel" class="settings-panel bg-gray-100 border-b">
+      <div class="container mx-auto px-4 py-4">
+        <h3 class="text-lg font-semibold mb-4" data-i18n="company_settings">Företagsinställningar</h3>
+        <form id="company-settings-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="form-group">
+            <label for="company-address" class="form-label" data-i18n="company_address">Adress</label>
+            <input type="text" id="company-address" class="form-control" placeholder="Köpmangatan 5, plan 10">
+          </div>
+          <div class="form-group">
+            <label for="company-postal" class="form-label" data-i18n="postal_code">Postnummer och ort</label>
+            <input type="text" id="company-postal" class="form-control" placeholder="151 71 Södertälje">
+          </div>
+          <div class="form-group">
+            <label for="company-phone" class="form-label" data-i18n="phone">Telefon</label>
+            <input type="text" id="company-phone" class="form-control" placeholder="079-079 00 45">
+          </div>
+          <div class="form-group">
+            <label for="company-orgnr" class="form-label" data-i18n="org_number">Organisationsnummer</label>
+            <input type="text" id="company-orgnr" class="form-control" placeholder="559096-5983">
+          </div>
+          <div class="form-group md:col-span-2">
+            <button type="submit" class="btn-primary" data-i18n="save_settings">Spara inställningar</button>
+          </div>
+        </form>
+      </div>
+    </div>
     
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-8">
@@ -786,24 +588,23 @@
                 </div>
                 <select id="project" class="form-control" required>
                   <option value="" data-i18n="select_project">Välj ett projekt</option>
-                  <!-- Projects will be loaded dynamically -->
                 </select>
               </div>
               
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="form-group">
                   <label for="start-time" class="form-label" data-i18n="start_time">Starttid</label>
-                  <input type="time" id="start-time" class="form-control" required>
+                  <input type="time" id="start-time" class="form-control" required value="06:30">
                 </div>
                 
                 <div class="form-group">
                   <label for="end-time" class="form-label" data-i18n="end_time">Sluttid</label>
-                  <input type="time" id="end-time" class="form-control" required>
+                  <input type="time" id="end-time" class="form-control" required value="16:00">
                 </div>
               </div>
               
               <div class="form-group">
-                <label for="break-time" class="form-label" data-i18n="break_time">Rasttid</label>
+                <label for="break-time" class="form-label" data-i18n="break_time">Rasttid (minuter)</label>
                 <select id="break-time" class="form-control" required>
                   <option value="0" data-i18n="break_0">0 minuter</option>
                   <option value="30" selected data-i18n="break_30">En halvtimme</option>
@@ -844,7 +645,6 @@
                 <div>
                   <label for="year-filter" class="form-label" data-i18n="year">År</label>
                   <select id="year-filter" class="form-control">
-                    <!-- Years will be added dynamically -->
                   </select>
                 </div>
                 
@@ -852,45 +652,39 @@
                   <label for="month-filter" class="form-label" data-i18n="month">Månad</label>
                   <select id="month-filter" class="form-control">
                     <option value="all" data-i18n="all_months">Alla månader</option>
-                    <!-- Months will be added dynamically -->
                   </select>
                 </div>
                 
-        <div>
-          <label for="week-filter" class="form-label" data-i18n="week">Vecka</label>
-          <select id="week-filter" class="form-control">
-            <option value="all" data-i18n="all_weeks">Alla veckor</option>
-            <!-- Weeks will be added dynamically -->
-          </select>
-        </div>
-        
-        <div>
-          <label for="project-filter" class="form-label" data-i18n="project">Projekt</label>
-          <select id="project-filter" class="form-control">
-            <option value="all" data-i18n="all_projects">Alla projekt</option>
-            <!-- Projects will be added dynamically -->
-          </select>
-        </div>
+                <div>
+                  <label for="project-filter" class="form-label" data-i18n="project">Projekt</label>
+                  <select id="project-filter" class="form-control">
+                    <option value="all" data-i18n="all_projects">Alla projekt</option>
+                  </select>
+                </div>
               </div>
               
               <!-- Entries Container -->
-              <div id="entries-container" class="mt-4">
-                <!-- Entries will be added dynamically -->
+              <div id="entries-container" class="mt-4 max-h-96 overflow-y-auto">
                 <div class="text-gray-500 text-center py-6" data-i18n="no_records_found">Inga poster hittades</div>
+              </div>
+
+              <!-- Load More Button -->
+              <div class="mt-4 text-center hidden" id="load-more-container">
+                <button id="load-more-btn" class="btn-outline text-sm" data-i18n="load_more">Ladda fler</button>
               </div>
             </div>
           </div>
           
           <!-- Import/Export Section -->
           <div class="card p-4">
-            <h3 class="text-lg font-semibold mb-4" data-i18n="import_export">Importera / Exportera</h3>
+            <h3 class="text-lg font-semibold mb-4" data-i18n="export">Exportera</h3>
             
             <div class="flex flex-wrap gap-2">
-              <button id="export-pdf" class="btn-primary text-sm">
+              <button id="export-pdf-btn" class="btn-primary text-sm">
                 <i class="fas fa-file-pdf mr-1"></i> <span data-i18n="export_pdf">Exportera PDF</span>
               </button>
               
-              <button id="export-word" class="btn-primary text-sm">
+              <button id="export-word-btn" class="btn-outline text-sm">
                 <i class="fas fa-file-word mr-1"></i> <span data-i18n="export_word">Exportera Word</span>
               </button>
             </div>
@@ -957,7 +751,7 @@
             </div>
             
             <div>
-              <h4 class="font-medium mb-3" data-i18n="project_distribution">Projektfördelnings</h4>
+              <h4 class="font-medium mb-3" data-i18n="project_distribution">Projektfördelning</h4>
               <div class="h-64">
                 <canvas id="project-chart"></canvas>
               </div>
@@ -966,12 +760,15 @@
           
           <!-- Hours Summary Table -->
           <div class="card p-4">
-            <div class="collapsible-header" id="summary-header">
+            <div class="flex justify-between items-center mb-4">
               <h3 class="text-lg font-semibold" data-i18n="hours_summary">Timsummering</h3>
-              <i class="fas fa-chevron-down toggle-icon"></i>
+              <button id="toggle-summary" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-chevron-down"></i>
+              </button>
             </div>
-            <div id="summary-content" class="collapsible-content">
-              <div class="overflow-x-auto mt-4">
+            
+            <div id="summary-content">
+              <div class="overflow-x-auto">
                 <table class="w-full" id="resumenHoras">
                   <thead>
                     <tr class="bg-gray-50 border-b">
@@ -983,7 +780,6 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <!-- Records will be added dynamically -->
                   </tbody>
                   <tfoot>
                     <tr class="font-semibold">
@@ -1020,7 +816,6 @@
           <!-- View Projects Tab -->
           <div id="view-projects-content">
             <div id="projects-list" class="space-y-2">
-              <!-- Projects will be added dynamically -->
             </div>
           </div>
           
@@ -1089,6 +884,7 @@
             <i class="fas fa-times"></i>
           </button>
         </div>
+        
         <div class="p-4">
           <form id="edit-record-form">
             <input type="hidden" id="edit-record-id">
@@ -1101,7 +897,6 @@
             <div class="form-group">
               <label for="edit-project" class="form-label" data-i18n="project">Projekt</label>
               <select id="edit-project" class="form-control" required>
-                <!-- Projects will be loaded dynamically -->
               </select>
             </div>
             
@@ -1146,69 +941,67 @@
       </div>
     </div>
     
-    <!-- Export Filter Modal -->
-    <div id="export-filter-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-      <div class="export-filter-container">
-        <div class="export-filter-header">
-          <h3 class="text-xl font-bold" id="export-modal-title">Filtrera Rapport</h3>
+    <!-- Export Modal -->
+    <div id="export-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg max-w-lg w-full">
+        <div class="p-4 border-b flex justify-between items-center">
+          <h3 class="text-xl font-semibold" id="export-modal-title">Exportera till PDF</h3>
+          <button id="close-export-modal" class="text-gray-500 hover:text-gray-700">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
-        <div class="export-filter-body">
-          <form id="export-filter-form">
-            <div class="filter-section">
-              <h3 data-i18n="date_range">Datumintervall</h3>
-              <div class="date-range-inputs">
-                <div class="form-group">
-                  <label for="export-start-date" class="form-label" data-i18n="start_date">Startdatum</label>
-                  <input type="date" id="export-start-date" class="form-control" required>
-                </div>
-                <div class="form-group">
-                  <label for="export-end-date" class="form-label" data-i18n="end_date">Slutdatum</label>
-                  <input type="date" id="export-end-date" class="form-control" required>
-                </div>
-              </div>
-            </div>
-            
-            <div class="filter-section">
-              <h3 data-i18n="project_filter">Filtrera efter projekt</h3>
+        
+        <div class="p-4">
+          <form id="export-form">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div class="form-group">
-                <select id="export-project-filter" class="form-control">
-                  <option value="all" data-i18n="all_projects">Alla projekt</option>
-                  <!-- Projects will be populated dynamically -->
-                </select>
+                <label for="export-start-date" class="form-label" data-i18n="start_date">Startdatum</label>
+                <input type="date" id="export-start-date" class="form-control" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="export-end-date" class="form-label" data-i18n="end_date">Slutdatum</label>
+                <input type="date" id="export-end-date" class="form-control" required>
               </div>
             </div>
             
-            <div class="filter-section">
-              <h3 data-i18n="sorting_options">Sorteringsalternativ</h3>
-              <div class="filter-grid">
-                <div class="form-group">
-                  <label for="export-sort-by" class="form-label" data-i18n="sort_by">Sortera efter</label>
-                  <select id="export-sort-by" class="form-control">
-                    <option value="date" data-i18n="date">Datum</option>
-                    <option value="project" data-i18n="project">Projekt</option>
-                    <option value="hours" data-i18n="hours">Timmar</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="export-sort-order" class="form-label" data-i18n="sort_order">Ordning</label>
-                  <select id="export-sort-order" class="form-control">
-                    <option value="asc" data-i18n="ascending">Stigande</option>
-                    <option value="desc" selected data-i18n="descending">Fallande</option>
-                  </select>
-                </div>
-              </div>
+            <div class="form-group mb-4">
+              <label for="export-project" class="form-label" data-i18n="project">Projekt</label>
+              <select id="export-project" class="form-control">
+                <option value="all" data-i18n="all_projects">Alla projekt</option>
+              </select>
+            </div>
+            
+            <div class="form-group mb-4">
+              <label for="export-sort-by" class="form-label" data-i18n="sort_by">Sortera efter</label>
+              <select id="export-sort-by" class="form-control">
+                <option value="date" data-i18n="date">Datum</option>
+                <option value="project" data-i18n="project">Projekt</option>
+              </select>
+            </div>
+            
+            <div class="form-group mb-4">
+              <label for="export-order" class="form-label" data-i18n="order">Ordning</label>
+              <select id="export-order" class="form-control">
+                <option value="asc" data-i18n="ascending">Stigande</option>
+                <option value="desc" data-i18n="descending">Fallande</option>
+              </select>
+            </div>
+            
+            <div class="flex justify-between mt-6">
+              <button type="button" id="cancel-export" class="btn-outline" data-i18n="cancel">Avbryt</button>
+              <button type="submit" class="btn-primary" data-i18n="generate_report">Generera rapport</button>
             </div>
           </form>
-        </div>
-        <div class="export-filter-footer">
-          <button type="button" id="cancel-export-filter" class="btn-outline" data-i18n="cancel">Avbryt</button>
-          <button type="button" id="generate-export" class="btn-primary" data-i18n="generate_report">Generera rapport</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  
   <script>
     // Firebase configuration
     const firebaseConfig = {
@@ -1236,23 +1029,22 @@
       projectChart: null,
       currentYearFilter: new Date().getFullYear(),
       currentMonthFilter: 'all',
-      currentWeekFilter: 'all',
+      currentProjectFilter: 'all',
       isOnline: true,
       currentLanguage: 'sv',
-      exportType: null
+      companySettings: {},
+      recordsLimit: 10,
+      recordsOffset: 0,
+      displayedRecords: []
     };
 
     // Translation dictionary
     const translations = {
-      'es': {
-        // ... (traducciones al español) ...
-      },
-      'en': {
-        // ... (traducciones al inglés) ...
-      },
       'sv': {
         'app-title': 'TimeBook Pro',
         'synchronized': 'Synkroniserad',
+        'syncing': 'Synkroniserar...',
+        'offline': 'Offline',
         'sync_description': 'Realtidssynkronisering - Åtkomst från vilken enhet som helst',
         'login': 'Logga in',
         'signup': 'Registrera dig',
@@ -1265,18 +1057,6 @@
         'register_hours': 'Registrera timmar',
         'date': 'Datum',
         'project': 'Projekt',
-        'export_filter_title': 'Filtrera Rapport',
-        'date_range': 'Datumintervall',
-        'project_filter': 'Filtrera efter projekt',
-        'sorting_options': 'Sorteringsalternativ',
-        'sort_by': 'Sortera efter',
-        'sort_order': 'Ordning',
-        'ascending': 'Stigande',
-        'descending': 'Fallande',
-        'start_date': 'Startdatum',
-        'end_date': 'Slutdatum',
-        'all_projects': 'Alla projekt',
-        'generate_report': 'Generera rapport',
         'select_project': 'Välj ett projekt',
         'start_time': 'Starttid',
         'end_time': 'Sluttid',
@@ -1292,8 +1072,9 @@
         'week': 'Vecka',
         'all_months': 'Alla månader',
         'all_weeks': 'Alla veckor',
+        'all_projects': 'Alla projekt',
         'no_records_found': 'Inga poster hittades',
-        'import_export': 'Importera / Exportera',
+        'export': 'Exportera',
         'export_pdf': 'Exportera PDF',
         'export_word': 'Exportera Word',
         'user_info': 'Användarinformation',
@@ -1306,7 +1087,7 @@
         'hours_per_week': 'Timmar per vecka',
         'monthly': 'Månadsvis',
         'quarterly': 'Kvartalsvis',
-        'project_distribution': 'Projektfördelnings',
+        'project_distribution': 'Projektfördelning',
         'hours_summary': 'Timsummering',
         'worked_hours': 'Arbetade timmar',
         'break': 'Rast',
@@ -1332,13 +1113,42 @@
         'break_30': 'En halvtimme',
         'break_60': '1 timme',
         'break_120': '2 timmar',
-        'word_export_success': 'Export till Word lyckades',
-        'word_export_error': 'Fel vid export till Word:',
-        'pdf_export_success': 'Export till PDF lyckades',
-        'pdf_export_error': 'Fel vid export till PDF:',
+        'load_more': 'Ladda fler',
+        'company_settings': 'Företagsinställningar',
+        'company_address': 'Adress',
+        'postal_code': 'Postnummer och ort',
+        'org_number': 'Organisationsnummer',
+        'save_settings': 'Spara inställningar',
+        'settings': 'Inställningar',
+        'start_date': 'Startdatum',
+        'end_date': 'Slutdatum',
+        'sort_by': 'Sortera efter',
+        'order': 'Ordning',
+        'ascending': 'Stigande',
+        'descending': 'Fallande',
+        'generate_report': 'Generera rapport',
+        'confirm_delete': 'Är du säker på att du vill radera denna post?',
+        'record_saved': 'Post sparad',
+        'record_updated': 'Post uppdaterad',
+        'record_deleted': 'Post raderad',
+        'project_added': 'Projekt tillagt',
+        'profile_updated': 'Profil uppdaterad',
+        'settings_updated': 'Inställningar sparade',
+        'required_fields': 'Vänligen fyll i alla obligatoriska fält',
+        'password_mismatch': 'Lösenorden matchar inte',
+        'save_error': 'Ett fel uppstod vid sparande: ',
+        'update_error': 'Ett fel uppstod vid uppdatering: ',
+        'delete_error': 'Ett fel uppstod vid radering: ',
         'export_success': 'Export lyckades',
-        'offline': 'Offline',
-        'syncing': 'Synkroniserar'
+        'import_success': 'Import lyckades',
+        'import_error': 'Ett fel uppstod vid import: ',
+        'invalid_format': 'Ogiltigt filformat'
+      },
+      'es': {
+        // Spanish translations...
+      },
+      'en': {
+        // English translations...
       }
     };
 
@@ -1352,7 +1162,6 @@
 
     // Load language preference
     function loadLanguagePreference() {
-      // Establecer sueco como idioma predeterminado
       const savedLang = localStorage.getItem('language') || 'sv';
       state.currentLanguage = ['es', 'en', 'sv'].includes(savedLang) ? savedLang : 'sv';
       changeLanguage(state.currentLanguage);
@@ -1410,6 +1219,7 @@
           
           showApp();
           loadUserProfile();
+          loadCompanySettings();
           setupRealtimeListeners();
         } else {
           // No user is signed in
@@ -1448,6 +1258,9 @@
       // Logout button
       document.getElementById('logout-btn').addEventListener('click', handleLogout);
       
+      // Settings button
+      document.getElementById('settings-btn').addEventListener('click', toggleSettingsPanel);
+      
       // Edit profile button
       document.getElementById('edit-user-btn').addEventListener('click', openEditUserModal);
       document.getElementById('edit-profile-btn').addEventListener('click', openEditUserModal);
@@ -1464,8 +1277,8 @@
       document.getElementById('toggle-records').addEventListener('click', toggleRecordsVisibility);
       document.getElementById('year-filter').addEventListener('change', filterRecords);
       document.getElementById('month-filter').addEventListener('change', filterRecords);
-      document.getElementById('week-filter').addEventListener('change', filterRecords);
       document.getElementById('project-filter').addEventListener('change', filterRecords);
+      document.getElementById('load-more-btn').addEventListener('click', loadMoreRecords);
       
       // Project management
       document.getElementById('manage-projects').addEventListener('click', openProjectModal);
@@ -1485,39 +1298,22 @@
       document.getElementById('edit-record-form').addEventListener('submit', handleEditRecord);
       document.getElementById('delete-record').addEventListener('click', handleDeleteRecord);
       
-      // Export
-      document.getElementById('export-pdf').addEventListener('click', () => {
-        state.exportType = 'pdf';
-        openExportFilterModal();
-      });
+      // Export buttons
+      document.getElementById('export-pdf-btn').addEventListener('click', () => openExportModal('pdf'));
+      document.getElementById('export-word-btn').addEventListener('click', () => openExportModal('word'));
+      document.getElementById('close-export-modal').addEventListener('click', closeExportModal);
+      document.getElementById('cancel-export').addEventListener('click', closeExportModal);
+      document.getElementById('export-form').addEventListener('submit', handleExport);
       
-      document.getElementById('export-word').addEventListener('click', () => {
-        state.exportType = 'word';
-        openExportFilterModal();
-      });
+      // Company settings
+      document.getElementById('company-settings-form').addEventListener('submit', handleCompanySettings);
       
-      // Export Filter events
-      document.getElementById('cancel-export-filter').addEventListener('click', closeExportFilterModal);
-      document.getElementById('generate-export').addEventListener('click', handleExportFilterSubmit);
+      // Toggle summary
+      document.getElementById('toggle-summary').addEventListener('click', toggleSummaryVisibility);
       
       // Chart view toggle
       document.querySelectorAll('.view-toggle').forEach(btn => {
         btn.addEventListener('click', toggleChartView);
-      });
-      
-      // Collapsible sections
-      document.getElementById('summary-header').addEventListener('click', toggleSummaryVisibility);
-      
-      // Keyboard shortcuts for export modal
-      document.addEventListener('keydown', (e) => {
-        const modal = document.getElementById('export-filter-modal');
-        if (modal && !modal.classList.contains('hidden')) {
-          if (e.key === 'Escape') {
-            closeExportFilterModal();
-          } else if (e.key === 'Enter') {
-            document.getElementById('generate-export').click();
-          }
-        }
       });
     }
 
@@ -1543,6 +1339,12 @@
         updateStatistics();
         initCharts();
         updateSyncStatus('synced');
+      });
+      
+      // Company settings listener
+      database.ref(`users/${userId}/companySettings`).on('value', (snapshot) => {
+        state.companySettings = snapshot.val() || {};
+        updateCompanySettingsDisplay();
       });
       
       // Connection status listener
@@ -1624,6 +1426,7 @@
           
           showApp();
           loadUserProfile();
+          loadCompanySettings();
           setupRealtimeListeners();
           showLoading(false);
         })
@@ -1686,6 +1489,17 @@
           };
           
           return database.ref(`users/${state.user.uid}/projects`).set(defaultProjects);
+        })
+        .then(() => {
+          // Add default company settings
+          const defaultCompanySettings = {
+            address: 'Köpmangatan 5, plan 10',
+            postal: '151 71 Södertälje',
+            phone: '079-079 00 45',
+            orgnr: '559096-5983'
+          };
+          
+          return database.ref(`users/${state.user.uid}/companySettings`).set(defaultCompanySettings);
         })
         .then(() => {
           showApp();
@@ -1751,6 +1565,27 @@
       });
     }
 
+    // Load company settings from Firebase
+    function loadCompanySettings() {
+      if (!state.user) return;
+      
+      return database.ref(`users/${state.user.uid}/companySettings`).once('value').then(snapshot => {
+        const settings = snapshot.val();
+        if (settings) {
+          state.companySettings = settings;
+          updateCompanySettingsDisplay();
+        }
+      });
+    }
+
+    // Update company settings display
+    function updateCompanySettingsDisplay() {
+      document.getElementById('company-address').value = state.companySettings.address || '';
+      document.getElementById('company-postal').value = state.companySettings.postal || '';
+      document.getElementById('company-phone').value = state.companySettings.phone || '';
+      document.getElementById('company-orgnr').value = state.companySettings.orgnr || '';
+    }
+
     // Update user information display
     function updateUserInfo() {
       if (!state.user) return;
@@ -1786,6 +1621,13 @@
       dropdown.classList.toggle('hidden');
     }
 
+    // Toggle settings panel
+    function toggleSettingsPanel() {
+      const settingsPanel = document.getElementById('settings-panel');
+      settingsPanel.classList.toggle('open');
+      toggleUserDropdown();
+    }
+
     // Handle edit user
     function handleEditUser(e) {
       e.preventDefault();
@@ -1818,6 +1660,31 @@
         showLoading(false);
         showAlert(translations[state.currentLanguage]['update_error'] + error.message, 'error');
       });
+    }
+
+    // Handle company settings
+    function handleCompanySettings(e) {
+      e.preventDefault();
+      showLoading(true);
+      updateSyncStatus('syncing');
+      
+      const companySettings = {
+        address: document.getElementById('company-address').value,
+        postal: document.getElementById('company-postal').value,
+        phone: document.getElementById('company-phone').value,
+        orgnr: document.getElementById('company-orgnr').value
+      };
+      
+      database.ref(`users/${state.user.uid}/companySettings`).set(companySettings)
+        .then(() => {
+          state.companySettings = companySettings;
+          showLoading(false);
+          showAlert(translations[state.currentLanguage]['settings_updated'], 'success');
+        })
+        .catch(error => {
+          showLoading(false);
+          showAlert(translations[state.currentLanguage]['save_error'] + error.message, 'error');
+        });
     }
 
     // Show/hide loading overlay
@@ -1873,14 +1740,14 @@
       const editProjectSelect = document.getElementById('edit-project');
       const projectsList = document.getElementById('projects-list');
       const projectFilter = document.getElementById('project-filter');
-      const exportProjectFilter = document.getElementById('export-project-filter');
+      const exportProject = document.getElementById('export-project');
       
       // Clear existing options/items
       projectSelect.innerHTML = '';
       editProjectSelect.innerHTML = '';
       projectsList.innerHTML = '';
       projectFilter.innerHTML = '';
-      if (exportProjectFilter) exportProjectFilter.innerHTML = '';
+      exportProject.innerHTML = '';
       
       // Add default option
       const defaultOption = document.createElement('option');
@@ -1893,16 +1760,12 @@
       editDefaultOption.textContent = translations[state.currentLanguage]['select_project'];
       editProjectSelect.appendChild(editDefaultOption);
       
-      // Add "All projects" to filters
+      // Add all projects option to filters
       const allProjectsOption = document.createElement('option');
       allProjectsOption.value = 'all';
       allProjectsOption.textContent = translations[state.currentLanguage]['all_projects'];
       projectFilter.appendChild(allProjectsOption);
-      
-      if (exportProjectFilter) {
-        const exportAllProjectsOption = allProjectsOption.cloneNode(true);
-        exportProjectFilter.appendChild(exportAllProjectsOption);
-      }
+      exportProject.appendChild(allProjectsOption.cloneNode(true));
       
       // Add projects
       Object.entries(state.projects).forEach(([id, project]) => {
@@ -1915,6 +1778,14 @@
         // Add to edit select
         const editOption = option.cloneNode(true);
         editProjectSelect.appendChild(editOption);
+        
+        // Add to project filter
+        const filterOption = option.cloneNode(true);
+        projectFilter.appendChild(filterOption);
+        
+        // Add to export project filter
+        const exportOption = option.cloneNode(true);
+        exportProject.appendChild(exportOption);
         
         // Add to projects list
         const projectItem = document.createElement('div');
@@ -1934,18 +1805,6 @@
           </div>
         `;
         projectsList.appendChild(projectItem);
-        
-        // Add to project filter
-        const filterOption = document.createElement('option');
-        filterOption.value = id;
-        filterOption.textContent = `${project.code} - ${project.name}`;
-        projectFilter.appendChild(filterOption);
-        
-        // Add to export project filter
-        if (exportProjectFilter) {
-          const exportFilterOption = filterOption.cloneNode(true);
-          exportProjectFilter.appendChild(exportFilterOption);
-        }
       });
       
       // Add event listeners to edit/delete buttons
@@ -2100,36 +1959,18 @@
         option.textContent = new Date(2023, i - 1, 1).toLocaleString(state.currentLanguage, { month: 'long' });
         monthFilter.appendChild(option);
       }
-      
-      // Populate week filter
-      const weekFilter = document.getElementById('week-filter');
-      weekFilter.innerHTML = '';
-      
-      const allWeeksOption = document.createElement('option');
-      allWeeksOption.value = 'all';
-      allWeeksOption.textContent = translations[state.currentLanguage]['all_weeks'];
-      weekFilter.appendChild(allWeeksOption);
-      
-      // Add weeks (1-52)
-      for (let i = 1; i <= 52; i++) {
-        const option = document.createElement('option');
-        option.value = i;
-        option.textContent = `${translations[state.currentLanguage]['week']} ${i}`;
-        weekFilter.appendChild(option);
-      }
     }
 
     // Filter records based on selected filters
     function filterRecords() {
       const yearFilter = document.getElementById('year-filter');
       const monthFilter = document.getElementById('month-filter');
-      const weekFilter = document.getElementById('week-filter');
       const projectFilter = document.getElementById('project-filter');
       
       state.currentYearFilter = parseInt(yearFilter.value);
       state.currentMonthFilter = monthFilter.value;
-      state.currentWeekFilter = weekFilter.value;
       state.currentProjectFilter = projectFilter.value;
+      state.recordsOffset = 0;
       
       // Filter records based on selection
       let filteredRecords = Object.entries(state.records).filter(([id, record]) => {
@@ -2147,13 +1988,6 @@
           }
         }
         
-        if (state.currentWeekFilter !== 'all') {
-          const recordWeek = getWeekNumber(recordDate);
-          if (parseInt(state.currentWeekFilter) !== recordWeek) {
-            return false;
-          }
-        }
-        
         if (state.currentProjectFilter !== 'all') {
           if (record.projectId !== state.currentProjectFilter) {
             return false;
@@ -2166,115 +2000,182 @@
       // Sort records by date (newest first)
       filteredRecords.sort((a, b) => new Date(b[1].date) - new Date(a[1].date));
       
+      // Store filtered records
+      state.filteredRecords = filteredRecords;
+      
       // Display filtered records
-      displayRecords(filteredRecords);
-      updateSummaryTable(filteredRecords);
-    }
-
-    // Get ISO week number
-    function getWeekNumber(date) {
-      const d = new Date(date);
-      d.setHours(0, 0, 0, 0);
-      d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
-      const week1 = new Date(d.getFullYear(), 0, 4);
-      return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+      displayRecords();
+      updateSummaryTable();
     }
 
     // Display filtered records
-    function displayRecords(records) {
+    function displayRecords() {
       const entriesContainer = document.getElementById('entries-container');
+      const loadMoreContainer = document.getElementById('load-more-container');
       entriesContainer.innerHTML = '';
       
-      if (records.length === 0) {
+      if (state.filteredRecords.length === 0) {
         entriesContainer.innerHTML = `
           <div class="text-gray-500 text-center py-6">
             ${translations[state.currentLanguage]['no_records_found']}
           </div>
         `;
+        loadMoreContainer.classList.add('hidden');
         return;
       }
       
-      // Group records by week
-      const recordsByWeek = {};
-      records.forEach(([id, record]) => {
+      // Show only limited number of records initially
+      const recordsToShow = state.filteredRecords.slice(state.recordsOffset, state.recordsOffset + state.recordsLimit);
+      state.displayedRecords = state.displayedRecords.concat(recordsToShow);
+      state.recordsOffset += state.recordsLimit;
+      
+      // Group records by month
+      const recordsByMonth = {};
+      state.displayedRecords.forEach(([id, record]) => {
         const date = new Date(record.date);
-        const week = getWeekNumber(date);
+        const month = date.getMonth();
+        const year = date.getFullYear();
+        const monthKey = `${year}-${month}`;
         
-        if (!recordsByWeek[week]) {
-          recordsByWeek[week] = [];
+        if (!recordsByMonth[monthKey]) {
+          recordsByMonth[monthKey] = [];
         }
         
-        recordsByWeek[week].push([id, record]);
+        recordsByMonth[monthKey].push([id, record]);
       });
       
-      // Display records grouped by week
-      Object.keys(recordsByWeek).sort((a, b) => b - a).forEach(week => {
-        const weekRecords = recordsByWeek[week];
+      // Display records grouped by month
+      Object.keys(recordsByMonth).sort((a, b) => {
+        // Sort months in descending order
+        const [aYear, aMonth] = a.split('-').map(Number);
+        const [bYear, bMonth] = b.split('-').map(Number);
         
-        // Add week separator
-        const weekSeparator = document.createElement('div');
-        weekSeparator.className = 'week-separator';
-        weekSeparator.textContent = `${translations[state.currentLanguage]['week']} ${week}`;
-        entriesContainer.appendChild(weekSeparator);
+        if (aYear !== bYear) return bYear - aYear;
+        return bMonth - aMonth;
+      }).forEach(monthKey => {
+        const [year, month] = monthKey.split('-').map(Number);
+        const monthRecords = recordsByMonth[monthKey];
         
-        // Group records by date within the week
-        const recordsByDate = {};
-        weekRecords.forEach(([id, record]) => {
-          if (!recordsByDate[record.date]) {
-            recordsByDate[record.date] = [];
+        // Add month separator
+        const monthSeparator = document.createElement('div');
+        monthSeparator.className = 'month-separator';
+        monthSeparator.innerHTML = `
+          <span>${new Date(year, month, 1).toLocaleString(state.currentLanguage, { month: 'long', year: 'numeric' })}</span>
+          <i class="fas fa-chevron-down"></i>
+        `;
+        
+        // Add month content container
+        const monthContent = document.createElement('div');
+        monthContent.className = 'month-content collapsible-content';
+        
+        // Group records by week within the month
+        const recordsByWeek = {};
+        monthRecords.forEach(([id, record]) => {
+          const date = new Date(record.date);
+          const week = getWeekNumber(date);
+          
+          if (!recordsByWeek[week]) {
+            recordsByWeek[week] = [];
           }
           
-          recordsByDate[record.date].push([id, record]);
+          recordsByWeek[week].push([id, record]);
         });
         
-        // Display records grouped by date
-        Object.keys(recordsByDate).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
-          const dateRecords = recordsByDate[date];
-          const formattedDate = formatDate(date);
+        // Display records grouped by week
+        Object.keys(recordsByWeek).sort((a, b) => b - a).forEach(week => {
+          const weekRecords = recordsByWeek[week];
           
-          // Add date separator
-          const dateSeparator = document.createElement('div');
-          dateSeparator.className = 'text-sm font-medium text-gray-700 p-2 bg-gray-50';
-          dateSeparator.textContent = formattedDate;
-          entriesContainer.appendChild(dateSeparator);
+          // Add week separator
+          const weekSeparator = document.createElement('div');
+          weekSeparator.className = 'week-separator';
+          weekSeparator.textContent = `${translations[state.currentLanguage]['week']} ${week}`;
+          monthContent.appendChild(weekSeparator);
           
-          // Add records for this date
-          dateRecords.forEach(([id, record]) => {
-            const project = state.projects[record.projectId] || { name: translations[state.currentLanguage]['unknown'], code: '?' };
+          // Group records by date within the week
+          const recordsByDate = {};
+          weekRecords.forEach(([id, record]) => {
+            if (!recordsByDate[record.date]) {
+              recordsByDate[record.date] = [];
+            }
             
-            // Calculate hours worked
-            const startTime = record.startTime.split(':');
-            const endTime = record.endTime.split(':');
-            const startMinutes = parseInt(startTime[0]) * 60 + parseInt(startTime[1]);
-            const endMinutes = parseInt(endTime[0]) * 60 + parseInt(endTime[1]);
-            const workedMinutes = endMinutes - startMinutes - record.breakTime;
-            const workedHours = (workedMinutes / 60).toFixed(2);
+            recordsByDate[record.date].push([id, record]);
+          });
+          
+          // Display records grouped by date
+          Object.keys(recordsByDate).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
+            const dateRecords = recordsByDate[date];
+            const formattedDate = formatDate(date);
             
-            // Create record element
-            const recordElement = document.createElement('div');
-            recordElement.className = 'entry p-2 hover:bg-gray-50';
-            recordElement.innerHTML = `
-              <div class="flex justify-between items-center">
-                <div>
-                  <div class="font-medium">${record.startTime} - ${record.endTime} (${workedHours} h)</div>
-                  <div class="text-sm text-gray-600">${project.code} - ${project.name}</div>
-                  ${record.notes ? `<div class="text-sm italic mt-1">${record.notes}</div>` : ''}
-                  ${record.coworkers ? `<div class="text-xs text-gray-500 mt-1"><i class="fas fa-users mr-1"></i> ${record.coworkers}</div>` : ''}
+            // Add date separator
+            const dateSeparator = document.createElement('div');
+            dateSeparator.className = 'text-sm font-medium text-gray-700 p-2 bg-gray-50';
+            dateSeparator.textContent = formattedDate;
+            monthContent.appendChild(dateSeparator);
+            
+            // Add records for this date
+            dateRecords.forEach(([id, record]) => {
+              const project = state.projects[record.projectId] || { name: translations[state.currentLanguage]['unknown'], code: '?' };
+              
+              // Calculate hours worked
+              const startTime = record.startTime.split(':');
+              const endTime = record.endTime.split(':');
+              const startMinutes = parseInt(startTime[0]) * 60 + parseInt(startTime[1]);
+              const endMinutes = parseInt(endTime[0]) * 60 + parseInt(endTime[1]);
+              const workedMinutes = endMinutes - startMinutes - record.breakTime;
+              const workedHours = (workedMinutes / 60).toFixed(2);
+              
+              // Create record element
+              const recordElement = document.createElement('div');
+              recordElement.className = 'entry p-2 hover:bg-gray-50';
+              recordElement.innerHTML = `
+                <div class="flex justify-between items-center">
+                  <div>
+                    <div class="font-medium">${record.startTime} - ${record.endTime} (${workedHours} h)</div>
+                    <div class="text-sm text-gray-600">${project.code} - ${project.name}</div>
+                    ${record.notes ? `<div class="text-sm italic mt-1">${record.notes}</div>` : ''}
+                    ${record.coworkers ? `<div class="text-xs text-gray-500 mt-1"><i class="fas fa-users mr-1"></i> ${record.coworkers}</div>` : ''}
+                  </div>
+                  <div>
+                    <button class="text-gray-500 hover:text-gray-700 mr-2 edit-record" data-id="${id}">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="text-red-500 hover:text-red-700 delete-record" data-id="${id}">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <button class="text-gray-500 hover:text-gray-700 mr-2 edit-record" data-id="${id}">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button class="text-red-500 hover:text-red-700 delete-record" data-id="${id}">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </div>
-              </div>
-            `;
-            entriesContainer.appendChild(recordElement);
+              `;
+              monthContent.appendChild(recordElement);
+            });
           });
         });
+        
+        // Add event listener to month separator
+        monthSeparator.addEventListener('click', () => {
+          monthContent.classList.toggle('collapsed');
+          const icon = monthSeparator.querySelector('i');
+          if (monthContent.classList.contains('collapsed')) {
+            icon.className = 'fas fa-chevron-right';
+          } else {
+            icon.className = 'fas fa-chevron-down';
+          }
+        });
+        
+        entriesContainer.appendChild(monthSeparator);
+        entriesContainer.appendChild(monthContent);
+        
+        // Collapse all months by default
+        monthContent.classList.add('collapsed');
+        const icon = monthSeparator.querySelector('i');
+        icon.className = 'fas fa-chevron-right';
       });
+      
+      // Show/hide load more button
+      if (state.recordsOffset < state.filteredRecords.length) {
+        loadMoreContainer.classList.remove('hidden');
+      } else {
+        loadMoreContainer.classList.add('hidden');
+      }
       
       // Add event listeners to edit/delete buttons
       document.querySelectorAll('.edit-record').forEach(btn => {
@@ -2294,6 +2195,11 @@
       });
     }
 
+    // Load more records
+    function loadMoreRecords() {
+      displayRecords();
+    }
+
     // Format date for display
     function formatDate(dateString) {
       const date = new Date(dateString);
@@ -2301,91 +2207,58 @@
     }
 
     // Update summary table
-    function updateSummaryTable(records) {
+    function updateSummaryTable() {
       const tableBody = document.getElementById('resumenHoras').querySelector('tbody');
       tableBody.innerHTML = '';
       
       let totalHours = 0;
       
-      // Group records by month
-      const recordsByMonth = {};
-      records.forEach(([id, record]) => {
+      // Sort records by date (oldest first)
+      const sortedRecords = [...state.filteredRecords].sort((a, b) => new Date(a[1].date) - new Date(b[1].date));
+      
+      sortedRecords.forEach(([id, record]) => {
+        const project = state.projects[record.projectId] || { name: translations[state.currentLanguage]['unknown'], code: '?' };
+        
+        // Calculate hours worked
+        const startTime = record.startTime.split(':');
+        const endTime = record.endTime.split(':');
+        const startMinutes = parseInt(startTime[0]) * 60 + parseInt(startTime[1]);
+        const endMinutes = parseInt(endTime[0]) * 60 + parseInt(endTime[1]);
+        const workedMinutes = endMinutes - startMinutes - record.breakTime;
+        const workedHours = workedMinutes / 60;
+        
+        totalHours += workedHours;
+        
+        // Create row
+        const row = document.createElement('tr');
+        row.className = 'border-b hover:bg-gray-50';
+        
+        // Get week number
         const date = new Date(record.date);
-        const month = date.getMonth();
-        const monthKey = `${date.getFullYear()}-${month}`;
+        const week = getWeekNumber(date);
         
-        if (!recordsByMonth[monthKey]) {
-          recordsByMonth[monthKey] = [];
-        }
-        
-        recordsByMonth[monthKey].push([id, record]);
-      });
-      
-      // Sort months
-      const sortedMonths = Object.keys(recordsByMonth).sort((a, b) => b.localeCompare(a));
-      
-      sortedMonths.forEach(monthKey => {
-        const [year, month] = monthKey.split('-');
-        const monthRecords = recordsByMonth[monthKey];
-        const monthName = new Date(year, month, 1).toLocaleString(state.currentLanguage, { month: 'long', year: 'numeric' });
-        
-        // Create month header row
-        const monthHeader = document.createElement('tr');
-        monthHeader.className = 'month-header';
-        monthHeader.innerHTML = `
-          <td colspan="5" class="py-2 px-3 font-semibold">
-            <div class="flex justify-between items-center">
-              <span>${monthName}</span>
-              <i class="fas fa-chevron-down toggle-icon"></i>
-            </div>
-          </td>
+        row.innerHTML = `
+          <td class="py-2 px-3">${formatDate(record.date)}</td>
+          <td class="py-2 px-3">${week}</td>
+          <td class="py-2 px-3">${project.code} - ${project.name}</td>
+          <td class="py-2 px-3 text-right">${workedHours.toFixed(2)}</td>
+          <td class="py-2 px-3 text-right">${record.breakTime} min</td>
         `;
-        tableBody.appendChild(monthHeader);
         
-        // Create month content container
-        const monthContent = document.createElement('tr');
-        monthContent.className = 'month-content';
-        monthContent.innerHTML = '<td colspan="5"></td>';
-        const contentCell = monthContent.querySelector('td');
-        
-        // Create table for month records
-        const monthTable = document.createElement('table');
-        monthTable.className = 'w-full';
-        monthTable.innerHTML = `
-          <tbody>
-            ${monthRecords.map(([id, record]) => {
-              const project = state.projects[record.projectId] || { name: translations[state.currentLanguage]['unknown'], code: '?' };
-              const workedHours = calculateWorkedHours(record);
-              totalHours += workedHours;
-              
-              const date = new Date(record.date);
-              const week = getWeekNumber(date);
-              
-              return `
-                <tr class="border-b hover:bg-gray-50">
-                  <td class="py-2 px-3">${formatDate(record.date)}</td>
-                  <td class="py-2 px-3">${week}</td>
-                  <td class="py-2 px-3">${project.code} - ${project.name}</td>
-                  <td class="py-2 px-3 text-right">${workedHours.toFixed(2)}</td>
-                  <td class="py-2 px-3 text-right">${record.breakTime} min</td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        `;
-        contentCell.appendChild(monthTable);
-        tableBody.appendChild(monthContent);
-        
-        // Add event listener for toggle
-        const toggleIcon = monthHeader.querySelector('.toggle-icon');
-        monthHeader.addEventListener('click', () => {
-          monthContent.classList.toggle('expanded');
-          toggleIcon.classList.toggle('rotated');
-        });
+        tableBody.appendChild(row);
       });
       
       // Update total
       document.getElementById('total-mes').textContent = totalHours.toFixed(2);
+    }
+
+    // Get ISO week number
+    function getWeekNumber(date) {
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+      const week1 = new Date(d.getFullYear(), 0, 4);
+      return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
     }
 
     // Initialize charts
@@ -2792,482 +2665,404 @@
         });
     }
 
-    // Open export filter modal
-    function openExportFilterModal() {
-      const projectFilter = document.getElementById('export-project-filter');
-      const startDateInput = document.getElementById('export-start-date');
-      const endDateInput = document.getElementById('export-end-date');
-      const modal = document.getElementById('export-filter-modal');
-      const title = document.getElementById('export-modal-title');
+    // Toggle records visibility
+    function toggleRecordsVisibility() {
+      const recordsContent = document.getElementById('records-content');
+      const toggleButton = document.getElementById('toggle-records');
       
-      if (!modal) return;
-      
-      // Default dates (current month)
-      const today = new Date();
-      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-      const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-      startDateInput.value = firstDay.toISOString().split('T')[0];
-      endDateInput.value = lastDay.toISOString().split('T')[0];
-      
-      // Load project options
-      projectFilter.innerHTML = '';
-      const allOption = document.createElement('option');
-      allOption.value = 'all';
-      allOption.textContent = translations[state.currentLanguage]['all_projects'];
-      projectFilter.appendChild(allOption);
-      
-      Object.entries(state.projects).forEach(([id, project]) => {
-        const option = document.createElement('option');
-        option.value = id;
-        option.textContent = `${project.code} - ${project.name}`;
-        projectFilter.appendChild(option);
-      });
-      
-      // Modal title
-      title.textContent = translations[state.currentLanguage][`export_${state.exportType}`] || '';
-      
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    // Close export filter modal
-    function closeExportFilterModal() {
-      const modal = document.getElementById('export-filter-modal');
-      if (!modal) return;
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-
-    // Handle export filter submit
-    function handleExportFilterSubmit() {
-      const startDate = document.getElementById('export-start-date').value;
-      const endDate = document.getElementById('export-end-date').value;
-      const projectFilter = document.getElementById('export-project-filter').value;
-      const sortBy = document.getElementById('export-sort-by').value;
-      const sortOrder = document.getElementById('export-sort-order').value;
-      
-      closeExportFilterModal();
-      
-      const params = { startDate, endDate, projectFilter, sortBy, sortOrder };
-      
-      if (state.exportType === 'pdf') {
-        exportPDF(params);
-      } else if (state.exportType === 'word') {
-        exportWord(params);
+      if (recordsContent.classList.contains('hidden')) {
+        recordsContent.classList.remove('hidden');
+        toggleButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
+      } else {
+        recordsContent.classList.add('hidden');
+        toggleButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
       }
     }
 
-    // Get filtered and sorted records
-    function getFilteredSortedRecords({ startDate, endDate, projectFilter, sortBy, sortOrder }) {
-      const filtered = Object.values(state.records).filter(record => {
-        if (record.date < startDate || record.date > endDate) return false;
-        if (projectFilter !== 'all' && record.projectId !== projectFilter) return false;
+    // Toggle summary visibility
+    function toggleSummaryVisibility() {
+      const summaryContent = document.getElementById('summary-content');
+      const toggleButton = document.getElementById('toggle-summary');
+      
+      if (summaryContent.classList.contains('hidden')) {
+        summaryContent.classList.remove('hidden');
+        toggleButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
+      } else {
+        summaryContent.classList.add('hidden');
+        toggleButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
+      }
+    }
+
+    // Open export modal
+    function openExportModal(type) {
+      state.exportType = type;
+      const exportModal = document.getElementById('export-modal');
+      const exportTitle = document.getElementById('export-modal-title');
+      
+      if (type === 'pdf') {
+        exportTitle.textContent = translations[state.currentLanguage]['export_pdf'];
+      } else {
+        exportTitle.textContent = translations[state.currentLanguage]['export_word'];
+      }
+      
+      // Set default date range (first and last day of current month)
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      
+      document.getElementById('export-start-date').value = firstDay.toISOString().split('T')[0];
+      document.getElementById('export-end-date').value = lastDay.toISOString().split('T')[0];
+      
+      exportModal.classList.remove('hidden');
+      exportModal.classList.add('flex');
+    }
+
+    // Close export modal
+    function closeExportModal() {
+      const exportModal = document.getElementById('export-modal');
+      exportModal.classList.add('hidden');
+      exportModal.classList.remove('flex');
+    }
+
+    // Handle export
+    function handleExport(e) {
+      e.preventDefault();
+      closeExportModal();
+      
+      const startDate = document.getElementById('export-start-date').value;
+      const endDate = document.getElementById('export-end-date').value;
+      const projectId = document.getElementById('export-project').value;
+      const sortBy = document.getElementById('export-sort-by').value;
+      const order = document.getElementById('export-order').value;
+      
+      // Filter records based on export criteria
+      let exportRecords = Object.entries(state.records).filter(([id, record]) => {
+        if (projectId !== 'all' && record.projectId !== projectId) {
+          return false;
+        }
+        
+        const recordDate = new Date(record.date);
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        if (recordDate < start || recordDate > end) {
+          return false;
+        }
+        
         return true;
       });
       
-      filtered.sort((a, b) => {
-        let cmp = 0;
-        switch (sortBy) {
-          case 'date':
-            cmp = new Date(a.date) - new Date(b.date);
-            break;
-          case 'project':
-            const nameA = state.projects[a.projectId]?.name || '';
-            const nameB = state.projects[b.projectId]?.name || '';
-            cmp = nameA.localeCompare(nameB);
-            break;
-          case 'hours':
-            cmp = calculateWorkedHours(a) - calculateWorkedHours(b);
-            break;
+      // Sort records
+      exportRecords.sort((a, b) => {
+        let aValue, bValue;
+        
+        if (sortBy === 'date') {
+          aValue = new Date(a[1].date);
+          bValue = new Date(b[1].date);
+        } else {
+          aValue = state.projects[a[1].projectId]?.name || '';
+          bValue = state.projects[b[1].projectId]?.name || '';
         }
-        return sortOrder === 'asc' ? cmp : -cmp;
+        
+        if (order === 'asc') {
+          return aValue > bValue ? 1 : -1;
+        } else {
+          return aValue < bValue ? 1 : -1;
+        }
       });
       
-      return filtered;
+      if (state.exportType === 'pdf') {
+        exportToPDF(exportRecords, startDate, endDate);
+      } else {
+        exportToWord(exportRecords, startDate, endDate);
+      }
     }
 
-    // Calculate worked hours
-    function calculateWorkedHours(record) {
-      const [startH, startM] = record.startTime.split(':').map(Number);
-      const [endH, endM] = record.endTime.split(':').map(Number);
-      const totalMinutes = (endH * 60 + endM) - (startH * 60 + startM) - (record.breakTime || 0);
-      return totalMinutes / 60;
+    // Función para formatear fecha en formato yy-mm-dd
+    function formatDateShort(dateString) {
+      const date = new Date(dateString);
+      const year = date.getFullYear().toString().substring(2);
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    // Función para obtener el nombre del día en sueco
+    function getSwedishDayName(date) {
+      const days = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+      return days[date.getDay()];
     }
 
     // Export to PDF
-    async function exportPDF({ startDate, endDate, projectFilter, sortBy, sortOrder }) {
-      showLoading(true);
-      try {
-        const records = getFilteredSortedRecords({ startDate, endDate, projectFilter, sortBy, sortOrder });
-        const container = document.getElementById('pdf-export');
-        if (!container) throw new Error('Contenedor #pdf-export no encontrado');
-        
-        const tbody = container.querySelector('tbody');
-        if (tbody) tbody.innerHTML = '';
-        
-        let totalHours = 0;
-        records.forEach(record => {
-          const project = state.projects[record.projectId] || { name: translations[state.currentLanguage]['unknown'], code: '?' };
-          const workedHours = calculateWorkedHours(record);
-          totalHours += workedHours;
-          const week = getWeekNumber(new Date(record.date));
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td class="border py-2 px-3">${record.date}</td>
-            <td class="border py-2 px-3">${week}</td>
-            <td class="border py-2 px-3">${project.code} - ${project.name}</td>
-            <td class="border py-2 px-3 text-right">${workedHours.toFixed(2)}</td>
-            <td class="border py-2 px-3 text-right">${record.breakTime || 0} min</td>
-          `;
-          tbody.appendChild(row);
-        });
-        
-        container.querySelector('#pdf-total-hours').textContent = totalHours.toFixed(2);
-        
-        // Set user info
-        const userName = document.getElementById('pdf-user-name');
-        if (userName) {
-          userName.textContent = `${state.user.firstName} ${state.user.lastName}`;
-        }
-        
-        const userEmail = document.getElementById('pdf-user-email');
-        if (userEmail) {
-          userEmail.textContent = state.user.email;
-        }
-        
-        const genDate = document.getElementById('pdf-gen-date');
-        if (genDate) {
-          genDate.textContent = new Date().toLocaleDateString(state.currentLanguage);
-        }
-        
-        const period = document.getElementById('pdf-period');
-        if (period) {
-          period.textContent = `${startDate} - ${endDate}`;
-        }
-        
-        // Generate charts
-        generatePDFCharts(records);
-        
-        const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: '#FFFFFF' });
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const imgW = 210;
-        const pageH = 297;
-        const imgH = (canvas.height * imgW) / canvas.width;
-        let heightLeft = imgH;
-        let y = 0;
-        
-        pdf.addImage(imgData, 'JPEG', 0, y, imgW, imgH);
-        while (heightLeft > pageH) {
-          y = heightLeft - imgH;
-          pdf.addPage();
-          pdf.addImage(imgData, 'JPEG', 0, y, imgW, imgH);
-          heightLeft -= pageH;
-        }
-        
-        pdf.save(`timebook_report_${state.user.lastName || "User"}_${new Date().toISOString().slice(0,10)}.pdf`);
-        showAlert(translations[state.currentLanguage]['pdf_export_success'], 'success');
-      } catch (err) {
-        console.error(err);
-        showAlert(translations[state.currentLanguage]['pdf_export_error'] + err.message, 'error');
-      } finally {
-        showLoading(false);
-      }
-    }
-    
-    // Generate charts for PDF
-    function generatePDFCharts(records) {
-      // Project distribution chart
-      const projectCtx = document.getElementById('pdf-project-chart').getContext('2d');
-      const projectData = generateProjectChartData(records);
-      
-      new Chart(projectCtx, {
-        type: 'doughnut',
-        data: projectData,
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'right',
-            }
-          }
-        }
-      });
-      
-      // Weekly hours chart
-      const weeklyCtx = document.getElementById('pdf-weekly-chart').getContext('2d');
-      const weeklyData = generateWeeklyChartData(records);
-      
-      new Chart(weeklyCtx, {
-        type: 'bar',
-        data: weeklyData,
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              title: {
-                display: true,
-                text: translations[state.currentLanguage]['worked_hours']
-              }
-            }
-          }
-        }
-      });
-    }
-    
-    // Generate project chart data
-    function generateProjectChartData(records) {
-      const projectHours = {};
-      Object.entries(state.projects).forEach(([id]) => {
-        projectHours[id] = 0;
-      });
-      
-      records.forEach(record => {
-        if (projectHours[record.projectId] !== undefined) {
-          projectHours[record.projectId] += calculateWorkedHours(record);
-        }
-      });
-      
-      const labels = [];
-      const data = [];
-      const backgroundColor = [
-        'rgba(59, 130, 246, 0.7)',
-        'rgba(16, 185, 129, 0.7)',
-        'rgba(245, 158, 11, 0.7)',
-        'rgba(239, 68, 68, 0.7)',
-        'rgba(139, 92, 246, 0.7)',
-        'rgba(236, 72, 153, 0.7)',
-        'rgba(37, 99, 235, 0.7)',
-        'rgba(5, 150, 105, 0.7)'
-      ];
-      
-      Object.entries(projectHours).forEach(([projectId, hours]) => {
-        const project = state.projects[projectId];
-        if (project && hours > 0) {
-          labels.push(`${project.code} - ${project.name}`);
-          data.push(hours);
-        }
-      });
-      
-      return {
-        labels,
-        datasets: [{
-          data,
-          backgroundColor,
-          borderColor: 'white',
-          borderWidth: 1
-        }]
-      };
-    }
-    
-    // Generate weekly chart data
-    function generateWeeklyChartData(records) {
-      const weeklyHours = {};
-      
-      records.forEach(record => {
-        const date = new Date(record.date);
-        const week = getWeekNumber(date);
-        if (!weeklyHours[week]) {
-          weeklyHours[week] = 0;
-        }
-        weeklyHours[week] += calculateWorkedHours(record);
-      });
-      
-      const labels = Object.keys(weeklyHours).sort().map(week => `${translations[state.currentLanguage]['week']} ${week}`);
-      const data = Object.keys(weeklyHours).sort().map(week => weeklyHours[week]);
-      
-      return {
-        labels,
-        datasets: [{
-          label: translations[state.currentLanguage]['hours_per_week'],
-          data,
-          backgroundColor: 'rgba(59, 130, 246, 0.7)',
-          borderColor: 'rgba(59, 130, 246, 1)',
-          borderWidth: 1
-        }]
-      };
-    }
-
-	// Export to Word
-	async function exportWord({ startDate, endDate, projectFilter, sortBy, sortOrder }) {
+	async function exportToPDF(records, startDate, endDate) {
 	  showLoading(true);
+
 	  try {
-		// 1. Verificar y cargar html-docx si es necesario
-		if (!window.htmlDocx || !window.htmlDocx.asBlob) {
-		  await new Promise((resolve, reject) => {
-			const script = document.createElement('script');
-			script.src = 'https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.min.js';
-			script.integrity = 'sha384-4X8IQj1ErYAsgv6g1x+b0g4BpVwZPZp0l6bRg8TVaTZLNQ5bHUd0lTVYQaZ7D4V7';
-			script.crossOrigin = 'anonymous';
-			script.onload = resolve;
-			script.onerror = () => reject(new Error('Error loading html-docx library'));
-			document.head.appendChild(script);
+		const pdf = new jsPDF('p', 'mm', 'a4');
+		const pageWidth = pdf.internal.pageSize.getWidth();
+		const pageHeight = pdf.internal.pageSize.getHeight();
+		let yPosition = 20;
+
+		// ===== ENCABEZADO EMPRESA =====
+		pdf.setFont("times", "normal");
+		pdf.setFontSize(10);
+		pdf.text(state.companySettings.address || 'Köpmangatan 5, plan 10', 20, yPosition);
+		yPosition += 5;
+		pdf.text(state.companySettings.postal || '151 71 Södertälje', 20, yPosition);
+		yPosition += 5;
+		pdf.text(`Tel: ${state.companySettings.phone || '079-079 00 45'}`, 20, yPosition);
+		yPosition += 5;
+		pdf.text(`Organisationsnummer: ${state.companySettings.orgnr || '559096-5983'}`, 20, yPosition);
+
+		// Línea divisoria superior
+		yPosition += 10;
+		pdf.setDrawColor(150);
+		pdf.line(20, yPosition, pageWidth - 20, yPosition);
+		yPosition += 15;
+
+		// ===== TÍTULO =====
+		pdf.setFont("times", "bold");
+		pdf.setFontSize(16);
+		pdf.text("ARBETSRAPPORT", pageWidth / 2, yPosition, { align: "center" });
+		yPosition += 15;
+
+		// ===== USUARIO Y PERIODO =====
+		pdf.setFont("times", "normal");
+		pdf.setFontSize(12);
+		pdf.text(`Mätningsingenjör: ${state.user.firstName} ${state.user.lastName}`, 20, yPosition);
+		yPosition += 7;
+		const formattedStartDate = formatDateShort(startDate);
+		const formattedEndDate = formatDateShort(endDate);
+		pdf.text(`Period: ${formattedStartDate} - ${formattedEndDate}`, 20, yPosition);
+
+		yPosition += 15;
+
+		// ===== TABLA =====
+		pdf.setFontSize(10);
+		pdf.setFont("times", "bold");
+		const headers = ["Datum", "Dag", "Från", "Till", "Rast (h)", "Timmar", "Projekt", "Beskrivning"];
+		const colWidths = [25, 20, 15, 15, 20, 20, 40, 35];
+		const tableWidth = colWidths.reduce((a, b) => a + b, 0);
+		const xStart = (pageWidth - tableWidth) / 2; // centrado en la página
+
+		let x = xStart;
+		const headerHeight = 8;
+
+		// Encabezados con bordes
+		headers.forEach((header, i) => {
+		  pdf.rect(x, yPosition, colWidths[i], headerHeight);
+		  pdf.text(header, x + 2, yPosition + 5);
+		  x += colWidths[i];
+		});
+		yPosition += headerHeight;
+
+		// Contenido tabla
+		pdf.setFont("times", "normal");
+		let totalHours = 0;
+
+		records.forEach(([id, record]) => {
+		  if (yPosition > pageHeight - 30) {
+			pdf.addPage();
+			yPosition = 20;
+			// Redibujar encabezados en nueva página
+			x = xStart;
+			headers.forEach((header, i) => {
+			  pdf.rect(x, yPosition, colWidths[i], headerHeight);
+			  pdf.text(header, x + 2, yPosition + 5);
+			  x += colWidths[i];
+			});
+			yPosition += headerHeight;
+		  }
+
+		  const project = state.projects[record.projectId] || { name: "Okänd" };
+		  const date = new Date(record.date);
+		  const dateStr = formatDateShort(record.date);
+		  const dayName = getSwedishDayName(date);
+
+		  // Calcular horas
+		  const [sh, sm] = record.startTime.split(":").map(Number);
+		  const [eh, em] = record.endTime.split(":").map(Number);
+		  const workedMinutes = (eh * 60 + em) - (sh * 60 + sm) - record.breakTime;
+		  const workedHours = workedMinutes / 60;
+		  totalHours += workedHours;
+
+		  // Fila
+		  const row = [
+			dateStr,
+			dayName,
+			record.startTime,
+			record.endTime,
+			(record.breakTime / 60).toFixed(2),
+			workedHours.toFixed(2),
+			project.name,
+			record.notes || ""
+		  ];
+
+		  // Dividir texto en cada celda
+		  const cellLines = row.map((text, i) =>
+			pdf.splitTextToSize(text.toString(), colWidths[i] - 2)
+		  );
+
+		  // Calcular altura máxima de la fila
+		  const rowHeight = Math.max(...cellLines.map(lines => lines.length)) * 5;
+
+		  // Dibujar celdas
+		  x = xStart;
+		  cellLines.forEach((lines, i) => {
+			pdf.rect(x, yPosition, colWidths[i], rowHeight); // borde celda
+			pdf.text(lines, x + 2, yPosition + 5, { maxWidth: colWidths[i] - 4 });
+			x += colWidths[i];
 		  });
+
+		  yPosition += rowHeight;
+		});
+
+		// ===== TOTAL HORAS =====
+		if (yPosition > pageHeight - 30) {
+		  pdf.addPage();
+		  yPosition = 20;
 		}
 
-		const records = getFilteredSortedRecords({ startDate, endDate, projectFilter, sortBy, sortOrder });
-		const container = document.getElementById('word-export');
-		if (!container) throw new Error('Contenedor #word-export no encontrado');
-		
-		const tbody = container.querySelector('tbody');
-		if (tbody) tbody.innerHTML = '';
-		
-		let totalHours = 0;
-		records.forEach(record => {
-		  const project = state.projects[record.projectId] || { name: translations[state.currentLanguage]['unknown'], code: '?' };
-		  const workedHours = calculateWorkedHours(record);
-		  totalHours += workedHours;
-		  const week = getWeekNumber(new Date(record.date));
-		  const row = document.createElement('tr');
-		  row.innerHTML = `
-			<td class="border py-2 px-3">${record.date}</td>
-			<td class="border py-2 px-3">${week}</td>
-			<td class="border py-2 px-3">${project.code} - ${project.name}</td>
-			<td class="border py-2 px-3 text-right">${workedHours.toFixed(2)}</td>
-			<td class="border py-2 px-3 text-right">${record.breakTime || 0} min</td>
-		  `;
-		  tbody.appendChild(row);
-		});
-		
-		container.querySelector('#word-total-hours').textContent = totalHours.toFixed(2);
-		
-		// Set user info
-		const userName = document.getElementById('word-user-name');
-		if (userName) {
-		  userName.textContent = `${state.user.firstName} ${state.user.lastName}`;
-		}
-		
-		const userEmail = document.getElementById('word-user-email');
-		if (userEmail) {
-		  userEmail.textContent = state.user.email;
-		}
-		
-		const genDate = document.getElementById('word-gen-date');
-		if (genDate) {
-		  genDate.textContent = new Date().toLocaleDateString(state.currentLanguage);
-		}
-		
-		const period = document.getElementById('word-period');
-		if (period) {
-		  period.textContent = `${startDate} - ${endDate}`;
-		}
-		
-		// Generate charts
-		generateWordCharts(records);
-		
-		const styles = `
-		  <style>
-			body { font-family: Arial, Helvetica, sans-serif; }
-			table { border-collapse: collapse; width: 100%; }
-			th, td { border: 1px solid #d1d5db; padding: 6px; font-size: 12px; text-align: left; }
-			th { background: #f3f4f6; }
-			canvas { display: block; margin: 10px auto; }
-		  </style>
-		`;
-		const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styles}</head><body>${container.innerHTML}</body></html>`;
-		
-		// 2. Crear y descargar el documento Word
-		const blob = window.htmlDocx.asBlob(html);
-		const a = document.createElement('a');
-		a.href = URL.createObjectURL(blob);
-		a.download = `timebook_report_${state.user.lastName || "User"}_${new Date().toISOString().slice(0,10)}.docx`;
-		document.body.appendChild(a);
-		a.click();
-		document.body.removeChild(a);
-		URL.revokeObjectURL(a.href);
-		
-		showAlert(translations[state.currentLanguage]['word_export_success'], 'success');
-	  } catch (err) {
-		console.error('Error en exportWord:', err);
-		showAlert(`${translations[state.currentLanguage]['word_export_error']}: ${err.message}`, 'error');
+		yPosition += 10;
+		pdf.setFont("times", "bold");
+		pdf.setFontSize(12);
+		pdf.text("TOTALT:", xStart, yPosition);
+		pdf.text(totalHours.toFixed(2) + " timmar", pageWidth - xStart, yPosition, { align: "right" });
+
+		// ===== PIE DE PÁGINA =====
+		pdf.setFont("times", "italic");
+		pdf.setFontSize(9);
+		pdf.text("Genererad automatiskt av TimeBook Pro", pageWidth / 2, pageHeight - 15, { align: "center" });
+
+		// Guardar
+		pdf.save(`tidrapport_${new Date().getTime()}.pdf`);
+
+		showAlert(translations[state.currentLanguage]["export_success"], "success");
+	  } catch (error) {
+		console.error("Error generating PDF:", error);
+		showAlert("Error generating PDF: " + error.message, "error");
 	  } finally {
 		showLoading(false);
 	  }
 	}
 
-	// Generate charts for Word
-	function generateWordCharts(records) {
-	  // Función para destruir gráficos existentes
-	  const destroyChartIfExists = (canvasId) => {
-		const canvas = document.getElementById(canvasId);
-		if (!canvas) return;
-		
-		const existingChart = Chart.getChart(canvas);
-		if (existingChart) {
-		  existingChart.destroy();
-		}
-	  };
 
-	  // Destruir gráficos antes de crear nuevos
-	  destroyChartIfExists('word-project-chart');
-	  destroyChartIfExists('word-weekly-chart');
-
-	  // Gráfico de distribución de proyectos
-	  const projectCanvas = document.getElementById('word-project-chart');
-	  if (projectCanvas) {
-		const projectCtx = projectCanvas.getContext('2d');
-		const projectData = generateProjectChartData(records);
-		
-		new Chart(projectCtx, {
-		  type: 'doughnut',
-		  data: projectData,
-		  options: {
-			responsive: true,
-			maintainAspectRatio: false,
-			plugins: {
-			  legend: {
-				position: 'right',
-			  }
-			}
-		  }
-		});
-	  }
-	  
-	  // Gráfico de horas semanales
-	  const weeklyCanvas = document.getElementById('word-weekly-chart');
-	  if (weeklyCanvas) {
-		const weeklyCtx = weeklyCanvas.getContext('2d');
-		const weeklyData = generateWeeklyChartData(records);
-		
-		new Chart(weeklyCtx, {
-		  type: 'bar',
-		  data: weeklyData,
-		  options: {
-			responsive: true,
-			maintainAspectRatio: false,
-			scales: {
-			  y: {
-				beginAtZero: true,
-				title: {
-				  display: true,
-				  text: translations[state.currentLanguage]['worked_hours']
-				}
-			  }
-			}
-		  }
-		});
-	  }
-	}
-
-	// Toggle records visibility
-	function toggleRecordsVisibility() {
-	  const content = document.getElementById('records-content');
-	  const icon = document.getElementById('toggle-records').querySelector('i');
-	  content.classList.toggle('hidden');
-	  icon.classList.toggle('fa-chevron-down');
-	  icon.classList.toggle('fa-chevron-up');
-	}
-
-	// Toggle summary visibility
-	function toggleSummaryVisibility() {
-	  const content = document.getElementById('summary-content');
-	  const icon = document.getElementById('summary-header').querySelector('.toggle-icon');
-	  content.classList.toggle('expanded');
-	  icon.classList.toggle('rotated');
-	}
+    // Export to Word
+    function exportToWord(records, startDate, endDate) {
+      showLoading(true);
+      
+      try {
+        // Create a simple HTML content for Word export
+        let content = `
+          <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+          <head>
+            <meta charset="utf-8">
+            <title>Tidrapport</title>
+            <style>
+              body { font-family: Arial, sans-serif; }
+              h1 { color: #2c5282; }
+              table { border-collapse: collapse; width: 100%; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background-color: #f2f2f2; }
+            </style>
+          </head>
+          <body>
+            <div>
+              <div>${state.companySettings.address || 'Köpmangatan 5, plan 10'}</div>
+              <div>${state.companySettings.postal || '151 71 Södertälje'}</div>
+              <div>Tel ${state.companySettings.phone || '079-079 00 45'}</div>
+              <div>Organisationsnummer: ${state.companySettings.orgnr || '559096-5983'}</div>
+            </div>
+            
+            <h1>Tidrapport</h1>
+            
+            <div>
+              <strong>Mätningsingenjör:</strong> ${state.user.firstName} ${state.user.lastName}
+            </div>
+            
+            <div>
+              <strong>Period:</strong> ${formatDateShort(startDate)} - ${formatDateShort(endDate)}
+            </div>
+            
+            <table>
+              <thead>
+                <tr>
+                  <th>Datum (yy-mm-d)</th>
+                  <th>Dag</th>
+                  <th>Från</th>
+                  <th>Till</th>
+                  <th>Rast (h)</th>
+                  <th>Tim</th>
+                  <th>Projektnamn</th>
+                  <th>Arbetsbeskrivning</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+        
+        let totalHours = 0;
+        
+        records.forEach(([id, record]) => {
+          const project = state.projects[record.projectId] || { name: 'Okänd', code: '?' };
+          const date = new Date(record.date);
+          const dateStr = formatDateShort(record.date);
+          const dayName = getSwedishDayName(date);
+          
+          // Calculate hours worked
+          const [startHours, startMinutes] = record.startTime.split(':').map(Number);
+          const [endHours, endMinutes] = record.endTime.split(':').map(Number);
+          const startTotalMinutes = startHours * 60 + startMinutes;
+          const endTotalMinutes = endHours * 60 + endMinutes;
+          const workedMinutes = endTotalMinutes - startTotalMinutes - record.breakTime;
+          const workedHours = workedMinutes / 60;
+          
+          totalHours += workedHours;
+          
+          content += `
+            <tr>
+              <td>${dateStr}</td>
+              <td>${dayName}</td>
+              <td>${record.startTime}</td>
+              <td>${record.endTime}</td>
+              <td>${(record.breakTime / 60).toFixed(2)}</td>
+              <td>${workedHours.toFixed(2)}</td>
+              <td>${project.name}</td>
+              <td>${record.notes || ''}</td>
+            </tr>
+          `;
+        });
+        
+        content += `
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="5" style="text-align: right; font-weight: bold;">Totalt:</td>
+                  <td style="font-weight: bold;">${totalHours.toFixed(2)}</td>
+                  <td colspan="2"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </body>
+          </html>
+        `;
+        
+        // Create Blob and download
+        const blob = new Blob([content], { type: 'application/msword' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `tidrapport_${new Date().getTime()}.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showAlert(translations[state.currentLanguage]['export_success'], 'success');
+      } catch (error) {
+        console.error('Error generating Word document:', error);
+        showAlert('Error generating Word document: ' + error.message, 'error');
+      } finally {
+        showLoading(false);
+      }
+    }
   </script>
 </body>
 </html>
