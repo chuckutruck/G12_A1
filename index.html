@@ -550,6 +550,10 @@
         <h3 class="text-lg font-semibold mb-4" data-i18n="company_settings">Företagsinställningar</h3>
         <form id="company-settings-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="form-group">
+            <label for="company-name" class="form-label" data-i18n="company_name">Företagsnamn (valfritt)</label>
+            <input type="text" id="company-name" class="form-control" placeholder="Exempel AB">
+          </div>		
+          <div class="form-group">
             <label for="company-address" class="form-label" data-i18n="company_address">Adress</label>
             <input type="text" id="company-address" class="form-control" placeholder="Köpmangatan 5, plan 10">
           </div>
@@ -1123,6 +1127,7 @@
 		'break_120': '2 timmar',
 		'load_more': 'Ladda fler',
 		'company_settings': 'Företagsinställningar',
+		'company_name': 'Företagsnamn (valfritt)',
 		'company_address': 'Adress',
 		'postal_code': 'Postnummer och ort',
 		'org_number': 'Organisationsnummer',
@@ -1227,6 +1232,7 @@
 		'break_120': '2 horas',
 		'load_more': 'Cargar más',
 		'company_settings': 'Ajustes de la empresa',
+		'company_name': 'Nombre de la empresa (opcional)',
 		'company_address': 'Dirección',
 		'postal_code': 'Código postal y ciudad',
 		'org_number': 'Número de organización',
@@ -1331,6 +1337,7 @@
 		'break_120': '2 hours',
 		'load_more': 'Load more',
 		'company_settings': 'Company settings',
+		'company_name': 'Company name (optional)',
 		'company_address': 'Address',
 		'postal_code': 'Postal code & city',
 		'org_number': 'Organization number',
@@ -1912,6 +1919,7 @@
         .then(() => {
           // Add default company settings
           const defaultCompanySettings = {
+		    name: 'Exempel AB',
             address: 'Köpmangatan 5, plan 10',
             postal: '151 71 Södertälje',
             phone: '079-079 00 45',
@@ -1999,6 +2007,7 @@
 
     // Update company settings display
     function updateCompanySettingsDisplay() {
+	  document.getElementById('company-name').value = state.companySettings.name || '';
       document.getElementById('company-address').value = state.companySettings.address || '';
       document.getElementById('company-postal').value = state.companySettings.postal || '';
       document.getElementById('company-phone').value = state.companySettings.phone || '';
@@ -2088,7 +2097,8 @@
       updateSyncStatus('syncing');
       
       const companySettings = {
-        address: document.getElementById('company-address').value,
+        name: document.getElementById('company-name').value,
+		address: document.getElementById('company-address').value,
         postal: document.getElementById('company-postal').value,
         phone: document.getElementById('company-phone').value,
         orgnr: document.getElementById('company-orgnr').value
@@ -3225,6 +3235,7 @@
 		// ===== ENCABEZADO EMPRESA =====
 		pdf.setFont("times", "normal");
 		pdf.setFontSize(10);
+		pdf.text(state.companySettings.name || 'Exempel AB', 20, yPosition); yPosition += 5;
 		pdf.text(state.companySettings.address || 'Köpmangatan 5, plan 10', 20, yPosition);
 		yPosition += 5;
 		pdf.text(state.companySettings.postal || '151 71 Södertälje', 20, yPosition);
@@ -3387,6 +3398,7 @@
           </head>
           <body>
             <div>
+              <div>${state.companySettings.name || 'Exempel AB'}</div>			
               <div>${state.companySettings.address || 'Köpmangatan 5, plan 10'}</div>
               <div>${state.companySettings.postal || '151 71 Södertälje'}</div>
               <div>Tel ${state.companySettings.phone || '079-079 00 45'}</div>
