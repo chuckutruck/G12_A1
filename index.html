@@ -2453,11 +2453,23 @@
         return;
       }
       
-      // Show only limited number of records initially
-      const recordsToShow = state.filteredRecords.slice(state.recordsOffset, state.recordsOffset + state.recordsLimit);
+      // Show only a limited number of records initially
+      let recordsToShow;
+
+      // If this is the first page (offset = 0), reset displayedRecords
+      if (state.recordsOffset === 0) {
+        state.displayedRecords = [];
+      }
+
+      recordsToShow = state.filteredRecords.slice(
+        state.recordsOffset,
+        state.recordsOffset + state.recordsLimit
+      );
+
+      // Add to the accumulator
       state.displayedRecords = state.displayedRecords.concat(recordsToShow);
       state.recordsOffset += state.recordsLimit;
-      
+
       // Group records by month
       const recordsByMonth = {};
       state.displayedRecords.forEach(([id, record]) => {
@@ -2465,11 +2477,11 @@
         const month = date.getMonth();
         const year = date.getFullYear();
         const monthKey = `${year}-${month}`;
-        
+
         if (!recordsByMonth[monthKey]) {
           recordsByMonth[monthKey] = [];
         }
-        
+
         recordsByMonth[monthKey].push([id, record]);
       });
       
@@ -2643,10 +2655,15 @@
       let totalHours = 0;
       
       // Sort records by date (oldest first)
-      const sortedRecords = [...state.filteredRecords].sort((a, b) => new Date(a[1].date) - new Date(b[1].date));
-      
+      const sortedRecords = [...state.filteredRecords].sort(
+        (a, b) => new Date(a[1].date) - new Date(b[1].date)
+      );
+
       sortedRecords.forEach(([id, record]) => {
-        const project = state.projects[record.projectId] || { name: translations[state.currentLanguage]['unknown'], code: '?' };
+        const project = state.projects[record.projectId] || {
+          name: translations[state.currentLanguage]['unknown'],
+          code: '?'
+        };
         
         // Calculate hours worked
         const startTime = record.startTime.split(':');
