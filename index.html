@@ -2660,7 +2660,7 @@
       
       // Sort records by date (oldest first)
       const sortedRecords = [...state.filteredRecords].sort(
-        (a, b) => new Date(a[1].date) - new Date(b[1].date)
+        (a, b) => new Date(b[1].date) - new Date(a[1].date)
       );
 
       sortedRecords.forEach(([id, record]) => {
@@ -3518,6 +3518,7 @@
   </script>
 </body>
 </html>
+
 
 
 
