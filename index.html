@@ -470,7 +470,6 @@
     <!-- Alert Container -->
     <div id="alert-container" class="fixed top-4 right-4 z-50 max-w-sm"></div>
     
-    <!-- Header -->
     <header class="bg-white shadow-sm">
       <div class="container mx-auto px-4 py-4 flex justify-between items-center">
         <h1 class="text-2xl font-bold text-gray-800">
@@ -478,34 +477,38 @@
         </h1>
         
         <div class="flex items-center space-x-4">
-			<!-- Language Selector -->
-			<div class="language-selector">
-			  <div class="language-btn">
-				<span class="language-flag flag-sv" id="current-flag"></span>
-				<span id="current-language">SV</span>
-				<i class="fas fa-chevron-down ml-1 text-xs"></i>
-			  </div>
-			  <div class="language-dropdown">
-				<a href="#" data-lang="sv">
-				  <span class="language-flag flag-sv"></span>
-				  <span>Svenska</span>
-				</a>
-				<a href="#" data-lang="es">
-				  <span class="language-flag flag-es"></span>
-				  <span>Español</span>
-				</a>
-				<a href="#" data-lang="en">
-				  <span class="language-flag flag-en"></span>
-				  <span>English</span>
-				</a>
-				<a href="#" data-lang="ru">
-				  <span class="language-flag flag-ru"></span>
-				  <span>Русский</span>
-				</a>
-				<a href="#" data-lang="pl">
-				  <span class="language-flag flag-pl"></span>
-				  <span>Polski</span>
-				</a>
+          <!-- Language Selector -->
+          <div class="language-selector">
+            <div class="language-btn">
+              <span class="language-flag flag-sv" id="current-flag"></span>
+              <span id="current-language">SV</span>
+              <i class="fas fa-chevron-down ml-1 text-xs"></i>
+            </div>
+            <div class="language-dropdown">
+              <a href="#" data-lang="sv">
+                <span class="language-flag flag-sv"></span>
+                <span data-i18n="language_swedish">Svenska</span>
+              </a>
+              <a href="#" data-lang="es">
+                <span class="language-flag flag-es"></span>
+                <span data-i18n="language_spanish">Español</span>
+              </a>
+              <a href="#" data-lang="en">
+                <span class="language-flag flag-en"></span>
+                <span data-i18n="language_english">English</span>
+              </a>
+              <a href="#" data-lang="ru">
+                <span class="language-flag flag-ru"></span>
+                <span data-i18n="language_russian">Русский</span>
+              </a>
+              <a href="#" data-lang="pl">
+                <span class="language-flag flag-pl"></span>
+                <span data-i18n="language_polish">Polski</span>
+              </a>
+              <a href="#" data-lang="th">
+                <span class="language-flag flag-th"></span>
+                <span data-i18n="language_thai">ไทย</span>
+              </a>
 			  </div>
 			</div>
 			<a href="https://chuckutruck.github.io/Franvarorapport/" target="_blank" class="flex items-center btn-outline text-sm">
@@ -624,15 +627,16 @@
                 <select id="break-time" class="form-control" required>
                   <option value="0" data-i18n="break_0">0 minuter</option>
                   <option value="30" data-i18n="break_30">En halvtimme</option>
-                  <option value="60" selected data-i18n">1 timme</option>
+                  <option value="60" selected data-i18n="break_60">1 timme</option>
                   <option value="120" data-i18n="break_120">2 timmar</option>
                 </select>
               </div>
               
-              <div class="form-group">
-                <label for="notes" class="form-label" data-i18n="notes">Anteckningar</label>
-                <textarea id="notes" class="form-control" rows="3" spellcheck="true" lang="sv"></textarea>
-              </div>
+			<div class="form-group">
+			  <label for="notes" class="form-label" data-i18n="notes">Anteckningar</label>
+			  <textarea id="notes" class="form-control" rows="3" spellcheck="true" lang="sv"></textarea>
+			</div>
+
               
               <div class="form-group">
                 <label for="coworkers" class="form-label" data-i18n="coworkers">Kollegor</label>
@@ -749,30 +753,51 @@
             </div>
           </div>
           
-          <!-- Visual Statistics -->
-          <div class="card p-4">
-            <h3 class="text-lg font-semibold mb-4" data-i18n="visual_statistics">Visuell statistik</h3>
-            
-            <div class="mb-6">
-              <div class="flex justify-between items-center mb-3">
-                <h4 class="font-medium" data-i18n="hours_per_week">Timmar per vecka</h4>
-                <div class="flex gap-2">
-                  <button class="text-sm px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 view-toggle active" data-view="monthly" data-i18n="monthly">Månadsvis</button>
-                  <button class="text-sm px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 view-toggle" data-view="quarterly" data-i18n="quarterly">Kvartalsvis</button>
-                </div>
-              </div>
-              <div class="h-64">
-                <canvas id="weekly-chart"></canvas>
-              </div>
-            </div>
-            
-            <div>
-              <h4 class="font-medium mb-3" data-i18n="project_distribution">Projektfördelning</h4>
-              <div class="h-64">
-                <canvas id="project-chart"></canvas>
-              </div>
-            </div>
-          </div>
+			<!-- Visual Statistics (collapsible) -->
+			<div class="card">
+			  <div class="p-4 border-b flex justify-between items-center cursor-pointer" id="toggle-visual">
+				<h3 class="text-lg font-semibold" data-i18n="visual_statistics">Visuell statistik</h3>
+				<i class="fas fa-chevron-down transition-transform duration-300" id="visual-icon"></i>
+			  </div>
+
+			  <div id="visual-content" class="p-4 hidden">
+				<div class="mb-6">
+				  <div class="flex justify-between items-center mb-3">
+					<h4 class="font-medium" data-i18n="hours_per_week">Timmar per vecka</h4>
+					<div class="flex gap-2">
+					  <button class="text-sm px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 view-toggle active"
+							  data-view="monthly" data-i18n="monthly">Månadsvis</button>
+					  <button class="text-sm px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 view-toggle"
+							  data-view="quarterly" data-i18n="quarterly">Kvartalsvis</button>
+					</div>
+				  </div>
+				  <div class="h-64">
+					<canvas id="weekly-chart"></canvas>
+				  </div>
+				</div>
+				
+				<div>
+				  <h4 class="font-medium mb-3" data-i18n="project_distribution">Projektfördelning</h4>
+				  <div class="h-64">
+					<canvas id="project-chart"></canvas>
+				  </div>
+				</div>
+			  </div>
+			</div>
+
+			<script>
+			document.addEventListener("DOMContentLoaded", () => {
+			  const toggleBtn = document.getElementById("toggle-visual");
+			  const content = document.getElementById("visual-content");
+			  const icon = document.getElementById("visual-icon");
+
+			  toggleBtn.addEventListener("click", () => {
+				content.classList.toggle("hidden");
+				icon.classList.toggle("rotate-180");
+			  });
+			});
+			</script>
+
           
           <!-- Hours Summary Table -->
           <div class="card p-4">
@@ -783,25 +808,98 @@
               </button>
             </div>
             
-            <div id="summary-content">
-              <div class="overflow-x-auto">
-                <table class="w-full" id="resumenHoras">
-                  <thead>
-                    <tr class="bg-gray-50 border-b">
-                      <th class="py-2 px-3 text-left" data-i18n="date">Datum</th>
-                      <th class="py-2 px-3 text-left" data-i18n="week">Vecka</th>
-                      <th class="py-2 px-3 text-left" data-i18n="project">Projekt</th>
-                      <th class="py-2 px-3 text-right" data-i18n="worked_hours">Arbetade timmar</th>
-                      <th class="py-2 px-3 text-right" data-i18n="break">Rast</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                  </tbody>
-                  <tfoot>
-                    <tr class="font-semibold">
-                      <td colspan="3" class="py-2 px-3 text-right" data-i18n="total">Totalt:</td>
-                      <td class="py-2 px-3 text-right" id="total-mes">0</td>
-                      <td class="py-2 px-3"></td>
+			<div id="summary-content" class="p-4 hidden">
+			  <div class="overflow-x-auto">
+				<table class="w-full" id="resumenHoras">
+				  <thead>
+					<tr class="bg-gray-50 border-b">
+					  <th class="py-2 px-3 text-left" data-i18n="date">Datum</th>
+					  <th class="py-2 px-3 text-left" data-i18n="week">Vecka</th>
+					  <th class="py-2 px-3 text-left" data-i18n="project">Projekt</th>
+					  <th class="py-2 px-3 text-right" data-i18n="worked_hours">Arbetade timmar</th>
+					  <th class="py-2 px-3 text-right" data-i18n="break">Rast</th>
+					</tr>
+				  </thead>
+				  <tbody>
+				  </tbody>
+				  <tfoot>
+					<tr class="font-semibold">
+					  <td colspan="3" class="py-2 px-3 text-right" data-i18n="total">Totalt:</td>
+					  <td class="py-2 px-3 text-right" id="total-mes">0</td>
+					  <td class="py-2 px-3"></td>
+					</tr>
+				  </tfoot>
+				</table>
+			  </div>
+			</div>
+
+			<script>
+			function parseDate(s) {
+			  const meses = {
+				"jan.": "Jan",
+				"feb.": "Feb",
+				"mar.": "Mar",
+				"apr.": "Apr",
+				"maj": "May",
+				"jun.": "Jun",
+				"jul.": "Jul",
+				"aug.": "Aug",
+				"sep.": "Sep",
+				"okt.": "Oct",
+				"nov.": "Nov",
+				"dec.": "Dec"
+			  };
+			  // Tomar siempre los últimos 3 elementos
+			  const partes = s.trim().split(" ");
+			  const day = partes[partes.length - 3];
+			  const month = meses[partes[partes.length - 2]];
+			  const year = partes[partes.length - 1];
+			  return new Date(`${day} ${month} ${year}`);
+			}
+
+
+			// 🔹 Aquí metes tus registros
+			const registros = [
+			  { date: "fre 1 aug. 2025", week: 31, project: "4108282 - Sickla skola Utemiljö.", hours: 6.00, break: "30 min" },
+			  { date: "mån 11 aug. 2025", week: 33, project: "41004034 - Sickla skola hus C.", hours: 2.00, break: "0 min" },
+			  { date: "ons 13 aug. 2025", week: 33, project: "3 - Brasvägen förskola", hours: 5.50, break: "30 min" },
+			  { date: "tors 11 sep. 2025", week: 37, project: "8 - Oxelösund kaj 8", hours: 7.50, break: "60 min" },
+			  { date: "fre 12 sep. 2025", week: 37, project: "4108282 - Sickla skola Utemiljö.", hours: 6.00, break: "30 min" }
+			  // ... agrega todos los demás registros aquí
+			];
+
+			// 🔹 Ordenar: primero fecha descendente, luego proyecto alfabético
+			registros.sort((a, b) => {
+			  const dateDiff = parseDate(b.date) - parseDate(a.date); // fecha descendente
+			  if (dateDiff !== 0) return dateDiff;
+			  return a.project.localeCompare(b.project); // si es mismo día → ordenar por proyecto
+			});
+
+
+			// 🔹 Pintar en tabla
+			const tbody = document.querySelector("#resumenHoras tbody");
+			tbody.innerHTML = "";
+
+			let totalHoras = 0;
+
+			registros.forEach(reg => {
+			  const tr = document.createElement("tr");
+			  tr.innerHTML = `
+				<td class="py-2 px-3">${reg.date}</td>
+				<td class="py-2 px-3">${reg.week}</td>
+				<td class="py-2 px-3">${reg.project}</td>
+				<td class="py-2 px-3 text-right">${reg.hours.toFixed(2)}</td>
+				<td class="py-2 px-3 text-right">${reg.break}</td>
+			  `;
+			  tbody.appendChild(tr);
+
+			  totalHoras += reg.hours;
+			});
+
+			// 🔹 Mostrar total en el <tfoot>
+			document.querySelector("#total-mes").textContent = totalHoras.toFixed(2);
+			</script>
+
                     </tr>
                   </tfoot>
                 </table>
@@ -933,10 +1031,11 @@
               <input type="number" id="edit-break-time" class="form-control" min="0" required>
             </div>
             
-            <div class="form-group">
-              <label for="edit-notes" class="form-label" data-i18n="notes">Anteckningar</label>
-              <textarea id="edit-notes" class="form-control" rows="3"></textarea>
-            </div>
+			<div class="form-group">
+			  <label for="edit-notes" class="form-label" data-i18n="notes">Anteckningar</label>
+			  <textarea id="edit-notes" class="form-control" rows="3" spellcheck="true" lang="sv"></textarea>
+			</div>
+
             
             <div class="form-group">
               <label for="edit-coworkers" class="form-label" data-i18n="coworkers">Kollegor</label>
@@ -1054,533 +1153,716 @@
       displayedRecords: []
     };
 
-	// Translation dictionary
-	const translations = {
-	  'sv': {
-		'app-title': 'TimeBook Pro',
-		'synchronized': 'Synkroniserad',
-		'syncing': 'Synkroniserar...',
-		'offline': 'Offline',
-		'sync_description': 'Realtidssynkronisering - Åtkomst från vilken enhet som helst',
-		'login': 'Logga in',
-		'signup': 'Registrera dig',
-		'email': 'E-post',
-		'password': 'Lösenord',
-		'forgot_password': 'Glömt lösenord?',
-		'first_name': 'Förnamn',
-		'last_name': 'Efternamn',
-		'confirm_password': 'Bekräfta lösenord',
-		'register_hours': 'Registrera timmar',
-		'date': 'Datum',
-		'project': 'Projekt',
-		'select_project': 'Välj ett projekt',
-		'start_time': 'Starttid',
-		'end_time': 'Sluttid',
-		'break_time': 'Rasttid (minuter)',
-		'notes': 'Anteckningar',
-		'coworkers': 'Kollegor',
-		'coworkers_placeholder': 'Anna, Erik, etc.',
-		'cancel': 'Avbryt',
-		'save_record': 'Spara post',
-		'records_history': 'Historik',
-		'year': 'År',
-		'month': 'Månad',
-		'week': 'Vecka',
-		'all_months': 'Alla månader',
-		'all_weeks': 'Alla veckor',
-		'all_projects': 'Alla projekt',
-		'no_records_found': 'Inga poster hittades',
-		'export': 'Exportera',
-		'export_pdf': 'Exportera PDF',
-		'export_word': 'Exportera Word',
-		'user_info': 'Användarinformation',
-		'edit_user': 'Redigera användare',
-		'total_hours': 'Totalt antal timmar',
-		'total_days': 'Totalt antal dagar',
-		'current_week_hours': 'Denna veckas timmar',
-		'current_month_hours': 'Denna månads timmar',
-		'visual_statistics': 'Visuell statistik',
-		'hours_per_week': 'Timmar per vecka',
-		'monthly': 'Månadsvis',
-		'quarterly': 'Kvartalsvis',
-		'project_distribution': 'Projektfördelning',
-		'hours_summary': 'Timsummering',
-		'worked_hours': 'Arbetade timmar',
-		'break': 'Rast',
-		'total': 'Totalt:',
-		'project_management': 'Projekthantering',
-		'view_projects': 'Visa projekt',
-		'add_project': 'Lägg till projekt',
-		'project_name': 'Projektnamn',
-		'project_code': 'Projektkod',
-		'edit_profile': 'Redigera profil',
-		'phone': 'Telefon',
-		'save': 'Spara',
-		'edit_record': 'Redigera post',
-		'delete': 'Radera',
-		'hours_report': 'Arbetstidsrapport',
-		'hours_management_system': 'Timrapporteringssystem',
-		'generation_date': 'Genereringsdatum:',
-		'period': 'Period:',
-		'report_generated': 'Denna rapport genererades automatiskt av TimeBook Pro',
-		'all_rights_reserved': 'Alla rättigheter förbehålls',
-		'logout': 'Logga ut',
-		'break_0': '0 minuter',
-		'break_30': 'En halvtimme',
-		'break_60': '1 timme',
-		'break_120': '2 timmar',
-		'load_more': 'Ladda fler',
-		'company_settings': 'Företagsinställningar',
-		'company_name': 'Företagsnamn (valfritt)',
-		'company_address': 'Adress',
-		'postal_code': 'Postnummer och ort',
-		'org_number': 'Organisationsnummer',
-		'save_settings': 'Spara inställningar',
-		'settings': 'Inställningar',
-		'start_date': 'Startdatum',
-		'end_date': 'Slutdatum',
-		'sort_by': 'Sortera efter',
-		'order': 'Ordning',
-		'ascending': 'Stigande',
-		'descending': 'Fallande',
-		'generate_report': 'Generera rapport',
-		'confirm_delete': 'Är du säker på att du vill radera denna post?',
-		'record_saved': 'Post sparad',
-		'record_updated': 'Post uppdaterad',
-		'record_deleted': 'Post raderad',
-		'project_added': 'Projekt tillagt',
-		'profile_updated': 'Profil uppdaterad',
-		'settings_updated': 'Inställningar sparade',
-		'required_fields': 'Vänligen fyll i alla obligatoriska fält',
-		'password_mismatch': 'Lösenorden matchar inte',
-		'save_error': 'Ett fel uppstod vid sparande: ',
-		'update_error': 'Ett fel uppstod vid uppdatering: ',
-		'delete_error': 'Ett fel uppstod vid radering: ',
-		'export_success': 'Export lyckades',
-		'import_success': 'Import lyckades',
-		'import_error': 'Ett fel uppstod vid import: ',
-		'invalid_format': 'Ogiltigt filformat'
-	  },
-	  'es': {
-		'app-title': 'TimeBook Pro',
-		'synchronized': 'Sincronizado',
-		'syncing': 'Sincronizando...',
-		'offline': 'Sin conexión',
-		'sync_description': 'Sincronización en tiempo real - Acceso desde cualquier dispositivo',
-		'login': 'Iniciar sesión',
-		'signup': 'Crear cuenta',
-		'email': 'Correo electrónico',
-		'password': 'Contraseña',
-		'forgot_password': '¿Olvidaste tu contraseña?',
-		'first_name': 'Nombre',
-		'last_name': 'Apellidos',
-		'confirm_password': 'Confirmar contraseña',
-		'register_hours': 'Registrar horas',
-		'date': 'Fecha',
-		'project': 'Proyecto',
-		'select_project': 'Selecciona un proyecto',
-		'start_time': 'Hora de inicio',
-		'end_time': 'Hora de fin',
-		'break_time': 'Pausa (minutos)',
-		'notes': 'Notas',
-		'coworkers': 'Compañeros',
-		'coworkers_placeholder': 'Ana, Erik, etc.',
-		'cancel': 'Cancelar',
-		'save_record': 'Guardar registro',
-		'records_history': 'Historial',
-		'year': 'Año',
-		'month': 'Mes',
-		'week': 'Semana',
-		'all_months': 'Todos los meses',
-		'all_weeks': 'Todas las semanas',
-		'all_projects': 'Todos los proyectos',
-		'no_records_found': 'No se encontraron registros',
-		'export': 'Exportar',
-		'export_pdf': 'Exportar PDF',
-		'export_word': 'Exportar Word',
-		'user_info': 'Información del usuario',
-		'edit_user': 'Editar usuario',
-		'total_hours': 'Total de horas',
-		'total_days': 'Total de días',
-		'current_week_hours': 'Horas de esta semana',
-		'current_month_hours': 'Horas de este mes',
-		'visual_statistics': 'Estadísticas visuales',
-		'hours_per_week': 'Horas por semana',
-		'monthly': 'Mensual',
-		'quarterly': 'Trimestral',
-		'project_distribution': 'Distribución por proyecto',
-		'hours_summary': 'Resumen de horas',
-		'worked_hours': 'Horas trabajadas',
-		'break': 'Pausa',
-		'total': 'Total:',
-		'project_management': 'Gestión de proyectos',
-		'view_projects': 'Ver proyectos',
-		'add_project': 'Añadir proyecto',
-		'project_name': 'Nombre del proyecto',
-		'project_code': 'Código del proyecto',
-		'edit_profile': 'Editar perfil',
-		'phone': 'Teléfono',
-		'save': 'Guardar',
-		'edit_record': 'Editar registro',
-		'delete': 'Eliminar',
-		'hours_report': 'Informe de horas',
-		'hours_management_system': 'Sistema de registro de horas',
-		'generation_date': 'Fecha de generación:',
-		'period': 'Período:',
-		'report_generated': 'Este informe fue generado automáticamente por TimeBook Pro',
-		'all_rights_reserved': 'Todos los derechos reservados',
-		'logout': 'Cerrar sesión',
-		'break_0': '0 minutos',
-		'break_30': 'Media hora',
-		'break_60': '1 hora',
-		'break_120': '2 horas',
-		'load_more': 'Cargar más',
-		'company_settings': 'Ajustes de la empresa',
-		'company_name': 'Nombre de la empresa (opcional)',
-		'company_address': 'Dirección',
-		'postal_code': 'Código postal y ciudad',
-		'org_number': 'Número de organización',
-		'save_settings': 'Guardar configuración',
-		'settings': 'Configuración',
-		'start_date': 'Fecha de inicio',
-		'end_date': 'Fecha de fin',
-		'sort_by': 'Ordenar por',
-		'order': 'Orden',
-		'ascending': 'Ascendente',
-		'descending': 'Descendente',
-		'generate_report': 'Generar informe',
-		'confirm_delete': '¿Seguro que quieres eliminar este registro?',
-		'record_saved': 'Registro guardado',
-		'record_updated': 'Registro actualizado',
-		'record_deleted': 'Registro eliminado',
-		'project_added': 'Proyecto añadido',
-		'profile_updated': 'Perfil actualizado',
-		'settings_updated': 'Configuración guardada',
-		'required_fields': 'Por favor completa todos los campos obligatorios',
-		'password_mismatch': 'Las contraseñas no coinciden',
-		'save_error': 'Error al guardar: ',
-		'update_error': 'Error al actualizar: ',
-		'delete_error': 'Error al eliminar: ',
-		'export_success': 'Exportación exitosa',
-		'import_success': 'Importación exitosa',
-		'import_error': 'Error al importar: ',
-		'invalid_format': 'Formato no válido'
-	  },
-	  'en': {
-		'app-title': 'TimeBook Pro',
-		'synchronized': 'Synchronized',
-		'syncing': 'Syncing...',
-		'offline': 'Offline',
-		'sync_description': 'Real-time sync - Access from any device',
-		'login': 'Log in',
-		'signup': 'Sign up',
-		'email': 'Email',
-		'password': 'Password',
-		'forgot_password': 'Forgot password?',
-		'first_name': 'First name',
-		'last_name': 'Last name',
-		'confirm_password': 'Confirm password',
-		'register_hours': 'Register hours',
-		'date': 'Date',
-		'project': 'Project',
-		'select_project': 'Select a project',
-		'start_time': 'Start time',
-		'end_time': 'End time',
-		'break_time': 'Break (minutes)',
-		'notes': 'Notes',
-		'coworkers': 'Coworkers',
-		'coworkers_placeholder': 'Anna, Erik, etc.',
-		'cancel': 'Cancel',
-		'save_record': 'Save record',
-		'records_history': 'History',
-		'year': 'Year',
-		'month': 'Month',
-		'week': 'Week',
-		'all_months': 'All months',
-		'all_weeks': 'All weeks',
-		'all_projects': 'All projects',
-		'no_records_found': 'No records found',
-		'export': 'Export',
-		'export_pdf': 'Export PDF',
-		'export_word': 'Export Word',
-		'user_info': 'User information',
-		'edit_user': 'Edit user',
-		'total_hours': 'Total hours',
-		'total_days': 'Total days',
-		'current_week_hours': 'This week\'s hours',
-		'current_month_hours': 'This month\'s hours',
-		'visual_statistics': 'Visual statistics',
-		'hours_per_week': 'Hours per week',
-		'monthly': 'Monthly',
-		'quarterly': 'Quarterly',
-		'project_distribution': 'Project distribution',
-		'hours_summary': 'Hours summary',
-		'worked_hours': 'Worked hours',
-		'break': 'Break',
-		'total': 'Total:',
-		'project_management': 'Project management',
-		'view_projects': 'View projects',
-		'add_project': 'Add project',
-		'project_name': 'Project name',
-		'project_code': 'Project code',
-		'edit_profile': 'Edit profile',
-		'phone': 'Phone',
-		'save': 'Save',
-		'edit_record': 'Edit record',
-		'delete': 'Delete',
-		'hours_report': 'Hours report',
-		'hours_management_system': 'Time tracking system',
-		'generation_date': 'Generation date:',
-		'period': 'Period:',
-		'report_generated': 'This report was generated automatically by TimeBook Pro',
-		'all_rights_reserved': 'All rights reserved',
-		'logout': 'Log out',
-		'break_0': '0 minutes',
-		'break_30': 'Half an hour',
-		'break_60': '1 hour',
-		'break_120': '2 hours',
-		'load_more': 'Load more',
-		'company_settings': 'Company settings',
-		'company_name': 'Company name (optional)',
-		'company_address': 'Address',
-		'postal_code': 'Postal code & city',
-		'org_number': 'Organization number',
-		'save_settings': 'Save settings',
-		'settings': 'Settings',
-		'start_date': 'Start date',
-		'end_date': 'End date',
-		'sort_by': 'Sort by',
-		'order': 'Order',
-		'ascending': 'Ascending',
-		'descending': 'Descending',
-		'generate_report': 'Generate report',
-		'confirm_delete': 'Are you sure you want to delete this record?',
-		'record_saved': 'Record saved',
-		'record_updated': 'Record updated',
-		'record_deleted': 'Record deleted',
-		'project_added': 'Project added',
-		'profile_updated': 'Profile updated',
-		'settings_updated': 'Settings saved',
-		'required_fields': 'Please fill in all required fields',
-		'password_mismatch': 'Passwords do not match',
-		'save_error': 'An error occurred while saving: ',
-		'update_error': 'An error occurred while updating: ',
-		'delete_error': 'An error occurred while deleting: ',
-		'export_success': 'Export successful',
-		'import_success': 'Import successful',
-		'import_error': 'An error occurred during import: ',
-		'invalid_format': 'Invalid file format'
-	  },
-	  'ru': {
-		'app-title': 'TimeBook Pro',
-		'synchronized': 'Синхронизировано',
-		'syncing': 'Синхронизация...',
-		'offline': 'Офлайн',
-		'sync_description': 'Синхронизация в реальном времени – доступ с любого устройства',
-		'login': 'Войти',
-		'signup': 'Регистрация',
-		'email': 'Электронная почта',
-		'password': 'Пароль',
-		'forgot_password': 'Забыли пароль?',
-		'first_name': 'Имя',
-		'last_name': 'Фамилия',
-		'confirm_password': 'Подтвердите пароль',
-		'register_hours': 'Регистрация часов',
-		'date': 'Дата',
-		'project': 'Проект',
-		'select_project': 'Выберите проект',
-		'start_time': 'Время начала',
-		'end_time': 'Время окончания',
-		'break_time': 'Перерыв (минуты)',
-		'notes': 'Заметки',
-		'coworkers': 'Коллеги',
-		'coworkers_placeholder': 'Анна, Эрик и т.д.',
-		'cancel': 'Отмена',
-		'save_record': 'Сохранить запись',
-		'records_history': 'История',
-		'year': 'Год',
-		'month': 'Месяц',
-		'week': 'Неделя',
-		'all_months': 'Все месяцы',
-		'all_weeks': 'Все недели',
-		'all_projects': 'Все проекты',
-		'no_records_found': 'Записи не найдены',
-		'export': 'Экспорт',
-		'export_pdf': 'Экспорт в PDF',
-		'export_word': 'Экспорт в Word',
-		'user_info': 'Информация о пользователе',
-		'edit_user': 'Редактировать пользователя',
-		'total_hours': 'Всего часов',
-		'total_days': 'Всего дней',
-		'current_week_hours': 'Часы на этой неделе',
-		'current_month_hours': 'Часы в этом месяце',
-		'visual_statistics': 'Визуальная статистика',
-		'hours_per_week': 'Часы в неделю',
-		'monthly': 'Ежемесячно',
-		'quarterly': 'Ежеквартально',
-		'project_distribution': 'Распределение по проектам',
-		'hours_summary': 'Сводка часов',
-		'worked_hours': 'Отработанные часы',
-		'break': 'Перерыв',
-		'total': 'Итого:',
-		'project_management': 'Управление проектами',
-		'view_projects': 'Просмотр проектов',
-		'add_project': 'Добавить проект',
-		'project_name': 'Название проекта',
-		'project_code': 'Код проекта',
-		'edit_profile': 'Редактировать профиль',
-		'phone': 'Телефон',
-		'save': 'Сохранить',
-		'edit_record': 'Редактировать запись',
-		'delete': 'Удалить',
-		'hours_report': 'Отчет о часах',
-		'hours_management_system': 'Система учета рабочего времени',
-		'generation_date': 'Дата формирования:',
-		'period': 'Период:',
-		'report_generated': 'Этот отчет был автоматически создан TimeBook Pro',
-		'all_rights_reserved': 'Все права защищены',
-		'logout': 'Выйти',
-		'break_0': '0 минут',
-		'break_30': '30 минут',
-		'break_60': '1 час',
-		'break_120': '2 часа',
-		'load_more': 'Загрузить еще',
-		'company_settings': 'Настройки компании',
-		'company_address': 'Адрес',
-		'postal_code': 'Почтовый индекс и город',
-		'org_number': 'Регистрационный номер',
-		'save_settings': 'Сохранить настройки',
-		'settings': 'Настройки',
-		'start_date': 'Дата начала',
-		'end_date': 'Дата окончания',
-		'sort_by': 'Сортировать по',
-		'order': 'Порядок',
-		'ascending': 'По возрастанию',
-		'descending': 'По убыванию',
-		'generate_report': 'Создать отчет',
-		'confirm_delete': 'Вы уверены, что хотите удалить эту запись?',
-		'record_saved': 'Запись сохранена',
-		'record_updated': 'Запись обновлена',
-		'record_deleted': 'Запись удалена',
-		'project_added': 'Проект добавлен',
-		'profile_updated': 'Профиль обновлен',
-		'settings_updated': 'Настройки сохранены',
-		'required_fields': 'Пожалуйста, заполните все обязательные поля',
-		'password_mismatch': 'Пароли не совпадают',
-		'save_error': 'Ошибка при сохранении: ',
-		'update_error': 'Ошибка при обновлении: ',
-		'delete_error': 'Ошибка при удалении: ',
-		'export_success': 'Экспорт выполнен успешно',
-		'import_success': 'Импорт выполнен успешно',
-		'import_error': 'Ошибка при импорте: ',
-		'invalid_format': 'Недопустимый формат файла'
-	  },
+	// 🔹 Forgot Password ("Glömt lösenord?")
+	  document.getElementById("forgot-password").addEventListener("click", async (e) => {
+		e.preventDefault();
+		const email = document.getElementById("login-email").value.trim();
 
-	  'pl': {
-		'app-title': 'TimeBook Pro',
-		'synchronized': 'Zsynchronizowano',
-		'syncing': 'Synchronizowanie...',
-		'offline': 'Offline',
-		'sync_description': 'Synchronizacja w czasie rzeczywistym – dostęp z dowolnego urządzenia',
-		'login': 'Zaloguj się',
-		'signup': 'Zarejestruj się',
-		'email': 'E-mail',
-		'password': 'Hasło',
-		'forgot_password': 'Zapomniałeś hasła?',
-		'first_name': 'Imię',
-		'last_name': 'Nazwisko',
-		'confirm_password': 'Potwierdź hasło',
-		'register_hours': 'Rejestruj godziny',
-		'date': 'Data',
-		'project': 'Projekt',
-		'select_project': 'Wybierz projekt',
-		'start_time': 'Czas rozpoczęcia',
-		'end_time': 'Czas zakończenia',
-		'break_time': 'Przerwa (minuty)',
-		'notes': 'Notatki',
-		'coworkers': 'Współpracownicy',
-		'coworkers_placeholder': 'Anna, Erik, itd.',
-		'cancel': 'Anuluj',
-		'save_record': 'Zapisz wpis',
-		'records_history': 'Historia',
-		'year': 'Rok',
-		'month': 'Miesiąc',
-		'week': 'Tydzień',
-		'all_months': 'Wszystkie miesiące',
-		'all_weeks': 'Wszystkie tygodnie',
-		'all_projects': 'Wszystkie projekty',
-		'no_records_found': 'Nie znaleziono wpisów',
-		'export': 'Eksportuj',
-		'export_pdf': 'Eksportuj PDF',
-		'export_word': 'Eksportuj Word',
-		'user_info': 'Informacje o użytkowniku',
-		'edit_user': 'Edytuj użytkownika',
-		'total_hours': 'Łącznie godzin',
-		'total_days': 'Łącznie dni',
-		'current_week_hours': 'Godziny w tym tygodniu',
-		'current_month_hours': 'Godziny w tym miesiącu',
-		'visual_statistics': 'Statystyki wizualne',
-		'hours_per_week': 'Godziny na tydzień',
-		'monthly': 'Miesięcznie',
-		'quarterly': 'Kwartalnie',
-		'project_distribution': 'Podział projektów',
-		'hours_summary': 'Podsumowanie godzin',
-		'worked_hours': 'Przepracowane godziny',
-		'break': 'Przerwa',
-		'total': 'Razem:',
-		'project_management': 'Zarządzanie projektami',
-		'view_projects': 'Zobacz projekty',
-		'add_project': 'Dodaj projekt',
-		'project_name': 'Nazwa projektu',
-		'project_code': 'Kod projektu',
-		'edit_profile': 'Edytuj profil',
-		'phone': 'Telefon',
-		'save': 'Zapisz',
-		'edit_record': 'Edytuj wpis',
-		'delete': 'Usuń',
-		'hours_report': 'Raport godzin',
-		'hours_management_system': 'System ewidencji czasu pracy',
-		'generation_date': 'Data wygenerowania:',
-		'period': 'Okres:',
-		'report_generated': 'Ten raport został automatycznie wygenerowany przez TimeBook Pro',
-		'all_rights_reserved': 'Wszelkie prawa zastrzeżone',
-		'logout': 'Wyloguj się',
-		'break_0': '0 minut',
-		'break_30': 'Pół godziny',
-		'break_60': '1 godzina',
-		'break_120': '2 godziny',
-		'load_more': 'Załaduj więcej',
-		'company_settings': 'Ustawienia firmy',
-		'company_address': 'Adres',
-		'postal_code': 'Kod pocztowy i miasto',
-		'org_number': 'Numer rejestracyjny',
-		'save_settings': 'Zapisz ustawienia',
-		'settings': 'Ustawienia',
-		'start_date': 'Data rozpoczęcia',
-		'end_date': 'Data zakończenia',
-		'sort_by': 'Sortuj według',
-		'order': 'Kolejność',
-		'ascending': 'Rosnąco',
-		'descending': 'Malejąco',
-		'generate_report': 'Generuj raport',
-		'confirm_delete': 'Czy na pewno chcesz usunąć ten wpis?',
-		'record_saved': 'Wpis zapisany',
-		'record_updated': 'Wpis zaktualizowany',
-		'record_deleted': 'Wpis usunięty',
-		'project_added': 'Projekt dodany',
-		'profile_updated': 'Profil zaktualizowany',
-		'settings_updated': 'Ustawienia zapisane',
-		'required_fields': 'Proszę wypełnić wszystkie wymagane pola',
-		'password_mismatch': 'Hasła nie są zgodne',
-		'save_error': 'Błąd podczas zapisywania: ',
-		'update_error': 'Błąd podczas aktualizacji: ',
-		'delete_error': 'Błąd podczas usuwania: ',
-		'export_success': 'Eksport zakończony pomyślnie',
-		'import_success': 'Import zakończony pomyślnie',
-		'import_error': 'Błąd podczas importu: ',
-		'invalid_format': 'Nieprawidłowy format pliku'
-	  }
-	};	  
+		if (!email) {
+		  alert("⚠️ Ange din e-postadress först / Ingresa tu correo electrónico primero.");
+		  return;
+		}
+
+		try {
+		  await auth.sendPasswordResetEmail(email);
+		  alert("📧 Ett återställningsmejl har skickats / Se ha enviado un correo para restablecer la contraseña.");
+		} catch (error) {
+		  console.error("Password reset error:", error);
+		  alert("❌ Kunde inte skicka mejlet: " + error.message);
+		}
+	  });
+	  
+	// Translation dictionary
+    const translations = {
+      'sv': {
+        'app-title': 'TimeBook Pro',
+        'synchronized': 'Synkroniserad',
+        'syncing': 'Synkroniserar...',
+        'offline': 'Offline',
+        'sync_description': 'Realtidssynkronisering - Åtkomst från vilken enhet som helst',
+        'login': 'Logga in',
+        'signup': 'Registrera dig',
+        'email': 'E-post',
+        'password': 'Lösenord',
+        'forgot_password': 'Glömt lösenord?',
+        'first_name': 'Förnamn',
+        'last_name': 'Efternamn',
+        'confirm_password': 'Bekräfta lösenord',
+        'register_hours': 'Registrera timmar',
+        'date': 'Datum',
+        'project': 'Projekt',
+        'select_project': 'Välj ett projekt',
+        'start_time': 'Starttid',
+        'end_time': 'Sluttid',
+        'break_time': 'Rasttid (minuter)',
+        'notes': 'Anteckningar',
+        'coworkers': 'Kollegor',
+        'coworkers_placeholder': 'Anna, Erik, etc.',
+        'cancel': 'Avbryt',
+        'save_record': 'Spara post',
+        'records_history': 'Historik',
+        'year': 'År',
+        'month': 'Månad',
+        'week': 'Vecka',
+        'all_months': 'Alla månader',
+        'all_weeks': 'Alla veckor',
+        'all_projects': 'Alla projekt',
+        'no_records_found': 'Inga poster hittades',
+        'export': 'Exportera',
+        'export_pdf': 'Exportera PDF',
+        'export_word': 'Exportera Word',
+        'user_info': 'Användarinformation',
+        'edit_user': 'Redigera användare',
+        'total_hours': 'Totalt antal timmar',
+        'total_days': 'Totalt antal dagar',
+        'current_week_hours': 'Denna veckas timmar',
+        'current_month_hours': 'Denna månads timmar',
+        'visual_statistics': 'Visuell statistik',
+        'hours_per_week': 'Timmar per vecka',
+        'monthly': 'Månadsvis',
+        'quarterly': 'Kvartalsvis',
+        'project_distribution': 'Projektfördelning',
+        'hours_summary': 'Timsummering',
+        'worked_hours': 'Arbetade timmar',
+        'break': 'Rast',
+        'total': 'Totalt:',
+        'project_management': 'Projekthantering',
+        'view_projects': 'Visa projekt',
+        'add_project': 'Lägg till projekt',
+        'project_name': 'Projektnamn',
+        'project_code': 'Projektkod',
+        'edit_profile': 'Redigera profil',
+        'phone': 'Telefon',
+        'save': 'Spara',
+        'edit_record': 'Redigera post',
+        'delete': 'Radera',
+        'hours_report': 'Arbetstidsrapport',
+        'hours_management_system': 'Timrapporteringssystem',
+        'generation_date': 'Genereringsdatum:',
+        'period': 'Period:',
+        'report_generated': 'Denna rapport genererades automatiskt av TimeBook Pro',
+        'all_rights_reserved': 'Alla rättigheter förbehålls',
+        'logout': 'Logga ut',
+        'break_0': '0 minuter',
+        'break_30': 'En halvtimme',
+        'break_60': '1 timme',
+        'break_120': '2 timmar',
+        'load_more': 'Ladda fler',
+        'company_settings': 'Företagsinställningar',
+        'company_name': 'Företagsnamn (valfritt)',
+        'company_address': 'Adress',
+        'postal_code': 'Postnummer och ort',
+        'org_number': 'Organisationsnummer',
+        'save_settings': 'Spara inställningar',
+        'settings': 'Inställningar',
+        'start_date': 'Startdatum',
+        'end_date': 'Slutdatum',
+        'sort_by': 'Sortera efter',
+        'order': 'Ordning',
+        'ascending': 'Stigande',
+        'descending': 'Fallande',
+        'generate_report': 'Generera rapport',
+        'confirm_delete': 'Är du säker på att du vill radera denna post?',
+        'record_saved': 'Post sparad',
+        'record_updated': 'Post uppdaterad',
+        'record_deleted': 'Post raderad',
+        'project_added': 'Projekt tillagt',
+        'profile_updated': 'Profil uppdaterad',
+        'settings_updated': 'Inställningar sparade',
+        'required_fields': 'Vänligen fyll i alla obligatoriska fält',
+        'password_mismatch': 'Lösenorden matchar inte',
+        'save_error': 'Ett fel uppstod vid sparande: ',
+        'update_error': 'Ett fel uppstod vid uppdatering: ',
+        'delete_error': 'Ett fel uppstod vid radering: ',
+        'export_success': 'Export lyckades',
+        'import_success': 'Import lyckades',
+        'import_error': 'Ett fel uppstod vid import: ',
+        'invalid_format': 'Ogiltigt filformat',
+        'language_swedish': 'Svenska',
+        'language_spanish': 'Español',
+        'language_english': 'English',
+        'language_russian': 'Русский',
+        'language_polish': 'Polski',
+        'language_thai': 'ไทย',
+        'by_author': 'av Vinny',
+        'subject_to_translation': 'Vissa delar kan vara föremål för översättning'
+      },
+      'es': {
+        'app-title': 'TimeBook Pro',
+        'synchronized': 'Sincronizado',
+        'syncing': 'Sincronizando...',
+        'offline': 'Sin conexión',
+        'sync_description': 'Sincronización en tiempo real - Acceso desde cualquier dispositivo',
+        'login': 'Iniciar sesión',
+        'signup': 'Crear cuenta',
+        'email': 'Correo electrónico',
+        'password': 'Contraseña',
+        'forgot_password': '¿Olvidaste tu contraseña?',
+        'first_name': 'Nombre',
+        'last_name': 'Apellidos',
+        'confirm_password': 'Confirmar contraseña',
+        'register_hours': 'Registrar horas',
+        'date': 'Fecha',
+        'project': 'Proyecto',
+        'select_project': 'Selecciona un proyecto',
+        'start_time': 'Hora de inicio',
+        'end_time': 'Hora de fin',
+        'break_time': 'Pausa (minutos)',
+        'notes': 'Notas',
+        'coworkers': 'Compañeros',
+        'coworkers_placeholder': 'Ana, Erik, etc.',
+        'cancel': 'Cancelar',
+        'save_record': 'Guardar registro',
+        'records_history': 'Historial',
+        'year': 'Año',
+        'month': 'Mes',
+        'week': 'Semana',
+        'all_months': 'Todos los meses',
+        'all_weeks': 'Todas las semanas',
+        'all_projects': 'Todos los proyectos',
+        'no_records_found': 'No se encontraron registros',
+        'export': 'Exportar',
+        'export_pdf': 'Exportar PDF',
+        'export_word': 'Exportar Word',
+        'user_info': 'Información del usuario',
+        'edit_user': 'Editar usuario',
+        'total_hours': 'Total de horas',
+        'total_days': 'Total de días',
+        'current_week_hours': 'Horas de esta semana',
+        'current_month_hours': 'Horas de este mes',
+        'visual_statistics': 'Estadísticas visuales',
+        'hours_per_week': 'Horas por semana',
+        'monthly': 'Mensual',
+        'quarterly': 'Trimestral',
+        'project_distribution': 'Distribución por proyecto',
+        'hours_summary': 'Resumen de horas',
+        'worked_hours': 'Horas trabajadas',
+        'break': 'Pausa',
+        'total': 'Total:',
+        'project_management': 'Gestión de proyectos',
+        'view_projects': 'Ver proyectos',
+        'add_project': 'Añadir proyecto',
+        'project_name': 'Nombre del proyecto',
+        'project_code': 'Código del proyecto',
+        'edit_profile': 'Editar perfil',
+        'phone': 'Teléfono',
+        'save': 'Guardar',
+        'edit_record': 'Editar registro',
+        'delete': 'Eliminar',
+        'hours_report': 'Informe de horas',
+        'hours_management_system': 'Sistema de registro de horas',
+        'generation_date': 'Fecha de generación:',
+        'period': 'Período:',
+        'report_generated': 'Este informe fue generado automáticamente por TimeBook Pro',
+        'all_rights_reserved': 'Todos los derechos reservados',
+        'logout': 'Cerrar sesión',
+        'break_0': '0 minutos',
+        'break_30': 'Media hora',
+        'break_60': '1 hora',
+        'break_120': '2 horas',
+        'load_more': 'Cargar más',
+        'company_settings': 'Ajustes de la empresa',
+        'company_name': 'Nombre de la empresa (opcional)',
+        'company_address': 'Dirección',
+        'postal_code': 'Código postal y ciudad',
+        'org_number': 'Número de organización',
+        'save_settings': 'Guardar configuración',
+        'settings': 'Configuración',
+        'start_date': 'Fecha de inicio',
+        'end_date': 'Fecha de fin',
+        'sort_by': 'Ordenar por',
+        'order': 'Orden',
+        'ascending': 'Ascendente',
+        'descending': 'Descendente',
+        'generate_report': 'Generar informe',
+        'confirm_delete': '¿Seguro que quieres eliminar este registro?',
+        'record_saved': 'Registro guardado',
+        'record_updated': 'Registro actualizado',
+        'record_deleted': 'Registro eliminado',
+        'project_added': 'Proyecto añadido',
+        'profile_updated': 'Perfil actualizado',
+        'settings_updated': 'Configuración guardada',
+        'required_fields': 'Por favor completa todos los campos obligatorios',
+        'password_mismatch': 'Las contraseñas no coinciden',
+        'save_error': 'Error al guardar: ',
+        'update_error': 'Error al actualizar: ',
+        'delete_error': 'Error al eliminar: ',
+        'export_success': 'Exportación exitosa',
+        'import_success': 'Importación exitosa',
+        'import_error': 'Error al importar: ',
+        'invalid_format': 'Formato no válido',
+        'language_swedish': 'Svenska',
+        'language_spanish': 'Español',
+        'language_english': 'English',
+        'language_russian': 'Русский',
+        'language_polish': 'Polski',
+        'language_thai': 'ไทย',
+        'by_author': 'por Vinny',
+        'subject_to_translation': 'Algunas partes pueden estar sujetas a traducción'
+      },
+      'en': {
+        'app-title': 'TimeBook Pro',
+        'synchronized': 'Synchronized',
+        'syncing': 'Syncing...',
+        'offline': 'Offline',
+        'sync_description': 'Real-time sync - Access from any device',
+        'login': 'Log in',
+        'signup': 'Sign up',
+        'email': 'Email',
+        'password': 'Password',
+        'forgot_password': 'Forgot password?',
+        'first_name': 'First name',
+        'last_name': 'Last name',
+        'confirm_password': 'Confirm password',
+        'register_hours': 'Register hours',
+        'date': 'Date',
+        'project': 'Project',
+        'select_project': 'Select a project',
+        'start_time': 'Start time',
+        'end_time': 'End time',
+        'break_time': 'Break (minutes)',
+        'notes': 'Notes',
+        'coworkers': 'Coworkers',
+        'coworkers_placeholder': 'Anna, Erik, etc.',
+        'cancel': 'Cancel',
+        'save_record': 'Save record',
+        'records_history': 'History',
+        'year': 'Year',
+        'month': 'Month',
+        'week': 'Week',
+        'all_months': 'All months',
+        'all_weeks': 'All weeks',
+        'all_projects': 'All projects',
+        'no_records_found': 'No records found',
+        'export': 'Export',
+        'export_pdf': 'Export PDF',
+        'export_word': 'Export Word',
+        'user_info': 'User information',
+        'edit_user': 'Edit user',
+        'total_hours': 'Total hours',
+        'total_days': 'Total days',
+        'current_week_hours': 'This week\'s hours',
+        'current_month_hours': 'This month\'s hours',
+        'visual_statistics': 'Visual statistics',
+        'hours_per_week': 'Hours per week',
+        'monthly': 'Monthly',
+        'quarterly': 'Quarterly',
+        'project_distribution': 'Project distribution',
+        'hours_summary': 'Hours summary',
+        'worked_hours': 'Worked hours',
+        'break': 'Break',
+        'total': 'Total:',
+        'project_management': 'Project management',
+        'view_projects': 'View projects',
+        'add_project': 'Add project',
+        'project_name': 'Project name',
+        'project_code': 'Project code',
+        'edit_profile': 'Edit profile',
+        'phone': 'Phone',
+        'save': 'Save',
+        'edit_record': 'Edit record',
+        'delete': 'Delete',
+        'hours_report': 'Hours report',
+        'hours_management_system': 'Time tracking system',
+        'generation_date': 'Generation date:',
+        'period': 'Period:',
+        'report_generated': 'This report was generated automatically by TimeBook Pro',
+        'all_rights_reserved': 'All rights reserved',
+        'logout': 'Log out',
+        'break_0': '0 minutes',
+        'break_30': 'Half an hour',
+        'break_60': '1 hour',
+        'break_120': '2 hours',
+        'load_more': 'Load more',
+        'company_settings': 'Company settings',
+        'company_name': 'Company name (optional)',
+        'company_address': 'Address',
+        'postal_code': 'Postal code & city',
+        'org_number': 'Organization number',
+        'save_settings': 'Save settings',
+        'settings': 'Settings',
+        'start_date': 'Start date',
+        'end_date': 'End date',
+        'sort_by': 'Sort by',
+        'order': 'Order',
+        'ascending': 'Ascending',
+        'descending': 'Descending',
+        'generate_report': 'Generate report',
+        'confirm_delete': 'Are you sure you want to delete this record?',
+        'record_saved': 'Record saved',
+        'record_updated': 'Record updated',
+        'record_deleted': 'Record deleted',
+        'project_added': 'Project added',
+        'profile_updated': 'Profile updated',
+        'settings_updated': 'Settings saved',
+        'required_fields': 'Please fill in all required fields',
+        'password_mismatch': 'Passwords do not match',
+        'save_error': 'An error occurred while saving: ',
+        'update_error': 'An error occurred while updating: ',
+        'delete_error': 'An error occurred while deleting: ',
+        'export_success': 'Export successful',
+        'import_success': 'Import successful',
+        'import_error': 'An error occurred during import: ',
+        'invalid_format': 'Invalid file format',
+        'language_swedish': 'Svenska',
+        'language_spanish': 'Español',
+        'language_english': 'English',
+        'language_russian': 'Русский',
+        'language_polish': 'Polski',
+        'language_thai': 'ไทย',
+        'by_author': 'by Vinny',
+        'subject_to_translation': 'Some parts may be subject to translation'
+      },
+      'ru': {
+        'app-title': 'TimeBook Pro',
+        'synchronized': 'Синхронизировано',
+        'syncing': 'Синхронизация...',
+        'offline': 'Офлайн',
+        'sync_description': 'Синхронизация в реальном времени – доступ с любого устройства',
+        'login': 'Войти',
+        'signup': 'Регистрация',
+        'email': 'Электронная почта',
+        'password': 'Пароль',
+        'forgot_password': 'Забыли пароль?',
+        'first_name': 'Имя',
+        'last_name': 'Фамилия',
+        'confirm_password': 'Подтвердите пароль',
+        'register_hours': 'Регистрация часов',
+        'date': 'Дата',
+        'project': 'Проект',
+        'select_project': 'Выберите проект',
+        'start_time': 'Время начала',
+        'end_time': 'Время окончания',
+        'break_time': 'Перерыв (минуты)',
+        'notes': 'Заметки',
+        'coworkers': 'Коллеги',
+        'coworkers_placeholder': 'Анна, Эрик и т.д.',
+        'cancel': 'Отмена',
+        'save_record': 'Сохранить запись',
+        'records_history': 'История',
+        'year': 'Год',
+        'month': 'Месяц',
+        'week': 'Неделя',
+        'all_months': 'Все месяцы',
+        'all_weeks': 'Все недели',
+        'all_projects': 'Все проекты',
+        'no_records_found': 'Записи не найдены',
+        'export': 'Экспорт',
+        'export_pdf': 'Экспорт в PDF',
+        'export_word': 'Экспорт в Word',
+        'user_info': 'Информация о пользователе',
+        'edit_user': 'Редактировать пользователя',
+        'total_hours': 'Всего часов',
+        'total_days': 'Всего дней',
+        'current_week_hours': 'Часы на этой неделе',
+        'current_month_hours': 'Часы в этом месяце',
+        'visual_statistics': 'Визуальная статистика',
+        'hours_per_week': 'Часы в неделю',
+        'monthly': 'Ежемесячно',
+        'quarterly': 'Ежеквартально',
+        'project_distribution': 'Распределение по проектам',
+        'hours_summary': 'Сводка часов',
+        'worked_hours': 'Отработанные часы',
+        'break': 'Перерыв',
+        'total': 'Итого:',
+        'project_management': 'Управление проектами',
+        'view_projects': 'Просмотр проектов',
+        'add_project': 'Добавить проект',
+        'project_name': 'Название проекта',
+        'project_code': 'Код проекта',
+        'edit_profile': 'Редактировать профиль',
+        'phone': 'Телефон',
+        'save': 'Сохранить',
+        'edit_record': 'Редактировать запись',
+        'delete': 'Удалить',
+        'hours_report': 'Отчет о часах',
+        'hours_management_system': 'Система учета рабочего времени',
+        'generation_date': 'Дата формирования:',
+        'period': 'Период:',
+        'report_generated': 'Этот отчет был автоматически создан TimeBook Pro',
+        'all_rights_reserved': 'Все права защищены',
+        'logout': 'Выйти',
+        'break_0': '0 минут',
+        'break_30': '30 минут',
+        'break_60': '1 час',
+        'break_120': '2 часа',
+        'load_more': 'Загрузить еще',
+        'company_settings': 'Настройки компании',
+        'company_name': 'Название компании (опционально)',
+        'company_address': 'Адрес',
+        'postal_code': 'Почтовый индекс и город',
+        'org_number': 'Регистрационный номер',
+        'save_settings': 'Сохранить настройки',
+        'settings': 'Настройки',
+        'start_date': 'Дата начала',
+        'end_date': 'Дата окончания',
+        'sort_by': 'Сортировать по',
+        'order': 'Порядок',
+        'ascending': 'По возрастанию',
+        'descending': 'По убыванию',
+        'generate_report': 'Создать отчет',
+        'confirm_delete': 'Вы уверены, что хотите удалить эту запись?',
+        'record_saved': 'Запись сохранена',
+        'record_updated': 'Запись обновлена',
+        'record_deleted': 'Запись удалена',
+        'project_added': 'Проект добавлен',
+        'profile_updated': 'Профиль обновлен',
+        'settings_updated': 'Настройки сохранены',
+        'required_fields': 'Пожалуйста, заполните все обязательные поля',
+        'password_mismatch': 'Пароли не совпадают',
+        'save_error': 'Ошибка при сохранении: ',
+        'update_error': 'Ошибка при обновлении: ',
+        'delete_error': 'Ошибка при удалении: ',
+        'export_success': 'Экспорт выполнен успешно',
+        'import_success': 'Импорт выполнен успешно',
+        'import_error': 'Ошибка при импорте: ',
+        'invalid_format': 'Недопустимый формат файла',
+        'language_swedish': 'Svenska',
+        'language_spanish': 'Español',
+        'language_english': 'English',
+        'language_russian': 'Русский',
+        'language_polish': 'Polski',
+        'language_thai': 'ไทย',
+        'by_author': 'от Vinny',
+        'subject_to_translation': 'Некоторые части могут быть подвержены переводу'
+      },
+      'pl': {
+        'app-title': 'TimeBook Pro',
+        'synchronized': 'Zsynchronizowano',
+        'syncing': 'Synchronizowanie...',
+        'offline': 'Offline',
+        'sync_description': 'Synchronizacja w czasie rzeczywistym – dostęp z dowolnego urządzenia',
+        'login': 'Zaloguj się',
+        'signup': 'Zarejestruj się',
+        'email': 'E-mail',
+        'password': 'Hasło',
+        'forgot_password': 'Zapomniałeś hasła?',
+        'first_name': 'Imię',
+        'last_name': 'Nazwisko',
+        'confirm_password': 'Potwierdź hasło',
+        'register_hours': 'Rejestruj godziny',
+        'date': 'Data',
+        'project': 'Projekt',
+        'select_project': 'Wybierz projekt',
+        'start_time': 'Czas rozpoczęcia',
+        'end_time': 'Czas zakończenia',
+        'break_time': 'Przerwa (minuty)',
+        'notes': 'Notatki',
+        'coworkers': 'Współpracownicy',
+        'coworkers_placeholder': 'Anna, Erik, itd.',
+        'cancel': 'Anuluj',
+        'save_record': 'Zapisz wpis',
+        'records_history': 'Historia',
+        'year': 'Rok',
+        'month': 'Miesiąc',
+        'week': 'Tydzień',
+        'all_months': 'Wszystkie miesiące',
+        'all_weeks': 'Wszystkie tygodnie',
+        'all_projects': 'Wszystkie projekty',
+        'no_records_found': 'Nie znaleziono wpisów',
+        'export': 'Eksportuj',
+        'export_pdf': 'Eksportuj PDF',
+        'export_word': 'Eksportuj Word',
+        'user_info': 'Informacje o użytkowniku',
+        'edit_user': 'Edytuj użytkownika',
+        'total_hours': 'Łącznie godzin',
+        'total_days': 'Łącznie dni',
+        'current_week_hours': 'Godziny w tym tygodniu',
+        'current_month_hours': 'Godziny w tym miesiącu',
+        'visual_statistics': 'Statystyki wizualne',
+        'hours_per_week': 'Godziny na tydzień',
+        'monthly': 'Miesięcznie',
+        'quarterly': 'Kwartalnie',
+        'project_distribution': 'Podział projektów',
+        'hours_summary': 'Podsumowanie godzin',
+        'worked_hours': 'Przepracowane godziny',
+        'break': 'Przerwa',
+        'total': 'Razem:',
+        'project_management': 'Zarządzanie projektami',
+        'view_projects': 'Zobacz projekty',
+        'add_project': 'Dodaj projekt',
+        'project_name': 'Nazwa projektu',
+        'project_code': 'Kod projektu',
+        'edit_profile': 'Edytuj profil',
+        'phone': 'Telefon',
+        'save': 'Zapisz',
+        'edit_record': 'Edytuj wpis',
+        'delete': 'Usuń',
+        'hours_report': 'Raport godzin',
+        'hours_management_system': 'System ewidencji czasu pracy',
+        'generation_date': 'Data wygenerowania:',
+        'period': 'Okres:',
+        'report_generated': 'Ten raport został automatycznie wygenerowany przez TimeBook Pro',
+        'all_rights_reserved': 'Wszelkie prawa zastrzeżone',
+        'logout': 'Wyloguj się',
+        'break_0': '0 minut',
+        'break_30': 'Pół godziny',
+        'break_60': '1 godzina',
+        'break_120': '2 godziny',
+        'load_more': 'Załaduj więcej',
+        'company_settings': 'Ustawienia firmy',
+        'company_name': 'Nazwa firmy (opcjonalnie)',
+        'company_address': 'Adres',
+        'postal_code': 'Kod pocztowy i miasto',
+        'org_number': 'Numer rejestracyjny',
+        'save_settings': 'Zapisz ustawienia',
+        'settings': 'Ustawienia',
+        'start_date': 'Data rozpoczęcia',
+        'end_date': 'Data zakończenia',
+        'sort_by': 'Sortuj według',
+        'order': 'Kolejność',
+        'ascending': 'Rosnąco',
+        'descending': 'Malejąco',
+        'generate_report': 'Generuj raport',
+        'confirm_delete': 'Czy na pewno chcesz usunąć ten wpis?',
+        'record_saved': 'Wpis zapisany',
+        'record_updated': 'Wpis zaktualizowany',
+        'record_deleted': 'Wpis usunięty',
+        'project_added': 'Projekt dodany',
+        'profile_updated': 'Profil zaktualizowany',
+        'settings_updated': 'Ustawienia zapisane',
+        'required_fields': 'Proszę wypełnić wszystkie wymagane pola',
+        'password_mismatch': 'Hasła nie są zgodne',
+        'save_error': 'Błąd podczas zapisywania: ',
+        'update_error': 'Błąd podczas aktualizacji: ',
+        'delete_error': 'Błąd podczas usuwania: ',
+        'export_success': 'Eksport zakończony pomyślnie',
+        'import_success': 'Import zakończony pomyślnie',
+        'import_error': 'Błąd podczas importu: ',
+        'invalid_format': 'Nieprawidłowy format pliku',
+        'language_swedish': 'Svenska',
+        'language_spanish': 'Español',
+        'language_english': 'English',
+        'language_russian': 'Русский',
+        'language_polish': 'Polski',
+        'language_thai': 'ไทย',
+        'by_author': 'przez Vinny',
+        'subject_to_translation': 'Niektóre części mogą podlegać tłumaczeniu'
+      },
+      'th': {
+        'app-title': 'TimeBook Pro',
+        'synchronized': 'ซิงโครไนซ์แล้ว',
+        'syncing': 'กำลังซิงโครไนซ์...',
+        'offline': 'ออฟไลน์',
+        'sync_description': 'ซิงโครไนซ์แบบเรียลไทม์ - เข้าถึงได้จากทุกอุปกรณ์',
+        'login': 'เข้าสู่ระบบ',
+        'signup': 'สมัครสมาชิก',
+        'email': 'อีเมล',
+        'password': 'รหัสผ่าน',
+        'forgot_password': 'ลืมรหัสผ่าน?',
+        'first_name': 'ชื่อ',
+        'last_name': 'นามสกุล',
+        'confirm_password': 'ยืนยันรหัสผ่าน',
+        'register_hours': 'ลงเวลาทำงาน',
+        'date': 'วันที่',
+        'project': 'โครงการ',
+        'select_project': 'เลือกโครงการ',
+        'start_time': 'เวลาเริ่มต้น',
+        'end_time': 'เวลาสิ้นสุด',
+        'break_time': 'เวลาพัก (นาที)',
+        'notes': 'บันทึก',
+        'coworkers': 'เพื่อนร่วมงาน',
+        'coworkers_placeholder': 'Anna, Erik, etc.',
+        'cancel': 'ยกเลิก',
+        'save_record': 'บันทึก',
+        'records_history': 'ประวัติ',
+        'year': 'ปี',
+        'month': 'เดือน',
+        'week': 'สัปดาห์',
+        'all_months': 'ทุกเดือน',
+        'all_weeks': 'ทุกสัปดาห์',
+        'all_projects': 'ทุกโครงการ',
+        'no_records_found': 'ไม่พบข้อมูล',
+        'export': 'ส่งออก',
+        'export_pdf': 'ส่งออก PDF',
+        'export_word': 'ส่งออก Word',
+        'user_info': 'ข้อมูลผู้ใช้',
+        'edit_user': 'แก้ไขผู้ใช้',
+        'total_hours': 'ชั่วโมงทั้งหมด',
+        'total_days': 'วันทั้งหมด',
+        'current_week_hours': 'ชั่วโมงในสัปดาห์นี้',
+        'current_month_hours': 'ชั่วโมงในเดือนนี้',
+        'visual_statistics': 'สถิติเชิงภาพ',
+        'hours_per_week': 'ชั่วโมงต่อสัปดาห์',
+        'monthly': 'รายเดือน',
+        'quarterly': 'รายไตรมาส',
+        'project_distribution': 'การกระจายโครงการ',
+        'hours_summary': 'สรุปชั่วโมง',
+        'worked_hours': 'ชั่วโมงทำงาน',
+        'break': 'พัก',
+        'total': 'ทั้งหมด:',
+        'project_management': 'การจัดการโครงการ',
+        'view_projects': 'ดูโครงการ',
+        'add_project': 'เพิ่มโครงการ',
+        'project_name': 'ชื่อโครงการ',
+        'project_code': 'รหัสโครงการ',
+        'edit_profile': 'แก้ไขโปรไฟล์',
+        'phone': 'โทรศัพท์',
+        'save': 'บันทึก',
+        'edit_record': 'แก้ไขระเบียน',
+        'delete': 'ลบ',
+        'hours_report': 'รายงานชั่วโมงทำงาน',
+        'hours_management_system': 'ระบบจัดการเวลาทำงาน',
+        'generation_date': 'วันที่สร้าง:',
+        'period': 'ช่วงเวลา:',
+        'report_generated': 'รายงานนี้ถูกสร้างขึ้นโดยอัตโนมัติโดย TimeBook Pro',
+        'all_rights_reserved': 'สงวนลิขสิทธิ์',
+        'logout': 'ออกจากระบบ',
+        'break_0': '0 นาที',
+        'break_30': 'ครึ่งชั่วโมง',
+        'break_60': '1 ชั่วโมง',
+        'break_120': '2 ชั่วโมง',
+        'load_more': 'โหลดเพิ่ม',
+        'company_settings': 'การตั้งค่าบริษัท',
+        'company_name': 'ชื่อบริษัท (ไม่จำเป็น)',
+        'company_address': 'ที่อยู่',
+        'postal_code': 'รหัสไปรษณีย์และเมือง',
+        'org_number': 'เลขทะเบียนองค์กร',
+        'save_settings': 'บันทึกการตั้งค่า',
+        'settings': 'การตั้งค่า',
+        'start_date': 'วันที่เริ่มต้น',
+        'end_date': 'วันที่สิ้นสุด',
+        'sort_by': 'เรียงตาม',
+        'order': 'ลำดับ',
+        'ascending': 'จากน้อยไปมาก',
+        'descending': 'จากมากไปน้อย',
+        'generate_report': 'สร้างรายงาน',
+        'confirm_delete': 'คุณแน่ใจหรือไม่ว่าต้องการลบระเบียนนี้?',
+        'record_saved': 'บันทึกแล้ว',
+        'record_updated': 'อัปเดตแล้ว',
+        'record_deleted': 'ลบแล้ว',
+        'project_added': 'เพิ่มโครงการแล้ว',
+        'profile_updated': 'อัปเดตโปรไฟล์แล้ว',
+        'settings_updated': 'บันทึกการตั้งค่าแล้ว',
+        'required_fields': 'กรุณากรอกข้อมูลในฟิลด์ที่จำเป็นทั้งหมด',
+        'password_mismatch': 'รหัสผ่านไม่ตรงกัน',
+        'save_error': 'เกิดข้อผิดพลาดในการบันทึก: ',
+        'update_error': 'เกิดข้อผิดพลาดในการอัปเดต: ',
+        'delete_error': 'เกิดข้อผิดพลาดในการลบ: ',
+        'export_success': 'ส่งออกสำเร็จ',
+        'import_success': 'นำเข้าสำเร็จ',
+        'import_error': 'เกิดข้อผิดพลาดในการนำเข้า: ',
+        'invalid_format': 'รูปแบบไฟล์ไม่ถูกต้อง',
+        'language_swedish': 'Svenska',
+        'language_spanish': 'Español',
+        'language_english': 'English',
+        'language_russian': 'Русский',
+        'language_polish': 'Polski',
+        'language_thai': 'ไทย',
+        'by_author': 'โดย Vinny',
+        'subject_to_translation': 'บางส่วนอาจอยู่ภายใต้การแปล'
+      }
+    };
+
+    // Diccionario de idiomas para el corrector
+    const langMap = {
+      sv: "sv", // Sueco
+      en: "en", // Inglés
+      es: "es",  // Español
+      ru: "ru",  // Русский
+      pl: "pl",  // Polish
+      th: "th"   // Tailandés
+    };
 
     // DOM ready
     document.addEventListener('DOMContentLoaded', () => {
@@ -1631,8 +1913,15 @@
       if (state.projectChart) {
         state.projectChart.destroy();
         initProjectChart();
-      }
-    }
+	  }
+
+	  // ✅ Update spellcheck language for textareas
+	  const newLang = langMap[lang] || "sv";
+	  document.querySelectorAll("textarea").forEach(el => {
+		el.setAttribute("lang", newLang);
+		el.setAttribute("spellcheck", "true");
+	  });
+	}	  
 
     // Initialize application
     function initApp() {
@@ -2305,39 +2594,97 @@
         });
     }
 
-    // Reset time entry form
-    function resetTimeEntryForm() {
-      document.getElementById('time-entry-form').reset();
-      // Set today's date
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('entry-date').value = today;
-      suggestTimesByDay();
-    }
+	  // Reset time entry form
+	  function resetTimeEntryForm() {
+		const form = document.getElementById('time-entry-form');
+		const dateInput = document.getElementById('entry-date');
 
-    // Suggest times based on the day of the week
-    function suggestTimesByDay() {
-      const dateInput = document.getElementById('entry-date');
-      if (!dateInput.value) return;
-      
-      const date = new Date(dateInput.value);
-      const day = date.getDay(); // 0 is Sunday, 1 is Monday, etc.
-      
-      let startTime, endTime;
-      
-      if (day >= 1 && day <= 4) { // Monday to Thursday
-        startTime = '06:30';
-        endTime = '16:00';
-      } else if (day === 5) { // Friday
-        startTime = '06:30';
-        endTime = '13:00';
-      } else { // Weekend
-        startTime = '08:00';
-        endTime = '12:00';
-      }
-      
-      document.getElementById('start-time').value = startTime;
-      document.getElementById('end-time').value = endTime;
-    }
+		if (!form) return;
+		form.reset();
+
+		// Set today's date (yyyy-mm-dd) and then apply suggested times
+		const today = new Date().toISOString().split('T')[0];
+		if (dateInput) dateInput.value = today;
+
+		// Apply suggested times/breaks for today
+		suggestTimesByDay();
+	  }
+
+	  /**
+	   * Suggest times & break based on a date.
+	   * Puede llamarse como manejador de evento: entryDate.addEventListener('change', suggestTimesByDay)
+	   * o directamente: suggestTimesByDay();
+	   */
+	  function suggestTimesByDay(e) {
+		// Determinar valor de fecha (soporta evento o llamada directa)
+		let dateValue = '';
+		if (e && e.target && typeof e.target.value !== 'undefined') {
+		  dateValue = e.target.value;
+		} else {
+		  const dateInput = document.getElementById('entry-date');
+		  dateValue = dateInput ? dateInput.value : '';
+		}
+
+		if (!dateValue) return; // nada que hacer si no hay fecha
+
+		// Normalizar la fecha para evitar problemas de zona horaria
+		const date = new Date(dateValue + 'T00:00:00');
+		const day = date.getDay(); // 0 = domingo, 1 = lunes, ..., 5 = viernes
+
+		const startInput = document.getElementById('start-time');
+		const endInput = document.getElementById('end-time');
+		const breakInput = document.getElementById('break-time');
+
+		// Valores por defecto seguros (si el input no existe, no hacemos nada)
+		// Mantengo el comportamiento original: Mon-Thu 06:30-16:00, Fri 06:30-13:00, Weekend 06:30-13:00
+		let startTime = '06:30';
+		let endTime   = '16:00';
+		let breakMinutes;
+
+		if (day >= 1 && day <= 4) {           // Lunes - Jueves
+		  startTime = '06:30';
+		  endTime   = '16:00';
+		  breakMinutes = '60';               // 1 timme
+		} else if (day === 5) {              // Viernes
+		  startTime = '06:30';
+		  endTime   = '13:00';
+		  breakMinutes = '30';               // 30 minuter (tu petición)
+		} else {                             // Fin de semana (comportamiento previo)
+		  startTime = '06:30';
+		  endTime   = '13:00';
+		  breakMinutes = '30';
+		}
+
+		if (startInput) startInput.value = startTime;
+		if (endInput)   endInput.value   = endTime;
+
+		// Establecer opción de break si existe; si no, no fallamos (y se mantiene el valor HTML)
+		if (breakInput && typeof breakMinutes !== 'undefined') {
+		  // Si la opción existe, la seleccionamos; si no, la creamos (evita romper select personalizados)
+		  const optionExists = !!breakInput.querySelector(`option[value="${breakMinutes}"]`);
+		  if (optionExists) {
+			breakInput.value = breakMinutes;
+		  } else {
+			// Crear una opción temporal clara (texto simple) y seleccionarla
+			const opt = document.createElement('option');
+			opt.value = breakMinutes;
+			// Texto legible: 30 -> "30 minuter" (no se internacionaliza aquí para simplicidad)
+			opt.textContent = `${breakMinutes} minuter`;
+			breakInput.appendChild(opt);
+			breakInput.value = breakMinutes;
+		  }
+		}
+	  }
+
+	  // Asegúrate de que el event listener exista sólo si el input está presente
+	  document.addEventListener('DOMContentLoaded', () => {
+		const dateInput = document.getElementById('entry-date');
+		if (dateInput) {
+		  dateInput.addEventListener('change', suggestTimesByDay);
+		}
+
+		// Si tu app llama resetTimeEntryForm() en otros lados (p. ej. al guardar), queda listo
+	  });
 
     // Load and display records
     function loadRecords() {
@@ -3516,10 +3863,19 @@
       }
     }
   </script>
+<footer class="w-full text-center py-4 mt-8 border-t text-gray-600 text-sm">
+  © <span id="current-year"></span> 
+  <span data-i18n="by_author">by Vinny</span>. 
+  <span data-i18n="all_rights_reserved">Todos los derechos reservados.</span><br>
+  <span data-i18n="subject_to_translation"></span>
+</footer>
+
+<script>
+  // Insertar año actual automáticamente
+  document.getElementById("current-year").textContent = new Date().getFullYear();
+</script>
+  
 </body>
 </html>
-
-
-
 
 
