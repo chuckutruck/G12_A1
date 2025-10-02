@@ -3632,7 +3632,6 @@
       return days[date.getDay()];
     }
 
-    // Export to PDF
 	// Función exportToPDF mejorada - Versión profesional
 	async function exportToPDF(records, startDate, endDate) {
 	  showLoading(true);
@@ -3758,7 +3757,7 @@
 		  pdf.text("ARBETSRAPPORT - Fortsättning", pageWidth / 2, y, { align: "center" });
 		  y += 6;
 		  
-		  pdf.setFont("helvetica", "normal");
+		  pdf.setFont("helvetica", "normal"); // ← RESET A NORMAL
 		  pdf.setFontSize(8);
 		  pdf.setTextColor(100, 100, 100);
 		  pdf.text(`Mätningsingenjör: ${state.user.firstName} ${state.user.lastName}`, margin.left, y);
@@ -3767,6 +3766,11 @@
 		  
 		  // Volver a dibujar encabezados de tabla
 		  y = drawTableHeader(y);
+		  
+		  // RESETEAR LA FUENTE A NORMAL DESPUÉS DE LOS ENCABEZADOS
+		  pdf.setFont("helvetica", "normal");
+		  pdf.setFontSize(8);
+		  pdf.setTextColor(40, 40, 40);
 		}
 
 		// Procesar cada registro
@@ -3899,122 +3903,227 @@
 
 
     // Export to Word
-    function exportToWord(records, startDate, endDate) {
-      showLoading(true);
-      
-      try {
-        // Create a simple HTML content for Word export
-        let content = `
-          <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-          <head>
-            <meta charset="utf-8">
-            <title>Tidrapport</title>
-            <style>
-              body { font-family: Arial, sans-serif; }
-              h1 { color: #2c5282; }
-              table { border-collapse: collapse; width: 100%; }
-              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-              th { background-color: #f2f2f2; }
-            </style>
-          </head>
-          <body>
-            <div>
-              <div>${state.companySettings.name || 'Exempel AB'}</div>			
-              <div>${state.companySettings.address || 'Köpmangatan 5, plan 10'}</div>
-              <div>${state.companySettings.postal || '151 71 Södertälje'}</div>
-              <div>Tel ${state.companySettings.phone || '079-079 00 45'}</div>
-              <div>Organisationsnummer: ${state.companySettings.orgnr || '559096-5983'}</div>
-            </div>
-            
-            <h1>Tidrapport</h1>
-            
-            <div>
-              <strong>Mätningsingenjör:</strong> ${state.user.firstName} ${state.user.lastName}
-            </div>
-            
-            <div>
-              <strong>Period:</strong> ${formatDateShort(startDate)} - ${formatDateShort(endDate)}
-            </div>
-            
-            <table>
-              <thead>
-                <tr>
-                  <th>Datum (yy-mm-d)</th>
-                  <th>Dag</th>
-                  <th>Från</th>
-                  <th>Till</th>
-                  <th>Rast (h)</th>
-                  <th>Tim</th>
-                  <th>Projektnamn</th>
-                  <th>Arbetsbeskrivning</th>
-                </tr>
-              </thead>
-              <tbody>
-        `;
-        
-        let totalHours = 0;
-        
-        records.forEach(([id, record]) => {
-          const project = state.projects[record.projectId] || { name: 'Okänd', code: '?' };
-          const date = new Date(record.date);
-          const dateStr = formatDateShort(record.date);
-          const dayName = getSwedishDayName(date);
-          
-          // Calculate hours worked
-          const [startHours, startMinutes] = record.startTime.split(':').map(Number);
-          const [endHours, endMinutes] = record.endTime.split(':').map(Number);
-          const startTotalMinutes = startHours * 60 + startMinutes;
-          const endTotalMinutes = endHours * 60 + endMinutes;
-          const workedMinutes = endTotalMinutes - startTotalMinutes - record.breakTime;
-          const workedHours = workedMinutes / 60;
-          
-          totalHours += workedHours;
-          
-          content += `
-            <tr>
-              <td>${dateStr}</td>
-              <td>${dayName}</td>
-              <td>${record.startTime}</td>
-              <td>${record.endTime}</td>
-              <td>${(record.breakTime / 60).toFixed(2)}</td>
-              <td>${workedHours.toFixed(2)}</td>
-              <td>${project.name}</td>
-              <td>${record.notes || ''}</td>
-            </tr>
-          `;
-        });
-        
-        content += `
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colspan="5" style="text-align: right; font-weight: bold;">Totalt:</td>
-                  <td style="font-weight: bold;">${totalHours.toFixed(2)}</td>
-                  <td colspan="2"></td>
-                </tr>
-              </tfoot>
-            </table>
-          </body>
-          </html>
-        `;
-        
-        // Create Blob and download
-        const blob = new Blob([content], { type: 'application/msword' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `tidrapport_${new Date().getTime()}.doc`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        showAlert(translations[state.currentLanguage]['export_success'], 'success');
-      } catch (error) {
-        console.error('Error generating Word document:', error);
-        showAlert('Error generating Word document: ' + error.message, 'error');
-      } finally {
-        showLoading(false);
-      }
-    }
+	// Export to Word - Versión mejorada
+	function exportToWord(records, startDate, endDate) {
+	  showLoading(true);
+	  
+	  try {
+		// Create professional HTML content for Word export
+		let content = `
+		  <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+		  <head>
+			<meta charset="utf-8">
+			<title>Arbetstrapport</title>
+			<style>
+			  body { 
+				font-family: Arial, sans-serif; 
+				margin: 0;
+				padding: 20px;
+				color: #333;
+			  }
+			  .header { 
+				margin-bottom: 20px;
+				padding-bottom: 15px;
+				border-bottom: 2px solid #1e4094;
+			  }
+			  .company-info {
+				margin-bottom: 10px;
+			  }
+			  .company-name {
+				font-size: 18px;
+				font-weight: bold;
+				color: #1e4094;
+				margin-bottom: 5px;
+			  }
+			  .company-details {
+				font-size: 11px;
+				color: #666;
+				line-height: 1.4;
+			  }
+			  .logo-container {
+				margin-bottom: 15px;
+			  }
+			  .logo {
+				max-width: 150px;
+				height: auto;
+			  }
+			  h1 { 
+				color: #1e4094; 
+				font-size: 24px;
+				text-align: center;
+				margin: 20px 0;
+			  }
+			  .report-info {
+				background-color: #f8f9fa;
+				padding: 15px;
+				margin: 20px 0;
+				border-radius: 5px;
+				font-size: 12px;
+			  }
+			  .report-info strong {
+				color: #1e4094;
+			  }
+			  table { 
+				border-collapse: collapse; 
+				width: 100%; 
+				font-size: 11px;
+				margin: 20px 0;
+			  }
+			  th { 
+				background-color: #1e4094; 
+				color: white;
+				padding: 10px 8px;
+				text-align: left;
+				font-weight: bold;
+				border: 1px solid #ddd;
+			  }
+			  td { 
+				border: 1px solid #ddd; 
+				padding: 8px;
+				text-align: left;
+				vertical-align: top;
+			  }
+			  tr:nth-child(even) {
+				background-color: #f8f9fa;
+			  }
+			  .total-section {
+				margin-top: 20px;
+				padding-top: 15px;
+				border-top: 2px solid #1e4094;
+				text-align: right;
+				font-weight: bold;
+				font-size: 12px;
+				color: #1e4094;
+			  }
+			  .footer {
+				margin-top: 30px;
+				text-align: center;
+				font-size: 10px;
+				color: #888;
+				font-style: italic;
+			  }
+			</style>
+		  </head>
+		  <body>
+			<div class="header">
+			  <div class="company-info">
+				<div class="company-name">${state.companySettings.name || 'Exempel AB'}</div>
+				<div class="company-details">
+				  ${state.companySettings.address || 'Köpmangatan 5, plan 10'}<br>
+				  ${state.companySettings.postal || '151 71 Södertälje'}<br>
+				  Tel: ${state.companySettings.phone || '079-079 00 45'}<br>
+				  Organisationsnummer: ${state.companySettings.orgnr || '559096-5983'}
+				</div>
+			  </div>
+		`;
+
+		// Agregar logo si está disponible (opcional)
+		// Para usar logo, necesitas tener la URL de la imagen en base64 o en un servidor
+		const logoUrl = state.companySettings.logoUrl || ''; // Aquí puedes guardar la URL del logo en companySettings
+		if (logoUrl) {
+		  content += `
+			<div class="logo-container">
+			  <img src="${logoUrl}" alt="Company Logo" class="logo">
+			</div>
+		  `;
+		}
+
+		content += `
+			</div>
+			
+			<h1>ARBETSRAPPORT</h1>
+			
+			<div class="report-info">
+			  <strong>Mätningsingenjör:</strong> ${state.user.firstName} ${state.user.lastName}<br>
+			  <strong>Period:</strong> ${formatDateShort(startDate)} - ${formatDateShort(endDate)}<br>
+			  <strong>Genereringsdatum:</strong> ${new Date().toLocaleDateString('sv-SE')}
+			</div>
+			
+			<table>
+			  <thead>
+				<tr>
+				  <th>Datum</th>
+				  <th>Dag</th>
+				  <th>Från</th>
+				  <th>Till</th>
+				  <th>Rast (h)</th>
+				  <th>Timmar</th>
+				  <th>Projekt</th>
+				  <th>Beskrivning</th>
+				</tr>
+			  </thead>
+			  <tbody>
+		`;
+		
+		let totalHours = 0;
+		
+		records.forEach(([id, record]) => {
+		  const project = state.projects[record.projectId] || { name: 'Okänd', code: '?' };
+		  const date = new Date(record.date);
+		  const dateStr = formatDateShort(record.date);
+		  const dayName = getSwedishDayName(date);
+		  
+		  // Calculate hours worked
+		  const [startHours, startMinutes] = record.startTime.split(':').map(Number);
+		  const [endHours, endMinutes] = record.endTime.split(':').map(Number);
+		  const startTotalMinutes = startHours * 60 + startMinutes;
+		  const endTotalMinutes = endHours * 60 + endMinutes;
+		  const workedMinutes = endTotalMinutes - startTotalMinutes - record.breakTime;
+		  const workedHours = workedMinutes / 60;
+		  
+		  totalHours += workedHours;
+		  
+		  content += `
+			<tr>
+			  <td>${dateStr}</td>
+			  <td>${dayName}</td>
+			  <td>${record.startTime}</td>
+			  <td>${record.endTime}</td>
+			  <td>${(record.breakTime / 60).toFixed(2)}</td>
+			  <td>${workedHours.toFixed(2)}</td>
+			  <td>${project.name}</td>
+			  <td>${record.notes || ''}</td>
+			</tr>
+		  `;
+		});
+		
+		content += `
+			  </tbody>
+			</table>
+			
+			<div class="total-section">
+			  TOTALT ARBETADE TIMMAR: ${totalHours.toFixed(2)}
+			</div>
+			
+			<div class="footer">
+			  Genererad automatiskt av TimeBook Pro
+			</div>
+		  </body>
+		  </html>
+		`;
+		
+		// Create Blob and download
+		const blob = new Blob([content], { type: 'application/msword' });
+		const link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		
+		// Nombre de archivo profesional
+		const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+		const filename = `Arbetstrapport_${state.user.lastName}_${timestamp}.doc`;
+		
+		link.download = filename;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		
+		showAlert(translations[state.currentLanguage]['export_success'], 'success');
+	  } catch (error) {
+		console.error('Error generating Word document:', error);
+		showAlert('Error generating Word document: ' + error.message, 'error');
+	  } finally {
+		showLoading(false);
+	  }
+	}
   </script>
 <footer class="w-full text-center py-4 mt-8 border-t text-gray-600 text-sm">
   © <span id="current-year"></span> 
