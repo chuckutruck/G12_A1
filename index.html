@@ -375,9 +375,38 @@
       transition: max-height 0.3s ease;
     }
 
-    .settings-panel.open {
-      max-height: 500px;
-    }
+	.settings-panel.open {
+	  max-height: 500px;
+	}
+
+	.suggestion-box div:hover { 
+	  background: #eef; 
+	}
+	
+		.case-buttons {
+		margin-top: 5px;
+		display: flex;
+		gap: 5px;
+	}
+
+	.case-buttons button {
+		padding: 2px 6px;
+		border: 1px solid #ccc;
+		border-radius: 3px;
+		background: #f5f5f5;
+		cursor: pointer;
+		font-size: 10px;
+		transition: all 0.2s;
+	}
+
+	.case-buttons button:hover {
+		background: #e0e0e0;
+		border-color: #999;
+	}
+
+	.case-buttons button:active {
+		background: #d0d0d0;
+	}
   </style>
 </head>
 <body class="min-h-screen">
@@ -638,7 +667,7 @@
 			<div class="mt-4">
 			  <div class="form-group">
 				<label for="notes" class="form-label" data-i18n="notes">Anteckningar</label>
-				<textarea id="notes" class="form-control" rows="3" spellcheck="false" lang="sv" 
+				<textarea id="notes" class="form-control" rows="3" spellcheck="true" lang="sv" 
 						  style="resize: both; width: 100%; max-width: 100%;"></textarea>
 				<div id="suggestions" style="margin-top: 5px; color: blue;"></div>
 			  </div>
@@ -744,7 +773,7 @@
         </div>
         
         <!-- Right Column (2/3) -->
-        <div class="lg:col-span-2 space-y-6">
+        <div class="lg:col-span-3 space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <!-- User Info Card -->
             <div class="md:col-span-1 card p-4">
@@ -1021,73 +1050,83 @@
       </div>
     </div>
     
-    <!-- Edit Record Modal -->
-    <div id="edit-record-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg max-w-lg w-full">
-        <div class="p-4 border-b flex justify-between items-center">
-          <h3 class="text-xl font-semibold" data-i18n="edit_record">Redigera post</h3>
-          <button id="close-edit-record-modal" class="text-gray-500 hover:text-gray-700">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        
-        <div class="p-4">
-          <form id="edit-record-form">
-            <input type="hidden" id="edit-record-id">
-            
-            <div class="form-group">
-              <label for="edit-entry-date" class="form-label" data-i18n="date">Datum</label>
-              <input type="date" id="edit-entry-date" class="form-control" required>
-            </div>
-            
-            <div class="form-group">
-              <label for="edit-project" class="form-label" data-i18n="project">Projekt</label>
-              <select id="edit-project" class="form-control" required>
-              </select>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="form-group">
-                <label for="edit-start-time" class="form-label" data-i18n="start_time">Starttid</label>
-                <input type="time" id="edit-start-time" class="form-control" required>
-              </div>
-              
-              <div class="form-group">
-                <label for="edit-end-time" class="form-label" data-i18n="end_time">Sluttid</label>
-                <input type="time" id="edit-end-time" class="form-control" required>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="edit-break-time" class="form-label" data-i18n="break_time">Rasttid (minuter)</label>
-              <input type="number" id="edit-break-time" class="form-control" min="0" required>
-            </div>
-            
-			<div class="form-group">
-			  <label for="edit-notes" class="form-label" data-i18n="notes">Anteckningar</label>
-			  <textarea id="edit-notes" class="form-control" rows="3" spellcheck="true" lang="sv"><textarea id="notes" class="form-control" rows="3" spellcheck="false" lang="sv" 
-						  style="resize: both; width: 100%; max-width: 100%;"></textarea>
+	<!-- Edit Record Modal -->
+	<div id="edit-record-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+	  <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+		<div class="p-4 border-b flex justify-between items-center">
+		  <h3 class="text-xl font-semibold" data-i18n="edit_record">Redigera post</h3>
+		  <button id="close-edit-record-modal" class="text-gray-500 hover:text-gray-700">
+			<i class="fas fa-times"></i>
+		  </button>
+		</div>
+		
+		<div class="p-6">
+		  <form id="edit-record-form">
+			<input type="hidden" id="edit-record-id">
+			
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+			  <div class="form-group">
+				<label for="edit-entry-date" class="form-label" data-i18n="date">Datum</label>
+				<input type="date" id="edit-entry-date" class="form-control" required>
+			  </div>
+			  
+			  <div class="form-group">
+				<label for="edit-project" class="form-label" data-i18n="project">Projekt</label>
+				<select id="edit-project" class="form-control" required>
+				  <option value="" data-i18n="select_project">Välj ett projekt</option>
+				</select>
+			  </div>
+			  
+			  <div class="form-group">
+				<label for="edit-start-time" class="form-label" data-i18n="start_time">Starttid</label>
+				<input type="time" id="edit-start-time" class="form-control" required>
+			  </div>
+			  
+			  <div class="form-group">
+				<label for="edit-end-time" class="form-label" data-i18n="end_time">Sluttid</label>
+				<input type="time" id="edit-end-time" class="form-control" required>
+			  </div>
 			</div>
+			
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+			  <div class="form-group">
+				<label for="edit-break-time" class="form-label" data-i18n="break_time">Rasttid (minuter)</label>
+				<select id="edit-break-time" class="form-control" required>
+				  <option value="0" data-i18n="break_0">0 minuter</option>
+				  <option value="30" data-i18n="break_30">En halvtimme</option>
+				  <option value="60" selected data-i18n="break_60">1 timme</option>
+				  <option value="120" data-i18n="break_120">2 timmar</option>
+				</select>
+			  </div>
+			  
+			  <div class="form-group">
+				<label for="edit-coworkers" class="form-label" data-i18n="coworkers">Kollegor</label>
+				<input type="text" id="edit-coworkers" class="form-control" placeholder="Anna, Erik, etc.">
+			  </div>
+			</div>
+			
+			<div class="form-group mb-6">
+			  <label for="edit-notes" class="form-label" data-i18n="notes">Anteckningar</label>
+			  <textarea id="edit-notes" class="form-control" rows="4" spellcheck="true" lang="sv" 
+						style="resize: vertical; min-height: 120px;"></textarea>
+			</div>
+			
+			<div class="flex justify-between items-center pt-4 border-t">
+			  <button type="button" id="delete-record" class="text-red-500 hover:text-red-700 flex items-center">
+				<i class="fas fa-trash mr-2"></i> 
+				<span data-i18n="delete">Radera</span>
+			  </button>
+			  
+			  <div class="flex space-x-3">
+				<button type="button" id="cancel-edit-record" class="btn-outline px-4 py-2" data-i18n="cancel">Avbryt</button>
+				<button type="submit" class="btn-primary px-4 py-2" data-i18n="save">Spara</button>
+			  </div>
+			</div>
+		  </form>
+		</div>
+	  </div>
+	</div>
 
-            
-            <div class="form-group">
-              <label for="edit-coworkers" class="form-label" data-i18n="coworkers">Kollegor</label>
-              <input type="text" id="edit-coworkers" class="form-control">
-            </div>
-            
-            <div class="flex justify-between mt-6">
-              <button type="button" id="delete-record" class="text-red-500 hover:text-red-700">
-                <i class="fas fa-trash mr-1"></i> <span data-i18n="delete">Radera</span>
-              </button>
-              <div>
-                <button type="button" id="cancel-edit-record" class="btn-outline" data-i18n="cancel">Avbryt</button>
-                <button type="submit" class="btn-primary ml-2" data-i18n="save">Spara</button>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
     
     <!-- Export Modal -->
     <div id="export-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
@@ -2382,39 +2421,44 @@
       toggleUserDropdown();
     }
 
-    // Handle edit user
-    function handleEditUser(e) {
-      e.preventDefault();
-      showLoading(true);
-      updateSyncStatus('syncing');
-      
-      state.user.firstName = document.getElementById('edit-first-name').value;
-      state.user.lastName = document.getElementById('edit-last-name').value;
-      state.user.phone = document.getElementById('edit-phone').value;
-      
-      // Update Firebase user profile
-      auth.currentUser.updateProfile({
-        displayName: `${state.user.firstName} ${state.user.lastName}`
-      }).then(() => {
-        // Save additional user data to database
-        const userData = {
-          firstName: state.user.firstName,
-          lastName: state.user.lastName,
-          email: state.user.email,
-          phone: state.user.phone
-        };
-        
-        return database.ref(`users/${state.user.uid}`).set(userData);
-      }).then(() => {
-        updateUserInfo();
-        closeEditUserModal();
-        showLoading(false);
-        showAlert(translations[state.currentLanguage]['profile_updated'], 'success');
-      }).catch(error => {
-        showLoading(false);
-        showAlert(translations[state.currentLanguage]['update_error'] + error.message, 'error');
-      });
-    }
+	// Handle edit user - VERSIÓN CORREGIDA
+	function handleEditUser(e) {
+	  e.preventDefault();
+	  showLoading(true);
+	  updateSyncStatus('syncing');
+	  
+	  const firstName = document.getElementById('edit-first-name').value;
+	  const lastName = document.getElementById('edit-last-name').value;
+	  const phone = document.getElementById('edit-phone').value;
+	  
+	  // Update local state
+	  state.user.firstName = firstName;
+	  state.user.lastName = lastName;
+	  state.user.phone = phone;
+	  
+	  // Update Firebase user profile
+	  auth.currentUser.updateProfile({
+		displayName: `${firstName} ${lastName}`
+	  }).then(() => {
+		// ✅ CORRECCIÓN: Usar update() en lugar de set() para actualizar solo los campos específicos
+		const userUpdates = {
+		  firstName: firstName,
+		  lastName: lastName,
+		  phone: phone
+		  // ❌ NO incluir email aquí para no sobrescribir otros datos
+		};
+		
+		return database.ref(`users/${state.user.uid}`).update(userUpdates);
+	  }).then(() => {
+		updateUserInfo();
+		closeEditUserModal();
+		showLoading(false);
+		showAlert(translations[state.currentLanguage]['profile_updated'], 'success');
+	  }).catch(error => {
+		showLoading(false);
+		showAlert(translations[state.currentLanguage]['update_error'] + error.message, 'error');
+	  });
+	}
 
     // Handle company settings
     function handleCompanySettings(e) {
@@ -4136,8 +4180,203 @@
   // Insertar año actual automáticamente
   document.getElementById("current-year").textContent = new Date().getFullYear();
 </script>
-  
+
+	<!-- 🔽 CÓDIGO MEJORADO 🔽 -->
+	<script>
+	/* ---------- CONFIG ---------- */
+	const SUGGESTION_PROVIDER = "languagetool";
+	const DEBOUNCE_MS = 350;
+	const MAX_SUGGESTIONS = 6;
+
+	function debounce(fn, wait) {
+	  let t; 
+	  return (...a) => { 
+		clearTimeout(t); 
+		t = setTimeout(() => fn.apply(this, a), wait); 
+	  };
+	}
+
+	function getLastTokenAndRange(text, caretPos) {
+	  const left = text.slice(0, caretPos);
+	  const m = left.match(/(\S+)$/);
+	  const token = m ? m[1] : "";
+	  const start = m ? (caretPos - token.length) : caretPos;
+	  return { token, start, end: caretPos };
+	}
+
+	function replaceRange(text, start, end, replacement) {
+	  return text.slice(0, start) + replacement + text.slice(end);
+	}
+
+	function makeSuggestionBox() {
+	  const box = document.createElement("div");
+	  box.className = "suggestion-box";
+	  box.style.position = "absolute";
+	  box.style.zIndex = "9999";
+	  box.style.background = "white";
+	  box.style.border = "1px solid #ddd";
+	  box.style.borderRadius = "6px";
+	  box.style.boxShadow = "0 6px 18px rgba(0,0,0,0.08)";
+	  box.style.maxWidth = "420px";
+	  box.style.fontSize = "14px";
+	  box.style.display = "none";
+	  box.style.maxHeight = "200px";
+	  box.style.overflowY = "auto";
+	  document.body.appendChild(box);
+	  return box;
+	}
+
+	function positionBoxForTextarea(box, textarea) {
+	  const r = textarea.getBoundingClientRect();
+	  box.style.left = `${r.left + window.scrollX + 6}px`;
+	  box.style.top = `${r.bottom + window.scrollY + 6}px`;
+	  box.style.width = Math.min(420, r.width - 12) + "px";
+	}
+
+	async function fetchLanguageToolSuggestions(text, lang = "sv") {
+	  try {
+		const p = new URLSearchParams({ 
+		  text, 
+		  language: lang,
+		  enabledOnly: "false"
+		});
+		
+		const r = await fetch("https://api.languagetool.org/v2/check", {
+		  method: "POST",
+		  headers: { 
+			"Content-Type": "application/x-www-form-urlencoded",
+			"Accept": "application/json"
+		  },
+		  body: p.toString()
+		});
+		
+		if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+		
+		const d = await r.json();
+		return d.matches || [];
+	  } catch (error) {
+		console.error("❌ Error fetching suggestions:", error);
+		return [];
+	  }
+	}
+
+	function mapLTMatchesToSuggestions(matches, start, end) {
+	  const out = [];
+	  // Solo sugerencias para errores en la posición actual
+	  matches.forEach(m => {
+		if (m.offset <= start && (m.offset + m.length) >= end) {
+		  (m.replacements || []).forEach(r => out.push(r.value));
+		}
+	  });
+	  return Array.from(new Set(out)).slice(0, MAX_SUGGESTIONS);
+	}
+
+	function enhanceTextarea(textarea, lang = "sv") {
+	  const box = makeSuggestionBox();
+	  
+	  const hide = () => {
+		box.style.display = "none";
+		box.innerHTML = "";
+	  };
+	  
+	  function applySuggestion(s) {
+		const { start, end } = getLastTokenAndRange(textarea.value, textarea.selectionStart);
+		textarea.value = replaceRange(textarea.value, start, end, s + " ");
+		textarea.focus();
+		const pos = start + s.length + 1;
+		textarea.setSelectionRange(pos, pos);
+		hide();
+		// Redisparar input para nuevas sugerencias
+		textarea.dispatchEvent(new Event('input', { bubbles: true }));
+	  }
+	  
+	  const show = list => {
+		if (!list.length) return hide();
+		
+		box.innerHTML = list.map(v => 
+		  `<div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;transition:background 0.2s;">${v}</div>`
+		).join("");
+		
+		// Agregar evento a cada sugerencia
+		box.querySelectorAll('div').forEach(div => {
+		  div.addEventListener('click', () => applySuggestion(div.textContent));
+		  div.addEventListener('mouseenter', () => {
+			div.style.background = "#f3f4f6";
+		  });
+		  div.addEventListener('mouseleave', () => {
+			div.style.background = "";
+		  });
+		});
+		
+		positionBoxForTextarea(box, textarea);
+		box.style.display = "block";
+	  };
+	  
+	  const query = debounce(async () => {
+		const { token, start, end } = getLastTokenAndRange(textarea.value, textarea.selectionStart);
+		if (!token || token.length < 2) return hide(); // Solo si hay palabra de al menos 2 caracteres
+		
+		let suggestions = [];
+		
+		if (SUGGESTION_PROVIDER === "languagetool") {
+		  const matches = await fetchLanguageToolSuggestions(textarea.value, lang);
+		  suggestions = mapLTMatchesToSuggestions(matches, start, end);
+		}
+		
+		show(suggestions);
+	  }, DEBOUNCE_MS);
+	  
+	  // Event listeners
+	  textarea.addEventListener("input", query);
+	  textarea.addEventListener("click", query); // También al hacer clic
+	  textarea.addEventListener("blur", () => setTimeout(hide, 150));
+	  textarea.addEventListener("keydown", (e) => {
+		if (e.key === 'Escape') hide();
+	  });
+	  
+	  window.addEventListener("resize", () => {
+		if (box.style.display !== 'none') {
+		  positionBoxForTextarea(box, textarea);
+		}
+	  });
+	  
+	  // Cerrar al hacer clic fuera
+	  document.addEventListener("click", (e) => {
+		if (!box.contains(e.target) && e.target !== textarea) {
+		  hide();
+		}
+	  });
+	}
+
+	// Inicializar cuando el DOM esté listo
+	document.addEventListener("DOMContentLoaded", () => {
+	  // Esperar un poco para asegurar que todo esté cargado
+	  setTimeout(() => {
+		const textareas = [
+		  document.getElementById("notes"),
+		  document.getElementById("edit-notes")
+		].filter(Boolean);
+		
+		textareas.forEach(textarea => {
+		  enhanceTextarea(textarea, document.documentElement.lang || "sv");
+		});
+	  }, 100);
+	});
+	</script>
+
+	<style>
+	.suggestion-box {
+	  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	}
+
+	.suggestion-box div:hover { 
+	  background: #eef !important; 
+	}
+
+	.suggestion-box div:last-child {
+	  border-bottom: none !important;
+	}
+	</style>
+	<!-- 🔼 FIN DEL CÓDIGO MEJORADO 🔼 -->
 </body>
 </html>
-
-
