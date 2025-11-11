@@ -407,6 +407,21 @@
 	.case-buttons button:active {
 		background: #d0d0d0;
 	}
+	@media print {
+	  body * {
+		visibility: hidden;
+	  }
+	  #print-container,
+	  #print-container * {
+		visibility: visible;
+	  }
+	  #print-container {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+	  }
+	}	
   </style>
 </head>
 <body class="min-h-screen">
@@ -760,15 +775,20 @@
           <div class="card p-4">
             <h3 class="text-lg font-semibold mb-4" data-i18n="export">Exportera</h3>
             
-            <div class="flex flex-wrap gap-2">
-              <button id="export-pdf-btn" class="btn-primary text-sm">
-                <i class="fas fa-file-pdf mr-1"></i> <span data-i18n="export_pdf">Exportera PDF</span>
-              </button>
-              
-              <button id="export-word-btn" class="btn-outline text-sm">
-                <i class="fas fa-file-word mr-1"></i> <span data-i18n="export_word">Exportera Word</span>
-              </button>
-            </div>
+			<div class="flex flex-wrap gap-2">
+			  <button id="export-pdf-btn" class="btn-primary text-sm">
+				<i class="fas fa-file-pdf mr-1"></i> <span data-i18n="export_pdf">Exportera PDF</span>
+			  </button>
+			  
+			  <button id="export-word-btn" class="btn-outline text-sm">
+				<i class="fas fa-file-word mr-1"></i> <span data-i18n="export_word">Exportera Word</span>
+			  </button>
+
+			  <!-- BOTÓN DE IMPRESIÓN - NUEVO -->
+			  <button id="print-report-btn" class="btn-outline text-sm">
+				<i class="fas fa-print mr-1"></i> <span data-i18n="print_report">Visa på skärmen</span>
+			  </button>
+			</div>
           </div>
         </div>
         
@@ -1128,62 +1148,115 @@
 	</div>
 
     
-    <!-- Export Modal -->
-    <div id="export-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg max-w-lg w-full">
-        <div class="p-4 border-b flex justify-between items-center">
-          <h3 class="text-xl font-semibold" id="export-modal-title">Exportera till PDF</h3>
-          <button id="close-export-modal" class="text-gray-500 hover:text-gray-700">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        
-        <div class="p-4">
-          <form id="export-form">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div class="form-group">
-                <label for="export-start-date" class="form-label" data-i18n="start_date">Startdatum</label>
-                <input type="date" id="export-start-date" class="form-control" required>
-              </div>
-              
-              <div class="form-group">
-                <label for="export-end-date" class="form-label" data-i18n="end_date">Slutdatum</label>
-                <input type="date" id="export-end-date" class="form-control" required>
-              </div>
-            </div>
-            
-            <div class="form-group mb-4">
-              <label for="export-project" class="form-label" data-i18n="project">Projekt</label>
-              <select id="export-project" class="form-control">
-                <option value="all" data-i18n="all_projects">Alla projekt</option>
-              </select>
-            </div>
-            
-            <div class="form-group mb-4">
-              <label for="export-sort-by" class="form-label" data-i18n="sort_by">Sortera efter</label>
-              <select id="export-sort-by" class="form-control">
-                <option value="date" data-i18n="date">Datum</option>
-                <option value="project" data-i18n="project">Projekt</option>
-              </select>
-            </div>
-            
-            <div class="form-group mb-4">
-              <label for="export-order" class="form-label" data-i18n="order">Ordning</label>
-              <select id="export-order" class="form-control">
-                <option value="asc" data-i18n="ascending">Stigande</option>
-                <option value="desc" data-i18n="descending">Fallande</option>
-              </select>
-            </div>
-            
-            <div class="flex justify-between mt-6">
-              <button type="button" id="cancel-export" class="btn-outline" data-i18n="cancel">Avbryt</button>
-              <button type="submit" class="btn-primary" data-i18n="generate_report">Generera rapport</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
+	<!-- Export Modal -->
+	<div id="export-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+	  <div class="bg-white rounded-lg max-w-lg w-full">
+		<div class="p-4 border-b flex justify-between items-center">
+		  <h3 class="text-xl font-semibold" id="export-modal-title">Exportera till PDF</h3>
+		  <button id="close-export-modal" class="text-gray-500 hover:text-gray-700">
+			<i class="fas fa-times"></i>
+		  </button>
+		</div>
+		
+		<div class="p-4">
+		  <form id="export-form">
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+			  <div class="form-group">
+				<label for="export-start-date" class="form-label" data-i18n="start_date">Startdatum</label>
+				<input type="date" id="export-start-date" class="form-control" required>
+			  </div>
+			  
+			  <div class="form-group">
+				<label for="export-end-date" class="form-label" data-i18n="end_date">Slutdatum</label>
+				<input type="date" id="export-end-date" class="form-control" required>
+			  </div>
+			</div>
+			
+			<div class="form-group mb-4">
+			  <label for="export-project" class="form-label" data-i18n="project">Projekt</label>
+			  <select id="export-project" class="form-control">
+				<option value="all" data-i18n="all_projects">Alla projekt</option>
+			  </select>
+			</div>
+			
+			<div class="form-group mb-4">
+			  <label for="export-sort-by" class="form-label" data-i18n="sort_by">Sortera efter</label>
+			  <select id="export-sort-by" class="form-control">
+				<option value="date" data-i18n="date">Datum</option>
+				<option value="project" data-i18n="project">Projekt</option>
+			  </select>
+			</div>
+			
+			<div class="form-group mb-4">
+			  <label for="export-order" class="form-label" data-i18n="order">Ordning</label>
+			  <select id="export-order" class="form-control">
+				<option value="asc" data-i18n="ascending">Stigande</option>
+				<option value="desc" data-i18n="descending">Fallande</option>
+			  </select>
+			</div>
+			
+			<div class="flex justify-between mt-6">
+			  <button type="button" id="cancel-export" class="btn-outline" data-i18n="cancel">Avbryt</button>
+			  <button type="submit" class="btn-primary" data-i18n="generate_report">Generera rapport</button>
+			</div>
+		  </form>
+		</div>
+	  </div>
+	</div>
+
+	<!-- Print Modal -->
+	<div id="print-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+	  <div class="bg-white rounded-lg max-w-lg w-full">
+		<div class="p-4 border-b flex justify-between items-center">
+		  <h3 class="text-xl font-semibold" data-i18n="print_report">Visa på skärmen</h3>
+		  <button id="close-print-modal" class="text-gray-500 hover:text-gray-700">
+			<i class="fas fa-times"></i>
+		  </button>
+		</div>
+		
+		<div class="p-4">
+		  <form id="print-form">
+			<div class="form-group mb-4">
+			  <label class="flex items-center">
+				<input type="checkbox" id="print-current-month" class="mr-2">
+				<span data-i18n="current_month">Aktuell månad</span>
+			  </label>
+			</div>
+			
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4" id="print-date-filters">
+			  <div class="form-group">
+				<label for="print-year" class="form-label" data-i18n="year">År</label>
+				<select id="print-year" class="form-control">
+				</select>
+			  </div>
+			  
+			  <div class="form-group">
+				<label for="print-month" class="form-label" data-i18n="month">Månad</label>
+				<select id="print-month" class="form-control">
+				  <option value="1" data-i18n="january">Januari</option>
+				  <option value="2" data-i18n="february">Februari</option>
+				  <option value="3" data-i18n="march">Mars</option>
+				  <option value="4" data-i18n="april">April</option>
+				  <option value="5" data-i18n="may">Maj</option>
+				  <option value="6" data-i18n="june">Juni</option>
+				  <option value="7" data-i18n="july">Juli</option>
+				  <option value="8" data-i18n="august">Augusti</option>
+				  <option value="9" data-i18n="september">September</option>
+				  <option value="10" data-i18n="october">Oktober</option>
+				  <option value="11" data-i18n="november">November</option>
+				  <option value="12" data-i18n="december">December</option>
+				</select>
+			  </div>
+			</div>
+			
+			<div class="flex justify-between mt-6">
+			  <button type="button" id="cancel-print" class="btn-outline" data-i18n="cancel">Avbryt</button>
+			  <button type="submit" class="btn-primary" data-i18n="print">Visa</button>
+			</div>
+		  </form>
+		</div>
+	  </div>
+	</div>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
@@ -1356,8 +1429,23 @@
         'language_russian': 'Русский',
         'language_polish': 'Polski',
         'language_thai': 'ไทย',
-        'by_author': 'av Vinny',
+        'by_author': 'av Vinny',  'print_report': 'Visa på skärmen',
+		'current_month': 'Aktuell månad',
+		'print': 'Visa',
+		'january': 'Januari',
+		'february': 'Februari',
+		'march': 'Mars',
+		'april': 'April',
+		'may': 'Maj',
+		'june': 'Juni',
+		'july': 'Juli',
+		'august': 'Augusti',
+		'september': 'September',
+		'october': 'Oktober',
+		'november': 'November',
+		'december': 'December',
         'subject_to_translation': 'Vissa delar kan vara föremål för översättning'
+		
       },
       'es': {
         'app-title': 'TimeBook Pro',
@@ -1470,6 +1558,21 @@
         'language_polish': 'Polski',
         'language_thai': 'ไทย',
         'by_author': 'por Vinny',
+		'print_report': 'Visa reporte',
+		'current_month': 'Mes actual',
+		'print': 'Visa',
+		'january': 'Enero',
+		'february': 'Febrero',
+		'march': 'Marzo',
+		'april': 'Abril',
+		'may': 'Mayo',
+		'june': 'Junio',
+		'july': 'Julio',
+		'august': 'Agosto',
+		'september': 'Septiembre',
+		'october': 'Octubre',
+		'november': 'Noviembre',
+		'december': 'Diciembre',
         'subject_to_translation': 'Algunas partes pueden estar sujetas a traducción'
       },
       'en': {
@@ -1583,6 +1686,21 @@
         'language_polish': 'Polski',
         'language_thai': 'ไทย',
         'by_author': 'by Vinny',
+		'print_report': 'Print report',
+		'current_month': 'Current month',
+		'print': 'Print',
+		'january': 'January',
+		'february': 'February',
+		'march': 'March',
+		'april': 'April',
+		'may': 'May',
+		'june': 'June',
+		'july': 'July',
+		'august': 'August',
+		'september': 'September',
+		'october': 'October',
+		'november': 'November',
+		'december': 'December',		
         'subject_to_translation': 'Some parts may be subject to translation'
       },
       'ru': {
@@ -1951,49 +2069,67 @@
       changeLanguage(state.currentLanguage);
     }
 
-    // Change language
-    function changeLanguage(lang) {
-      state.currentLanguage = lang;
-      localStorage.setItem('language', lang);
-      
-      // Update UI elements
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (translations[lang][key]) {
-          el.textContent = translations[lang][key];
-        }
-      });
-      
-      // Update placeholder texts
-      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-        const key = el.getAttribute('data-i18n-placeholder');
-        if (translations[lang][key]) {
-          el.placeholder = translations[lang][key];
-        }
-      });
-      
-      // Update current language indicator
-      document.getElementById('current-language').textContent = lang.toUpperCase();
-      document.getElementById('current-flag').className = `language-flag flag-${lang}`;
-      
-      // Update charts if they exist
-      if (state.weeklyChart) {
-        state.weeklyChart.destroy();
-        initWeeklyChart();
-      }
-      
-      if (state.projectChart) {
-        state.projectChart.destroy();
-        initProjectChart();
+	// ---- Reemplaza tu función changeLanguage existente por esta ----
+	function changeLanguage(lang) {
+	  state.currentLanguage = lang;
+	  localStorage.setItem('language', lang);
+
+	  // 1) Actualiza cualquier elemento con data-i18n (texto)
+	  document.querySelectorAll('[data-i18n]').forEach(el => {
+		const key = el.getAttribute('data-i18n');
+		if (translations[lang] && translations[lang][key]) {
+		  // Si es <option>, usa textContent (compatibilidad)
+		  if (el.tagName.toLowerCase() === 'option') {
+			el.textContent = translations[lang][key];
+		  } else {
+			el.textContent = translations[lang][key];
+		  }
+		}
+	  });
+
+	  // 2) Actualiza placeholders
+	  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+		const key = el.getAttribute('data-i18n-placeholder');
+		if (translations[lang] && translations[lang][key]) {
+		  el.placeholder = translations[lang][key];
+		}
+	  });
+
+	  // 3) Actualiza el indicador de idioma (texto y bandera)
+	  const currentLangEl = document.getElementById('current-language');
+	  const currentFlagEl = document.getElementById('current-flag');
+	  if (currentLangEl) currentLangEl.textContent = lang.toUpperCase();
+	  if (currentFlagEl) currentFlagEl.className = `language-flag flag-${lang}`;
+
+	  // 4) Fuerza la reconstrucción de selects dinámicos de proyectos
+	  //    loadProjects() añade el option por defecto con la traducción actual,
+	  //    así evitamos inconsistencias entre elementos estáticos y dinámicos.
+	  if (typeof loadProjects === 'function') {
+		try {
+		  loadProjects();
+		} catch (err) {
+		  console.warn('loadProjects fallo al actualizar idioma:', err);
+		}
 	  }
 
-	  // ✅ Update spellcheck language for textareas
+	  // 5) Actualiza charts/destrucción + reinit (ya tenías esto)
+	  if (state.weeklyChart) {
+		state.weeklyChart.destroy();
+		initWeeklyChart();
+	  }
+	  if (state.projectChart) {
+		state.projectChart.destroy();
+		initProjectChart();
+	  }
+
+	  // 6) Actualiza spellcheck/lang de textareas
 	  const newLang = langMap[lang] || "sv";
 	  document.querySelectorAll("textarea").forEach(el => {
 		el.setAttribute("lang", newLang);
 		el.setAttribute("spellcheck", "true");
 	  });
-	}	  
+	}
+	  
 
     // Initialize application
     function initApp() {
@@ -2095,6 +2231,12 @@
       document.getElementById('close-export-modal').addEventListener('click', closeExportModal);
       document.getElementById('cancel-export').addEventListener('click', closeExportModal);
       document.getElementById('export-form').addEventListener('submit', handleExport);
+	  // Print button
+	  document.getElementById('print-report-btn').addEventListener('click', openPrintModal);
+	  document.getElementById('close-print-modal').addEventListener('click', closePrintModal);
+	  document.getElementById('cancel-print').addEventListener('click', closePrintModal);
+	  document.getElementById('print-form').addEventListener('submit', handlePrint);
+	  document.getElementById('print-current-month').addEventListener('change', togglePrintDateFilters);
       
       // Company settings
       document.getElementById('company-settings-form').addEventListener('submit', handleCompanySettings);
@@ -3945,8 +4087,6 @@
 	  }
 	}
 
-
-    // Export to Word
 	// Export to Word - Versión mejorada
 	function exportToWord(records, startDate, endDate) {
 	  showLoading(true);
@@ -4168,6 +4308,217 @@
 		showLoading(false);
 	  }
 	}
+// ========== FUNCIONES DE IMPRESIÓN ==========
+
+// Open print modal
+function openPrintModal() {
+  // Populate year filter
+  const yearSelect = document.getElementById('print-year');
+  yearSelect.innerHTML = '';
+  
+  // Get unique years from records
+  const years = new Set();
+  Object.values(state.records).forEach(record => {
+    const year = new Date(record.date).getFullYear();
+    years.add(year);
+  });
+  
+  // If no records, add current year
+  if (years.size === 0) {
+    years.add(new Date().getFullYear());
+  }
+  
+  // Sort years in descending order
+  const sortedYears = Array.from(years).sort((a, b) => b - a);
+  
+  // Add years to filter
+  sortedYears.forEach(year => {
+    const option = document.createElement('option');
+    option.value = year;
+    option.textContent = year;
+    yearSelect.appendChild(option);
+  });
+  
+  // Set current year and month by default
+  const now = new Date();
+  yearSelect.value = now.getFullYear();
+  document.getElementById('print-month').value = now.getMonth() + 1;
+  
+  // Show modal
+  document.getElementById('print-modal').classList.remove('hidden');
+  document.getElementById('print-modal').classList.add('flex');
+}
+
+// Close print modal
+function closePrintModal() {
+  document.getElementById('print-modal').classList.add('hidden');
+  document.getElementById('print-modal').classList.remove('flex');
+}
+
+// Toggle date filters based on current month checkbox
+function togglePrintDateFilters() {
+  const currentMonthCheckbox = document.getElementById('print-current-month');
+  const dateFilters = document.getElementById('print-date-filters');
+  
+  if (currentMonthCheckbox.checked) {
+    dateFilters.classList.add('hidden');
+  } else {
+    dateFilters.classList.remove('hidden');
+  }
+}
+
+// Handle print
+function handlePrint(e) {
+  e.preventDefault();
+  closePrintModal();
+  
+  const currentMonthCheckbox = document.getElementById('print-current-month');
+  let startDate, endDate;
+  
+  if (currentMonthCheckbox.checked) {
+    // Use current month
+    const now = new Date();
+    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  } else {
+    // Use selected year and month
+    const year = parseInt(document.getElementById('print-year').value);
+    const month = parseInt(document.getElementById('print-month').value);
+    startDate = new Date(year, month - 1, 1);
+    endDate = new Date(year, month, 0);
+  }
+  
+  // Format dates as YYYY-MM-DD
+  const formatDateForFilter = (date) => {
+    return date.toISOString().split('T')[0];
+  };
+  
+  const startDateStr = formatDateForFilter(startDate);
+  const endDateStr = formatDateForFilter(endDate);
+  
+  // Filter records by date range
+  let printRecords = Object.entries(state.records).filter(([id, record]) => {
+    const recordDate = new Date(record.date);
+    return recordDate >= new Date(startDateStr) && recordDate <= new Date(endDateStr);
+  });
+  
+  // Sort records by date (oldest first)
+  printRecords.sort((a, b) => new Date(a[1].date) - new Date(b[1].date));
+  
+  // Generate print content
+  generatePrintContent(printRecords, startDateStr, endDateStr);
+}
+
+// Generate print content and open print dialog
+function generatePrintContent(records, startDate, endDate) {
+  // Create a temporary container for printing
+  const printContainer = document.createElement('div');
+  printContainer.id = 'print-container';
+  printContainer.style.padding = '20px';
+  printContainer.style.fontFamily = 'Arial, sans-serif';
+  printContainer.style.fontSize = '12px';
+  printContainer.style.backgroundColor = 'white';
+  
+  // Build content similar to PDF but simplified
+  let content = `
+    <div style="margin-bottom: 20px; border-bottom: 2px solid #1e4094; padding-bottom: 15px;">
+      <div style="font-size: 14px; font-weight: bold; color: #1e4094; margin-bottom: 5px;">
+        ${state.companySettings.name || 'Exempel AB'}
+      </div>
+      <div style="font-size: 10px; color: #666;">
+        ${state.companySettings.address || 'Köpmangatan 5, plan 10'}<br>
+        ${state.companySettings.postal || '151 71 Södertälje'} | Tel: ${state.companySettings.phone || '079-079 00 45'}<br>
+        Org.nr: ${state.companySettings.orgnr || '559096-5983'}
+      </div>
+    </div>
+    
+    <h1 style="color: #1e4094; text-align: center; font-size: 18px; margin: 15px 0;">
+      ARBETSRAPPORT
+    </h1>
+    
+    <div style="margin-bottom: 15px; font-size: 11px;">
+      <strong>Mätningsingenjör:</strong> ${state.user.firstName} ${state.user.lastName}<br>
+      <strong>Period:</strong> ${formatDateShort(startDate)} - ${formatDateShort(endDate)}<br>
+      <strong>Genereringsdatum:</strong> ${new Date().toLocaleDateString('sv-SE')}
+    </div>
+    
+    <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+      <thead>
+        <tr style="background-color: #1e4094; color: white;">
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Datum</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Dag</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Från</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Till</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: right;">Rast (h)</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: right;">Timmar</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Projekt</th>
+          <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Beskrivning</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+  
+  let totalHours = 0;
+  
+  records.forEach(([id, record]) => {
+    const project = state.projects[record.projectId] || { name: 'Okänd', code: '?' };
+    const date = new Date(record.date);
+    const dateStr = formatDateShort(record.date);
+    const dayName = getSwedishDayName(date);
+    
+    // Calculate hours worked
+    const [startHours, startMinutes] = record.startTime.split(':').map(Number);
+    const [endHours, endMinutes] = record.endTime.split(':').map(Number);
+    const startTotalMinutes = startHours * 60 + startMinutes;
+    const endTotalMinutes = endHours * 60 + endMinutes;
+    const workedMinutes = endTotalMinutes - startTotalMinutes - record.breakTime;
+    const workedHours = workedMinutes / 60;
+    
+    totalHours += workedHours;
+    
+    content += `
+      <tr>
+        <td style="padding: 6px; border: 1px solid #ddd;">${dateStr}</td>
+        <td style="padding: 6px; border: 1px solid #ddd;">${dayName}</td>
+        <td style="padding: 6px; border: 1px solid #ddd;">${record.startTime}</td>
+        <td style="padding: 6px; border: 1px solid #ddd;">${record.endTime}</td>
+        <td style="padding: 6px; border: 1px solid #ddd; text-align: right;">${(record.breakTime / 60).toFixed(2)}</td>
+        <td style="padding: 6px; border: 1px solid #ddd; text-align: right;">${workedHours.toFixed(2)}</td>
+        <td style="padding: 6px; border: 1px solid #ddd;">${project.name}</td>
+        <td style="padding: 6px; border: 1px solid #ddd;">${record.notes || ''}</td>
+      </tr>
+    `;
+  });
+  
+  content += `
+      </tbody>
+    </table>
+    
+    <div style="margin-top: 20px; text-align: right; font-weight: bold; font-size: 11px;">
+      TOTALT ARBETADE TIMMAR: ${totalHours.toFixed(2)}
+    </div>
+    
+    <div style="margin-top: 30px; text-align: center; font-size: 9px; color: #888; font-style: italic;">
+      Genererad automatiskt av TimeBook Pro
+    </div>
+  `;
+  
+  printContainer.innerHTML = content;
+  
+  // Add container to document body
+  document.body.appendChild(printContainer);
+  
+  // Open print dialog
+  window.print();
+  
+  // Remove container after printing
+  setTimeout(() => {
+    if (document.body.contains(printContainer)) {
+      document.body.removeChild(printContainer);
+    }
+  }, 100);
+}
+	
   </script>
 <footer class="w-full text-center py-4 mt-8 border-t text-gray-600 text-sm">
   © <span id="current-year"></span> 
@@ -4377,6 +4728,7 @@
 	  border-bottom: none !important;
 	}
 	</style>
+
 	<!-- 🔼 FIN DEL CÓDIGO MEJORADO 🔼 -->
 </body>
 </html>
