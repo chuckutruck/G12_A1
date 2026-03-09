@@ -756,405 +756,403 @@
 
 				<script>
 				// ============================================
-				// DEEPSEEK AI INTEGRATION - VERSIÓN COMPLETA
+				// DEEPSEEK AI INTEGRATION - VERSIÓN CORREGIDA
 				// ============================================
-
+				
 				const textarea = document.getElementById("notes");
 				const suggestionsDiv = document.getElementById("suggestions");
-
-				// Configuración
-				const AI_PROXY_URL = 'https://g12-gk6hg0bpw-chuckutruck-2981s-projects.vercel.app/deepseek-api/api/deepseek';
+				
+				// ✅ URL CORREGIDA - NUEVA URL DE VERCEL
+				const AI_PROXY_URL = 'https://g12-e5q8rzxvk-chuckutruck-2981s-projects.vercel.app/deepseek-api/api/deepseek';
 				let typingTimer;
 				const DONE_TYPING_DELAY = 800;
-
+				
 				// Caché local
 				const suggestionCache = new Map();
-
+				
 				// ============================================
 				// FUNCIÓN: Obtener sugerencias de DeepSeek
 				// ============================================
 				async function getAISuggestions(word, fullText) {
-					if (suggestionCache.has(word)) {
-						return suggestionCache.get(word);
-					}
-					
-					try {
-						const response = await fetch(AI_PROXY_URL, {
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								word: word,
-								context: fullText,
-								mode: 'spellcheck'
-							})
-						});
-						
-						const data = await response.json();
-						suggestionCache.set(word, data);
-						return data;
-					} catch (error) {
-						console.error('Error calling AI:', error);
-						return null;
-					}
+				    if (suggestionCache.has(word)) {
+				        return suggestionCache.get(word);
+				    }
+				    
+				    try {
+				        const response = await fetch(AI_PROXY_URL, {
+				            method: 'POST',
+				            headers: { 'Content-Type': 'application/json' },
+				            body: JSON.stringify({
+				                word: word,
+				                context: fullText,
+				                mode: 'spellcheck'
+				            })
+				        });
+				        
+				        const data = await response.json();
+				        suggestionCache.set(word, data);
+				        return data;
+				    } catch (error) {
+				        console.error('Error calling AI:', error);
+				        return null;
+				    }
 				}
-
+				
 				// ============================================
 				// FUNCIÓN: Mostrar sugerencias de palabras
 				// ============================================
 				function showAISuggestions(aiResponse, originalWord) {
-					if (!aiResponse || !aiResponse.suggestions || aiResponse.suggestions.length === 0) {
-						suggestionsDiv.innerHTML = '';
-						return;
-					}
-					
-					const suggestions = aiResponse.suggestions || [];
-					const explanation = aiResponse.explanation || '';
-					
-					let html = `
-						<div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; 
-									padding: 16px; margin-top: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-									border-left: 4px solid #4b6bfb;">
-							
-							<div style="display: flex; align-items: center; margin-bottom: 12px;">
-								<div style="background: #4b6bfb; width: 28px; height: 28px; border-radius: 50%; 
-											display: flex; align-items: center; justify-content: center; margin-right: 10px;">
-									<i class="fas fa-robot" style="color: white; font-size: 14px;"></i>
-								</div>
-								<span style="font-weight: 600; font-size: 14px; color: #1a202c;">
-									DeepSeek AI
-								</span>
-							</div>
-					`;
-					
-					if (suggestions.length > 0) {
-						html += `<div style="margin-bottom: 8px; font-size: 12px; color: #4b5563;">
-									<i class="fas fa-magic" style="color: #4b6bfb; margin-right: 4px;"></i>
-									Förslag för "${originalWord}":
-								 </div>
-								 <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">`;
-						
-						suggestions.forEach((suggestion, index) => {
-							html += `
-								<button onclick="applyAISuggestion('${suggestion}')" 
-										style="background: ${index === 0 ? '#4b6bfb' : '#f3f4f6'}; 
-											   border: none;
-											   border-radius: 30px;
-											   padding: 6px 14px;
-											   font-size: 13px;
-											   color: ${index === 0 ? 'white' : '#1f2937'};
-											   cursor: pointer;
-											   border: 1px solid ${index === 0 ? '#4b6bfb' : '#e5e7eb'};">
-									${suggestion}
-								</button>
-							`;
-						});
-						
-						html += `</div>`;
-					}
-					
-					if (explanation) {
-						html += `<div style="font-size: 12px; color: #6b7280; background: #f9fafb; 
-											padding: 8px; border-radius: 6px; margin-bottom: 8px;">
-									<i class="fas fa-info-circle" style="color: #4b6bfb;"></i> ${explanation}
-								 </div>`;
-					}
-					
-					html += `
-						<div style="display: flex; gap: 8px; justify-content: flex-end;">
-							<button onclick="suggestionsDiv.innerHTML = ''" 
-									style="background: none; border: none; color: #6b7280; 
-										   font-size: 12px; cursor: pointer;">
-								Stäng
-							</button>
-						</div>
-					</div>`;
-					
-					suggestionsDiv.innerHTML = html;
+				    if (!aiResponse || !aiResponse.suggestions || aiResponse.suggestions.length === 0) {
+				        suggestionsDiv.innerHTML = '';
+				        return;
+				    }
+				    
+				    const suggestions = aiResponse.suggestions || [];
+				    const explanation = aiResponse.explanation || '';
+				    
+				    let html = `
+				        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; 
+				                    padding: 16px; margin-top: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+				                    border-left: 4px solid #4b6bfb;">
+				            
+				            <div style="display: flex; align-items: center; margin-bottom: 12px;">
+				                <div style="background: #4b6bfb; width: 28px; height: 28px; border-radius: 50%; 
+				                            display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+				                    <i class="fas fa-robot" style="color: white; font-size: 14px;"></i>
+				                </div>
+				                <span style="font-weight: 600; font-size: 14px; color: #1a202c;">
+				                    DeepSeek AI
+				                </span>
+				            </div>
+				    `;
+				    
+				    if (suggestions.length > 0) {
+				        html += `<div style="margin-bottom: 8px; font-size: 12px; color: #4b5563;">
+				                    <i class="fas fa-magic" style="color: #4b6bfb; margin-right: 4px;"></i>
+				                    Förslag för "${originalWord}":
+				                 </div>
+				                 <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">`;
+				        
+				        suggestions.forEach((suggestion, index) => {
+				            html += `
+				                <button type="button" onclick="applyAISuggestion('${suggestion}')" 
+				                        style="background: ${index === 0 ? '#4b6bfb' : '#f3f4f6'}; 
+				                               border: none;
+				                               border-radius: 30px;
+				                               padding: 6px 14px;
+				                               font-size: 13px;
+				                               color: ${index === 0 ? 'white' : '#1f2937'};
+				                               cursor: pointer;
+				                               border: 1px solid ${index === 0 ? '#4b6bfb' : '#e5e7eb'};">
+				                    ${suggestion}
+				                </button>
+				            `;
+				        });
+				        
+				        html += `</div>`;
+				    }
+				    
+				    if (explanation) {
+				        html += `<div style="font-size: 12px; color: #6b7280; background: #f9fafb; 
+				                            padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+				                    <i class="fas fa-info-circle" style="color: #4b6bfb;"></i> ${explanation}
+				                 </div>`;
+				    }
+				    
+				    html += `
+				        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+				            <button type="button" onclick="suggestionsDiv.innerHTML = ''" 
+				                    style="background: none; border: none; color: #6b7280; 
+				                           font-size: 12px; cursor: pointer;">
+				                Stäng
+				            </button>
+				        </div>
+				    </div>`;
+				    
+				    suggestionsDiv.innerHTML = html;
 				}
-
+				
 				// ============================================
 				// FUNCIÓN: Aplicar sugerencia de palabra
 				// ============================================
 				window.applyAISuggestion = function(newWord) {
-					const text = textarea.value;
-					const words = text.split(/\s+/);
-					words[words.length - 1] = newWord;
-					textarea.value = words.join(' ');
-					suggestionsDiv.innerHTML = '';
-					textarea.focus();
-					
-					textarea.style.backgroundColor = '#ecfdf5';
-					setTimeout(() => {
-						textarea.style.backgroundColor = '';
-					}, 500);
+				    const text = textarea.value;
+				    const words = text.split(/\s+/);
+				    words[words.length - 1] = newWord;
+				    textarea.value = words.join(' ');
+				    suggestionsDiv.innerHTML = '';
+				    textarea.focus();
+				    
+				    textarea.style.backgroundColor = '#ecfdf5';
+				    setTimeout(() => {
+				        textarea.style.backgroundColor = '';
+				    }, 500);
 				};
-
+				
 				// ============================================
-				// FUNCIÓN: Mejorar texto completo (AHORA CON VISTA PREVIA)
+				// FUNCIÓN: Mejorar texto completo (CON VISTA PREVIA)
 				// ============================================
 				window.improveWithAI = async function() {
-					const text = textarea.value;
-					if (!text) {
-						alert('Skriv något text först!');
-						return;
-					}
-					
-					suggestionsDiv.innerHTML = `
-						<div style="background: #f3f4f6; padding: 20px; border-radius: 8px; text-align: center;">
-							<i class="fas fa-spinner fa-spin fa-2x" style="color: #4b6bfb;"></i>
-							<div style="margin-top: 10px; color: #4b5563;">AI analyserar texten...</div>
-						</div>
-					`;
-					
-					try {
-						const response = await fetch(AI_PROXY_URL, {
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								word: text,
-								context: text,
-								mode: 'improve'
-							})
-						});
-						
-						const data = await response.json();
-						
-						if (data.improved) {
-							// Mostrar vista previa en lugar de reemplazar automáticamente
-							showPreview(data.improved, text, 'improve');
-						} else {
-							suggestionsDiv.innerHTML = '';
-							alert('Kunde inte förbättra texten');
-						}
-					} catch (error) {
-						console.error(error);
-						suggestionsDiv.innerHTML = '';
-						alert('Fel vid anslutning till AI');
-					}
+				    const text = textarea.value;
+				    if (!text) {
+				        alert('Skriv något text först!');
+				        return;
+				    }
+				    
+				    suggestionsDiv.innerHTML = `
+				        <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; text-align: center;">
+				            <i class="fas fa-spinner fa-spin fa-2x" style="color: #4b6bfb;"></i>
+				            <div style="margin-top: 10px; color: #4b5563;">AI analyserar texten...</div>
+				        </div>
+				    `;
+				    
+				    try {
+				        const response = await fetch(AI_PROXY_URL, {
+				            method: 'POST',
+				            headers: { 'Content-Type': 'application/json' },
+				            body: JSON.stringify({
+				                word: text,
+				                context: text,
+				                mode: 'improve'
+				            })
+				        });
+				        
+				        const data = await response.json();
+				        
+				        if (data.improved) {
+				            showPreview(data.improved, text, 'improve');
+				        } else {
+				            suggestionsDiv.innerHTML = '';
+				            alert('Kunde inte förbättra texten');
+				        }
+				    } catch (error) {
+				        console.error(error);
+				        suggestionsDiv.innerHTML = '';
+				        alert('Fel vid anslutning till AI');
+				    }
 				};
-
+				
 				// ============================================
-				// FUNCIÓN: Corregir gramática (AHORA CON VISTA PREVIA)
+				// FUNCIÓN: Corregir gramática (CON VISTA PREVIA)
 				// ============================================
 				window.fixGrammarWithAI = async function() {
-					const text = textarea.value;
-					if (!text) {
-						alert('Skriv något text först!');
-						return;
-					}
-					
-					suggestionsDiv.innerHTML = `
-						<div style="background: #f3f4f6; padding: 20px; border-radius: 8px; text-align: center;">
-							<i class="fas fa-spinner fa-spin fa-2x" style="color: #059669;"></i>
-							<div style="margin-top: 10px; color: #4b5563;">AI korrigerar grammatik...</div>
-						</div>
-					`;
-					
-					try {
-						const response = await fetch(AI_PROXY_URL, {
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								word: text,
-								context: text,
-								mode: 'grammar'
-							})
-						});
-						
-						const data = await response.json();
-						
-						if (data.corrected) {
-							// Mostrar vista previa en lugar de reemplazar automáticamente
-							showPreview(data.corrected, text, 'grammar');
-						} else {
-							suggestionsDiv.innerHTML = '';
-							alert('Kunde inte korrigera grammatiken');
-						}
-					} catch (error) {
-						console.error(error);
-						suggestionsDiv.innerHTML = '';
-						alert('Fel vid anslutning till AI');
-					}
+				    const text = textarea.value;
+				    if (!text) {
+				        alert('Skriv något text först!');
+				        return;
+				    }
+				    
+				    suggestionsDiv.innerHTML = `
+				        <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; text-align: center;">
+				            <i class="fas fa-spinner fa-spin fa-2x" style="color: #059669;"></i>
+				            <div style="margin-top: 10px; color: #4b5563;">AI korrigerar grammatik...</div>
+				        </div>
+				    `;
+				    
+				    try {
+				        const response = await fetch(AI_PROXY_URL, {
+				            method: 'POST',
+				            headers: { 'Content-Type': 'application/json' },
+				            body: JSON.stringify({
+				                word: text,
+				                context: text,
+				                mode: 'grammar'
+				            })
+				        });
+				        
+				        const data = await response.json();
+				        
+				        if (data.corrected) {
+				            showPreview(data.corrected, text, 'grammar');
+				        } else {
+				            suggestionsDiv.innerHTML = '';
+				            alert('Kunde inte korrigera grammatiken');
+				        }
+				    } catch (error) {
+				        console.error(error);
+				        suggestionsDiv.innerHTML = '';
+				        alert('Fel vid anslutning till AI');
+				    }
 				};
-
+				
 				// ============================================
 				// FUNCIÓN: Mostrar vista previa del texto mejorado
 				// ============================================
 				function showPreview(newText, originalText, mode) {
-					const color = mode === 'improve' ? '#4b6bfb' : '#059669';
-					const title = mode === 'improve' ? 'Förbättrad text' : 'Korrigerad text';
-					const icon = mode === 'improve' ? 'fa-wand-magic' : 'fa-spell-check';
-					
-					const html = `
-						<div style="background: white; border: 2px solid ${color}; border-radius: 12px; 
-									padding: 20px; margin-top: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
-							
-							<div style="display: flex; align-items: center; margin-bottom: 16px;">
-								<div style="background: ${color}; width: 32px; height: 32px; border-radius: 50%; 
-											display: flex; align-items: center; justify-content: center; margin-right: 12px;">
-									<i class="fas ${icon}" style="color: white; font-size: 16px;"></i>
-								</div>
-								<div>
-									<div style="font-weight: 600; font-size: 16px; color: #1f2937;">
-										AI föreslår ändringar
-									</div>
-									<div style="font-size: 12px; color: #6b7280;">
-										Granska och välj om du vill använda förslaget
-									</div>
-								</div>
-							</div>
-							
-							<div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 16px;
-										border: 1px solid #e5e7eb;">
-								
-								<div style="font-size: 12px; color: #4b5563; margin-bottom: 8px; font-weight: 500;">
-									📝 Original text:
-								</div>
-								<div style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e5e7eb;
-											font-size: 14px; color: #374151; margin-bottom: 16px;">
-									${originalText}
-								</div>
-								
-								<div style="font-size: 12px; color: #4b5563; margin-bottom: 8px; font-weight: 500;">
-									✨ ${title}:
-								</div>
-								<div style="background: ${mode === 'improve' ? '#eef2ff' : '#ecfdf5'}; padding: 12px; border-radius: 6px; 
-											border: 1px solid ${mode === 'improve' ? '#c7d2fe' : '#a7f3d0'};
-											font-size: 14px; color: ${mode === 'improve' ? '#1e40af' : '#065f46'};">
-									${newText}
-								</div>
-							</div>
-							
-							<div style="display: flex; gap: 12px; justify-content: flex-end;">
-								<button onclick="suggestionsDiv.innerHTML = ''" 
-										style="background: white; border: 1px solid #d1d5db; border-radius: 8px;
-											   padding: 10px 20px; font-size: 14px; color: #4b5563; cursor: pointer;">
-									Avbryt
-								</button>
-								<button onclick="applyImprovedText('${newText.replace(/'/g, "\\'")}')" 
-										style="background: ${color}; border: none; border-radius: 8px;
-											   padding: 10px 24px; font-size: 14px; color: white; cursor: pointer;
-											   display: flex; align-items: center; gap: 8px;">
-									<i class="fas fa-check"></i>
-									Använd förslag
-								</button>
-							</div>
-						</div>
-					`;
-					
-					suggestionsDiv.innerHTML = html;
+				    const color = mode === 'improve' ? '#4b6bfb' : '#059669';
+				    const title = mode === 'improve' ? 'Förbättrad text' : 'Korrigerad text';
+				    const icon = mode === 'improve' ? 'fa-wand-magic' : 'fa-spell-check';
+				    
+				    const html = `
+				        <div style="background: white; border: 2px solid ${color}; border-radius: 12px; 
+				                    padding: 20px; margin-top: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+				            
+				            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+				                <div style="background: ${color}; width: 32px; height: 32px; border-radius: 50%; 
+				                            display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+				                    <i class="fas ${icon}" style="color: white; font-size: 16px;"></i>
+				                </div>
+				                <div>
+				                    <div style="font-weight: 600; font-size: 16px; color: #1f2937;">
+				                        AI föreslår ändringar
+				                    </div>
+				                    <div style="font-size: 12px; color: #6b7280;">
+				                        Granska och välj om du vill använda förslaget
+				                    </div>
+				                </div>
+				            </div>
+				            
+				            <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 16px;
+				                        border: 1px solid #e5e7eb;">
+				                
+				                <div style="font-size: 12px; color: #4b5563; margin-bottom: 8px; font-weight: 500;">
+				                    📝 Original text:
+				                </div>
+				                <div style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e5e7eb;
+				                            font-size: 14px; color: #374151; margin-bottom: 16px;">
+				                    ${originalText}
+				                </div>
+				                
+				                <div style="font-size: 12px; color: #4b5563; margin-bottom: 8px; font-weight: 500;">
+				                    ✨ ${title}:
+				                </div>
+				                <div style="background: ${mode === 'improve' ? '#eef2ff' : '#ecfdf5'}; padding: 12px; border-radius: 6px; 
+				                            border: 1px solid ${mode === 'improve' ? '#c7d2fe' : '#a7f3d0'};
+				                            font-size: 14px; color: ${mode === 'improve' ? '#1e40af' : '#065f46'};">
+				                    ${newText}
+				                </div>
+				            </div>
+				            
+				            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+				                <button type="button" onclick="suggestionsDiv.innerHTML = ''" 
+				                        style="background: white; border: 1px solid #d1d5db; border-radius: 8px;
+				                               padding: 10px 20px; font-size: 14px; color: #4b5563; cursor: pointer;">
+				                    Avbryt
+				                </button>
+				                <button type="button" onclick="applyImprovedText('${newText.replace(/'/g, "\\'")}')" 
+				                        style="background: ${color}; border: none; border-radius: 8px;
+				                               padding: 10px 24px; font-size: 14px; color: white; cursor: pointer;
+				                               display: flex; align-items: center; gap: 8px;">
+				                    <i class="fas fa-check"></i>
+				                    Använd förslag
+				                </button>
+				            </div>
+				        </div>
+				    `;
+				    
+				    suggestionsDiv.innerHTML = html;
 				}
-
+				
 				// ============================================
 				// FUNCIÓN: Aplicar texto mejorado
 				// ============================================
 				window.applyImprovedText = function(newText) {
-					textarea.value = newText;
-					suggestionsDiv.innerHTML = `
-						<div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px;
-									padding: 12px; color: #065f46; margin-top: 8px;
-									display: flex; align-items: center; gap: 8px;">
-							<i class="fas fa-check-circle"></i>
-							Text uppdaterad! Du kan nu granska och spara posten.
-						</div>
-					`;
-					setTimeout(() => {
-						suggestionsDiv.innerHTML = '';
-					}, 3000);
+				    textarea.value = newText;
+				    suggestionsDiv.innerHTML = `
+				        <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px;
+				                    padding: 12px; color: #065f46; margin-top: 8px;
+				                    display: flex; align-items: center; gap: 8px;">
+				            <i class="fas fa-check-circle"></i>
+				            Text uppdaterad! Du kan nu granska och spara posten.
+				        </div>
+				    `;
+				    setTimeout(() => {
+				        suggestionsDiv.innerHTML = '';
+				    }, 3000);
 				};
-
+				
 				// ============================================
 				// EVENT LISTENER: Escribir en tiempo real
 				// ============================================
 				textarea.addEventListener("input", function() {
-					clearTimeout(typingTimer);
-					
-					const text = this.value;
-					const words = text.split(/\s+/);
-					const lastWord = words[words.length - 1].replace(/[.,!?;:]$/, '');
-					
-					if (lastWord && lastWord.length >= 3) {
-						suggestionsDiv.innerHTML = `
-							<div style="background: #f8fafc; padding: 8px 12px; border-radius: 20px; 
-										font-size: 12px; color: #4b6bfb; display: inline-block;
-										border: 1px solid #e2e8f0;">
-								<i class="fas fa-robot fa-spin mr-2"></i>
-								AI analyserar...
-							</div>
-						`;
-						
-						typingTimer = setTimeout(async () => {
-							const aiResponse = await getAISuggestions(lastWord, text);
-							if (aiResponse) {
-								showAISuggestions(aiResponse, lastWord);
-							} else {
-								suggestionsDiv.innerHTML = '';
-							}
-						}, DONE_TYPING_DELAY);
-					} else {
-						suggestionsDiv.innerHTML = '';
-					}
+				    clearTimeout(typingTimer);
+				    
+				    const text = this.value;
+				    const words = text.split(/\s+/);
+				    const lastWord = words[words.length - 1].replace(/[.,!?;:]$/, '');
+				    
+				    if (lastWord && lastWord.length >= 3) {
+				        suggestionsDiv.innerHTML = `
+				            <div style="background: #f8fafc; padding: 8px 12px; border-radius: 20px; 
+				                        font-size: 12px; color: #4b6bfb; display: inline-block;
+				                        border: 1px solid #e2e8f0;">
+				                <i class="fas fa-robot fa-spin mr-2"></i>
+				                AI analyserar...
+				            </div>
+				        `;
+				        
+				        typingTimer = setTimeout(async () => {
+				            const aiResponse = await getAISuggestions(lastWord, text);
+				            if (aiResponse) {
+				                showAISuggestions(aiResponse, lastWord);
+				            } else {
+				                suggestionsDiv.innerHTML = '';
+				            }
+				        }, DONE_TYPING_DELAY);
+				    } else {
+				        suggestionsDiv.innerHTML = '';
+				    }
 				});
-
+				
 				// ============================================
-				// CREAR BARRA DE HERRAMIENTAS
+				// ✅ BARRA DE HERRAMIENTAS CORREGIDA (con type="button")
 				// ============================================
 				const aiToolbar = `
-					<div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
-						<button onclick="improveWithAI()" 
-								style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 30px;
-									   padding: 8px 16px; font-size: 13px; color: #1e293b; cursor: pointer;
-									   display: inline-flex; align-items: center; gap: 8px;
-									   transition: all 0.2s;">
-							<i class="fas fa-wand-magic" style="color: #4b6bfb;"></i>
-							Förbättra med AI
-						</button>
-						<button onclick="fixGrammarWithAI()"
-								style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 30px;
-									   padding: 8px 16px; font-size: 13px; color: #1e293b; cursor: pointer;
-									   display: inline-flex; align-items: center; gap: 8px;
-									   transition: all 0.2s;">
-							<i class="fas fa-spell-check" style="color: #059669;"></i>
-							Rätta grammatik
-						</button>
-					</div>
+				    <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+				        <button type="button" onclick="improveWithAI()" 
+				                style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 30px;
+				                       padding: 8px 16px; font-size: 13px; color: #1e293b; cursor: pointer;
+				                       display: inline-flex; align-items: center; gap: 8px;
+				                       transition: all 0.2s;">
+				            <i class="fas fa-wand-magic" style="color: #4b6bfb;"></i>
+				            Förbättra med AI
+				        </button>
+				        <button type="button" onclick="fixGrammarWithAI()"
+				                style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 30px;
+				                       padding: 8px 16px; font-size: 13px; color: #1e293b; cursor: pointer;
+				                       display: inline-flex; align-items: center; gap: 8px;
+				                       transition: all 0.2s;">
+				            <i class="fas fa-spell-check" style="color: #059669;"></i>
+				            Rätta grammatik
+				        </button>
+				    </div>
 				`;
-
+				
 				// Insertar toolbar después del textarea
 				const toolbarContainer = document.createElement('div');
 				toolbarContainer.innerHTML = aiToolbar;
 				textarea.parentNode.appendChild(toolbarContainer);
-
+				
 				// ============================================
 				// ESTILOS CSS
 				// ============================================
 				const style = document.createElement('style');
 				style.textContent = `
-					@keyframes fadeIn {
-						from { opacity: 0; transform: translateY(-10px); }
-						to { opacity: 1; transform: translateY(0); }
-					}
-					
-					#suggestions > div {
-						animation: fadeIn 0.3s ease-out;
-					}
-					
-					button:hover {
-						transform: translateY(-1px);
-						box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-					}
-					
-					#notes {
-						transition: all 0.2s;
-						min-height: 80px;
-					}
-					
-					#notes:focus {
-						border-color: #4b6bfb;
-						box-shadow: 0 0 0 3px rgba(75, 107, 251, 0.1);
-					}
+				    @keyframes fadeIn {
+				        from { opacity: 0; transform: translateY(-10px); }
+				        to { opacity: 1; transform: translateY(0); }
+				    }
+				    
+				    #suggestions > div {
+				        animation: fadeIn 0.3s ease-out;
+				    }
+				    
+				    button:hover {
+				        transform: translateY(-1px);
+				        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+				    }
+				    
+				    #notes {
+				        transition: all 0.2s;
+				        min-height: 80px;
+				    }
+				    
+				    #notes:focus {
+				        border-color: #4b6bfb;
+				        box-shadow: 0 0 0 3px rgba(75, 107, 251, 0.1);
+				    }
 				`;
-
+				
 				document.head.appendChild(style);
 				</script>
               
@@ -5085,5 +5083,6 @@
   </style>
 </body>
 </html>
+
 
 
